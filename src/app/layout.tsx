@@ -3,8 +3,8 @@ import type { Metadata } from "next";
 import ClientBody from "./ClientBody";
 
 export const metadata: Metadata = {
-  title: "Premium Fruits | Fresh Fruits Delivery from Gardens",
-  description: "Premium Fruits (PF) is an Agritech Fruit chain initiative delivering safer fruits directly from gardens to your doorstep.",
+  title: "Deshi Fresh Bazar | Fresh Fruits Delivery from Gardens",
+  description: "Deshi Fresh Bazar (PF) is an Agritech Fruit chain initiative delivering safer fruits directly from gardens to your doorstep.",
   icons: {
     icon: [{ url: "/favicon.ico" }],
   },

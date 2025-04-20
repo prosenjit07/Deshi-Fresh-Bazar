@@ -1,7 +1,7 @@
 {
   "name": "premium-fruits-backend",
   "version": "1.0.0",
-  "description": "Backend API for Premium Fruits E-Commerce website",
+  "description": "Backend API for Deshi Fresh Bazar E-Commerce website",
   "main": "src/index.js",
   "scripts": {
     "dev": "nodemon src/index.js",

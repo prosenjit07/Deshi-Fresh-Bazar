@@ -78,7 +78,7 @@ export default function HomePage() {
       >
         <div className="absolute inset-0 bg-black/40" />
         <div className="container relative z-10 flex flex-col items-center text-center text-white">
-          <h1 className="mb-4 text-5xl font-bold">Premium Fruits Ltd.</h1>
+          <h1 className="mb-4 text-5xl font-bold">Deshi Fresh Bazar.</h1>
           <p className="mb-8 max-w-2xl text-lg">
             A fruit-only agri initiative delivering safer fruits directly from gardens.
           </p>

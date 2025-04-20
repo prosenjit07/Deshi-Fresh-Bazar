@@ -29,10 +29,10 @@ export default function Header() {
           <Link href="/" className="flex items-center gap-2">
             <Image
               src="https://ext.same-assets.com/377203966/1844563651.png"
-              alt="Premium Fruits"
+              alt="Deshi Fresh Bazar"
               width={150}
               height={40}
-              className="h-auto w-auto"
+              className="h-auto"
             />
           </Link>
           <nav className="hidden md:flex items-center gap-6">

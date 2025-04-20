@@ -11,14 +11,14 @@ export default function Footer() {
             <Link href="/" className="mb-4 inline-block">
               <Image
                 src="https://ext.same-assets.com/377203966/1844563651.png"
-                alt="Premium Fruits"
+                alt="Deshi Fresh Bazar"
                 width={150}
                 height={40}
                 className="h-auto w-auto"
               />
             </Link>
             <p className="mt-4 text-sm text-muted-foreground">
-              Premium Fruits (PF) is an Agritech Fruit chain initiative by BD. We supply premium quality fruits from our contracted and registered fruit farmers.
+              Deshi Fresh Bazar (PF) is an Agritech Fruit chain initiative by BD. We supply premium quality fruits from our contracted and registered fruit farmers.
             </p>
             <div className="mt-4 flex space-x-4">
               <Link
@@ -129,7 +129,7 @@ export default function Footer() {
       <div className="border-t border-gray-200 py-4">
         <div className="container">
           <p className="text-center text-sm text-muted-foreground">
-            © {new Date().getFullYear()} Premium Fruits. All rights reserved.
+            © {new Date().getFullYear()} Deshi Fresh Bazar. All rights reserved.
           </p>
         </div>
       </div>
