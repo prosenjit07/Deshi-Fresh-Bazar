@@ -10,7 +10,7 @@ export default function Footer() {
           <div>
             <Link href="/" className="mb-4 inline-block">
               <Image
-                src="https://ext.same-assets.com/377203966/1844563651.png"
+                src="/assets/images/fresh-bazar.jpg"
                 alt="Deshi Fresh Bazar"
                 width={150}
                 height={40}
@@ -22,7 +22,7 @@ export default function Footer() {
             </p>
             <div className="mt-4 flex space-x-4">
               <Link
-                href="https://facebook.com"
+                href="https://www.facebook.com/deshifreshbazar"
                 className="text-muted-foreground hover:text-foreground"
                 target="_blank"
                 rel="noopener noreferrer"

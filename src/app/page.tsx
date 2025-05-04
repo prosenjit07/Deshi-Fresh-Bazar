@@ -72,7 +72,7 @@ export default function HomePage() {
       <section
         className="relative bg-cover bg-center py-24"
         style={{
-          backgroundImage: "url(https://ext.same-assets.com/377203966/522915107.png)",
+          backgroundImage: "url(/assets/images/fresh-bazar.jpg)",
           backgroundSize: "cover"
         }}
       >
