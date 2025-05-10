@@ -6,6 +6,7 @@ import Link from "next/link";
 import RootLayout from "@/components/layout/RootLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import banner from "@/assets/images/banner.jpg";
 
 export default function HomePage() {
   const featuredProducts = [
@@ -70,30 +71,54 @@ export default function HomePage() {
     <RootLayout>
       {/* Hero section */}
       <section
-        className="relative bg-cover bg-center py-24"
+        className="relative min-h-[30vh] flex items-center justify-center bg-cover bg-center bg-fixed overflow-hidden"
         style={{
-          backgroundImage: "url(/assets/images/fresh-bazar.jpg)",
+          backgroundImage: `url(${banner.src})`,
           backgroundSize: "cover"
         }}
       >
-        <div className="absolute inset-0 bg-black/40" />
-        <div className="container relative z-10 flex flex-col items-center text-center text-white">
-          <h1 className="mb-4 text-5xl font-bold">Deshi Fresh Bazar.</h1>
-          <p className="mb-8 max-w-2xl text-lg">
-            A fruit-only agri initiative delivering safer fruits directly from gardens.
-          </p>
-          <div className="flex flex-wrap gap-4 justify-center">
-            <Button asChild className="bg-green-700 hover:bg-green-800">
-              <Link href="/gardens">Our Contracted Gardens</Link>
-            </Button>
-            <Button asChild variant="outline" className="border-white text-white hover:bg-white hover:text-green-800">
-              <Link href="/fruits">Try our fruits</Link>
-            </Button>
+        {/* Gradient overlay for better text visibility */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/40 to-black/60 backdrop-blur-[2px]" />
+        
+        <div className="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-24 lg:py-32">
+          <div className="flex flex-col items-center text-center space-y-8 max-w-4xl mx-auto">
+            <div className="space-y-4">
+              <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold text-white tracking-tight leading-tight animate-fade-in relative">
+                <span className="inline-block transform hover:scale-105 transition-transform duration-300">Deshi</span>{" "}
+                <span className="inline-block transform hover:scale-105 transition-transform duration-300 text-green-400">Fresh</span>{" "}
+                <span className="inline-block transform hover:scale-105 transition-transform duration-300">Bazar</span>
+                <span className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-24 h-1 bg-green-400"></span>
+              </h1>
+              <p className="text-lg sm:text-xl lg:text-2xl text-gray-200 max-w-2xl animate-fade-in-up font-medium tracking-wide">
+                সরাসরি বাগান থেকে নিরাপদ ও তাজা ফল – এখন আপনার দুয়ারে!
+              </p>
+            </div>
+            <p className="text-base sm:text-lg text-gray-300 max-w-3xl animate-fade-in-up leading-relaxed backdrop-blur-sm bg-black/10 p-6 rounded-lg shadow-xl border border-white/10">
+              দেশি ফ্রেশ বাজার একটি ফলমাত্র কৃষি উদ্যোগ, যেখানে আমরা দেশজ বাগান থেকে সংগ্রহ করা স্বাস্থ্যকর, বিষমুক্ত ও টাটকা ফল সরাসরি আপনার হাতে পৌঁছে দিই। কোনো প্রকার মধ্যস্থতা ছাড়াই, কৃষকের শ্রম আর প্রকৃতির উপহার আপনার ঘরে।
+            </p>
+            <div className="flex flex-wrap gap-4 justify-center mt-8 animate-fade-in-up">
+              <Button
+                asChild
+                className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-full transform transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-green-500/20"
+              >
+                <Link href="/gardens">Our Contracted Gardens</Link>
+              </Button>
+              <Button
+                asChild
+                variant="outline"
+                className="border-2 border-white text-gray hover:bg-white hover:text-green-700 px-8 py-3 rounded-full transform transition-all duration-300 hover:scale-105"
+              >
+                <Link href="/fruits">Try our fruits</Link>
+              </Button>
+            </div>
           </div>
         </div>
+
+        {/* Decorative bottom fade */}
+        <div className="absolute bottom-0 left-0 right-0 h-6 bg-gradient-to-t from-white/80 to-transparent" />
       </section>
 
-      {/* Categories section */}
+      {/* Categories section
       <section className="bg-white py-12">
         <div className="container">
           <div className="flex justify-around mb-8">
@@ -129,7 +154,7 @@ export default function HomePage() {
             </Link>
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* Featured products section */}
       <section className="bg-gray-50 py-16">
@@ -230,7 +255,7 @@ export default function HomePage() {
                 <h3 className="mb-2 text-xl font-semibold text-gray-800 group-hover:text-green-700 transition-colors">
                 নিবন্ধিত বাগান থেকে সরাসরি ফল সংগ্রহ
                 </h3>
-                <p className="text-sm text-gray-600">আমাদের নিবন্ধিত বাগান থেকে আমরা কীভাবে সাবধানে তাজা ফল সংগ্রহ করি, আমাদের গ্রাহকদের জন্য সর্বোচ্চ মানের ফল নিশ্চিত করি তা দেখুন।</p>
+                <p className="text-sm text-gray-600">আমাদের নিবন্ধিত বাগান থেকে আমরা কীভাবে সাবধানে তাজা ফল সংগ্রহ করি, আমাদের গ্রাহকদের জন্যর সর্বোচ্চ মানের ফল নিশ্চিত করি তা দেখুন।</p>
               </div>
             </div>
 
