@@ -210,58 +210,53 @@ export default function HomePage() {
       <section className="bg-gray-50 py-16">
         <div className="container">
           <h2 className="mb-12 text-center text-3xl font-bold uppercase">
-            Stories to Watch
+            Our Stories
             <div className="mx-auto mt-2 h-1 w-16 rounded-full bg-green-500"></div>
           </h2>
 
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-            <div className="overflow-hidden rounded-lg bg-black">
-              <div className="aspect-video">
-                <Image
-                  src="https://ext.same-assets.com/377203966/220553349.webp"
-                  alt="Live Fruit Collection"
-                  width={800}
-                  height={450}
-                  className="h-full w-full object-cover"
+            <div className="group overflow-hidden rounded-lg bg-black/5 shadow-lg transition-all hover:shadow-xl">
+              <div className="aspect-video relative overflow-hidden">
+                <iframe
+                  src="https://www.youtube.com/embed/L6bSkrqZsi4?autoplay=0"
+                  title="Live Fruit Collection From Registered Garden"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  className="absolute inset-0 h-full w-full object-cover"
+                  loading="lazy"
                 />
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="rounded-full bg-white/30 p-4">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white">
-                      <polygon points="5 3 19 12 5 21 5 3"></polygon>
-                    </svg>
-                  </div>
-                </div>
               </div>
-              <div className="p-4">
-                <h3 className="font-semibold">Live Fruit Collection From Registered Garden</h3>
+              <div className="p-6">
+                <h3 className="mb-2 text-xl font-semibold text-gray-800 group-hover:text-green-700 transition-colors">
+                নিবন্ধিত বাগান থেকে সরাসরি ফল সংগ্রহ
+                </h3>
+                <p className="text-sm text-gray-600">আমাদের নিবন্ধিত বাগান থেকে আমরা কীভাবে সাবধানে তাজা ফল সংগ্রহ করি, আমাদের গ্রাহকদের জন্য সর্বোচ্চ মানের ফল নিশ্চিত করি তা দেখুন।</p>
               </div>
             </div>
-            <div className="overflow-hidden rounded-lg bg-black">
-              <div className="aspect-video">
-                <Image
-                  src="https://ext.same-assets.com/377203966/220553349.webp"
-                  alt="Premium Packaging Process"
-                  width={800}
-                  height={450}
-                  className="h-full w-full object-cover"
+
+            <div className="group overflow-hidden rounded-lg bg-black/5 shadow-lg transition-all hover:shadow-xl">
+              <div className="aspect-video relative overflow-hidden">
+                <iframe
+                  src="https://www.youtube.com/embed/VQyuPf1QiVM?autoplay=0"
+                  title="Our Premium Packaging Process"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  className="absolute inset-0 h-full w-full object-cover"
+                  loading="lazy"
                 />
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="rounded-full bg-white/30 p-4">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white">
-                      <polygon points="5 3 19 12 5 21 5 3"></polygon>
-                    </svg>
-                  </div>
-                </div>
               </div>
-              <div className="p-4">
-                <h3 className="font-semibold">Our Premium Packaging Process</h3>
+              <div className="p-6">
+                <h3 className="mb-2 text-xl font-semibold text-gray-800 group-hover:text-green-700 transition-colors">
+                আমাদের প্রিমিয়াম প্যাকেজিং প্রক্রিয়া
+                </h3>
+                <p className="text-sm text-gray-600">আমাদের সূক্ষ্ম প্যাকেজিং প্রক্রিয়া আবিষ্কার করুন যা নিশ্চিত করে যে আপনার ফলগুলি তাজা এবং নিখুঁত অবস্থায় পৌঁছায়।</p>
               </div>
             </div>
           </div>
 
-          <div className="mt-8 text-center">
-            <p className="mb-4 text-sm text-muted-foreground">Please click the link to place your order.</p>
-            <Button asChild className="bg-green-700 hover:bg-green-800">
+          <div className="mt-12 text-center">
+            <p className="mb-6 text-sm text-gray-600">Please click the link to place your order.</p>
+            <Button asChild className="bg-green-700 hover:bg-green-800 transform transition-transform hover:scale-105">
               <Link href="/fruits">Shop Now</Link>
             </Button>
           </div>
