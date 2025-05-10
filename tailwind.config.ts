@@ -12,6 +12,21 @@ export default {
       colors: {
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',
+        dark900: "#161B26",
+        dark800: "#1F242F",
+        white800: "#ECECED",
+        white700: "#F4F4F4",
+        white600: "#FAFAFA",
+        gray800: "#333741",
+        gray500: "#61646C",
+        gray400: "#94969C",
+        gray300: "#CECFD2",
+        gray100: "#dddddd",
+        green900: "#223003",
+        green500: "#83A907",
+        green200: "#A8D30F",
+        green100: "#C7ED30",
+        green300: "#80c366",
         card: {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))'
@@ -50,6 +65,12 @@ export default {
           '4': 'hsl(var(--chart-4))',
           '5': 'hsl(var(--chart-5))'
         }
+      },
+      keyframes: {
+        wave: {
+          '0%, 100%': { transform: 'translateY(0)' },
+          '50%': { transform: 'translateY(-50%)' },
+        },
       },
       borderRadius: {
         lg: 'var(--radius)',

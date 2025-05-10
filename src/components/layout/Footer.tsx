@@ -1,134 +1,151 @@
 import Link from "next/link";
 import Image from "next/image";
-import { Facebook, Instagram, Youtube } from "lucide-react";
+import { Facebook, Instagram, Youtube, Mail, MapPin, Phone, ArrowRight } from "lucide-react";
+import { useState } from "react";
 
 export default function Footer() {
   return (
-    <footer className="bg-gray-100">
+    <footer className="bg-gray-100 ">
       <div className="container py-12">
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-3 lg:grid-cols-4">
-          <div>
-            <Link href="/" className="mb-4 inline-block">
+        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+          {/* Brand section */}
+          <div className="xl:col-span-2">
+            <Link href="/" className="mb-4 inline-block transition-transform hover:scale-105">
               <Image
                 src="/assets/images/fresh-bazar.jpg"
                 alt="Deshi Fresh Bazar"
                 width={150}
                 height={40}
-                className="h-auto w-auto"
+                className="h-auto w-auto rounded-md bg-white p-1 shadow-md"
               />
             </Link>
-            <p className="mt-4 text-sm text-muted-foreground">
+            <p className="mt-4 text-sm text-gray-600">
               Deshi Fresh Bazar (PF) is an Agritech Fruit chain initiative by BD. We supply premium quality fruits from our contracted and registered fruit farmers.
             </p>
-            <div className="mt-4 flex space-x-4">
+            
+
+            {/* Social media links */}
+            <div className="mt-6 flex flex-wrap gap-4">
               <Link
                 href="https://www.facebook.com/deshifreshbazar"
-                className="text-muted-foreground hover:text-foreground"
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-200 text-gray-600 transition-all hover:bg-green500 hover:text-white hover:shadow-lg"
                 target="_blank"
                 rel="noopener noreferrer"
+                aria-label="Facebook"
               >
                 <Facebook className="h-5 w-5" />
               </Link>
               <Link
-                href="https://instagram.com"
-                className="text-muted-foreground hover:text-foreground"
+                href="https://www.instagram.com/deshi_fresh_bazar"
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-200 text-gray-600 transition-all hover:bg-green500 hover:text-white hover:shadow-lg"
                 target="_blank"
                 rel="noopener noreferrer"
+                aria-label="Instagram"
               >
                 <Instagram className="h-5 w-5" />
               </Link>
               <Link
-                href="https://youtube.com"
-                className="text-muted-foreground hover:text-foreground"
+                href="https://www.youtube.com/@DeshiFreshBazar"
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-200 text-gray-600 transition-all hover:bg-green500 hover:text-white hover:shadow-lg"
                 target="_blank"
                 rel="noopener noreferrer"
+                aria-label="Youtube"
               >
                 <Youtube className="h-5 w-5" />
               </Link>
             </div>
           </div>
 
-          <div>
-            <h3 className="mb-4 text-base font-medium">Contact Us</h3>
-            <div className="space-y-2">
-              <p className="text-sm text-muted-foreground">
-                <span className="font-medium">Head Office:</span> House #3/E, Section Road (New), Dhaka North City, Dhanmondi, Bangladesh
-              </p>
-              <p className="text-sm text-muted-foreground">
-                <span className="font-medium">Dhaka Warehouse:</span> Midinburgh City, Gazipur, Dhaka-1712, Bangladesh
-              </p>
-              <p className="text-sm text-muted-foreground">
-                <span className="font-medium">Phone:</span> +88 17000000000, +88 19000000000
-              </p>
-              <p className="text-sm text-muted-foreground">
-                <span className="font-medium">Email:</span> info@premiumfruitbd.com
-              </p>
-            </div>
-          </div>
+          {/* Contact section */}
+          <div className="space-y-6">
+            <h3 className="relative text-base font-medium uppercase tracking-wider text-gray-800 after:absolute after:-bottom-2 after:left-0 after:h-0.5 after:w-12 after:bg-green500">Contact Us</h3>
+            <div className="space-y-4">
+              <div className="flex items-start gap-3">
+                <MapPin className="mt-1 h-5 w-5 flex-shrink-0 text-green500" />
+                <p className="text-sm text-gray-600">
+                  <span className="block font-medium text-gray-800">Head Office:</span> House #3/E, Section Road (New), Dhanmondi, Dhaka North City, Bangladesh
+                </p>
+              </div>
 
-          <div>
-            <h3 className="mb-4 text-base font-medium">Useful Links</h3>
-            <nav className="flex flex-col space-y-2">
-              <Link
-                href="/about"
-                className="text-sm text-muted-foreground hover:text-foreground"
-              >
-                About Us
-              </Link>
-              <Link
-                href="/contact"
-                className="text-sm text-muted-foreground hover:text-foreground"
-              >
-                Contact Us
-              </Link>
-              <Link
-                href="/faq"
-                className="text-sm text-muted-foreground hover:text-foreground"
-              >
-                FAQs
-              </Link>
-              <Link
-                href="/terms"
-                className="text-sm text-muted-foreground hover:text-foreground"
-              >
-                Terms & Conditions
-              </Link>
-              <Link
-                href="/privacy"
-                className="text-sm text-muted-foreground hover:text-foreground"
-              >
-                Privacy Policy
-              </Link>
-              <Link
-                href="/return-policy"
-                className="text-sm text-muted-foreground hover:text-foreground"
-              >
-                Return Policy
-              </Link>
-            </nav>
-          </div>
+              <div className="flex items-start gap-3">
+                <Phone className="mt-1 h-5 w-5 flex-shrink-0 text-green500" />
+                <p className="text-sm text-gray-600">
+                  <span className="block font-medium text-gray-800">Phone:</span> 01782285171
+                </p>
+              </div>
 
-          <div>
-            <h3 className="mb-4 text-base font-medium">Payment Methods</h3>
-            <div className="flex flex-wrap gap-2">
-              {/* Payment method icons */}
-              <div className="rounded-md bg-white p-1 shadow-sm">
-                <Image
-                  src="https://ext.same-assets.com/377203966/3964408185.gif"
-                  alt="Payment Methods"
-                  width={250}
-                  height={80}
-                  className="h-auto w-auto"
-                />
+              <div className="flex items-start gap-3">
+                <Mail className="mt-1 h-5 w-5 flex-shrink-0 text-green500" />
+                <p className="text-sm text-gray-600">
+                  <span className="block font-medium text-gray-800">Email:</span>
+                  <a 
+                    href="mailto:deshifreshbazar@gmail.com"
+                    className="transition-colors hover:text-green500"
+                  >
+                    deshifreshbazar@gmail.com
+                  </a>
+                </p>
               </div>
             </div>
           </div>
+          {/* Warehouses section */}
+          <div className="space-y-6">
+            <h3 className="relative text-base font-medium uppercase tracking-wider text-gray-800 after:absolute after:-bottom-2 after:left-0 after:h-0.5 after:w-12 after:bg-green500">Our Warehouses</h3>
+            <div className="space-y-4">
+              <div className="flex items-start gap-3 md:bg-transparent md:p-0 md:shadow-none rounded-lg bg-white p-3 shadow-sm transition-shadow hover:shadow-md md:hover:shadow-none">
+                <MapPin className="mt-1 h-5 w-5 flex-shrink-0 text-green500" />
+                <p className="text-sm text-gray-600">
+                  <span className="block font-medium text-gray-800">Dhaka Warehouse:</span> Kalabagan, Kalabagan 1st Lane, House 31
+                </p>
+              </div>
+              <div className="flex items-start gap-3 md:bg-transparent md:p-0 md:shadow-none rounded-lg bg-white p-3 shadow-sm transition-shadow hover:shadow-md md:hover:shadow-none">
+                <MapPin className="mt-1 h-5 w-5 flex-shrink-0 text-green500" />
+                <p className="text-sm text-gray-600">
+                  <span className="block font-medium text-gray-800">Chapainobabgonj Warehouse 1:</span> Mollikpur, Chapainobabgonj
+                </p>
+              </div>
+              <div className="flex items-start gap-3 md:bg-transparent md:p-0 md:shadow-none rounded-lg bg-white p-3 shadow-sm transition-shadow hover:shadow-md md:hover:shadow-none">
+                <MapPin className="mt-1 h-5 w-5 flex-shrink-0 text-green500" />
+                <p className="text-sm text-gray-600">
+                  <span className="block font-medium text-gray-800">Chapainobabgonj Warehouse 2:</span> Kansat, Shibgonj
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Links section */}
+          <div className="space-y-6">
+            <h3 className="relative text-base font-medium uppercase tracking-wider text-gray-800 after:absolute after:-bottom-2 after:left-0 after:h-0.5 after:w-12 after:bg-green500">Useful Links</h3>
+            <nav className="flex flex-col space-y-2">
+              {[
+                { href: "/about", label: "About Us" },
+                { href: "/contact", label: "Contact Us" },
+                { href: "/faq", label: "FAQs" },
+                { href: "/terms", label: "Terms & Conditions" },
+                { href: "/privacy", label: "Privacy Policy" },
+                { href: "/return-policy", label: "Return Policy" },
+              ].map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="group flex items-center text-sm text-gray-600 transition-colors hover:text-green500"
+                >
+                  <span className="mr-2 inline-block h-1.5 w-1.5 rounded-full bg-gray-400 transition-all group-hover:bg-green500"></span>
+                  {link.label}
+                </Link>
+              ))}
+            </nav>
+          </div>
+
+          {/* Payment methods section */}
+      
         </div>
       </div>
 
-      <div className="border-t border-gray-200 py-4">
+      {/* Copyright section */}
+      <div className="border-t border-gray-200 bg-gray-50 py-4">
         <div className="container">
-          <p className="text-center text-sm text-muted-foreground">
+          <p className="text-center text-sm text-gray-500">
             © {new Date().getFullYear()} Deshi Fresh Bazar. All rights reserved.
           </p>
         </div>
