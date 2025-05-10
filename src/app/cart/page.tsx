@@ -15,18 +15,15 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 const initialCartItems = [
   {
     id: "1",
-    name: "Katimon (2 KG Crate)",
-    price: 1199,
+    name: "Gopalbhog (sweet mango)",
+    packages: [
+      { id: "10kg", name: "10 kg", price: 1599 },
+      { id: "20kg", name: "20 kg", price: 3099 }
+    ],
+    selectedPackage: "10kg",
     quantity: 1,
     image: "https://ext.same-assets.com/377203966/610671350.webp",
-  },
-  {
-    id: "5",
-    name: "Watermelon (1 Pcs)",
-    price: 350,
-    quantity: 2,
-    image: "https://ext.same-assets.com/377203966/610671350.webp",
-  },
+  }
 ];
 
 export default function CartPage() {
@@ -34,7 +31,6 @@ export default function CartPage() {
 
   const updateQuantity = (id: string, quantity: number) => {
     if (quantity < 1) return;
-
     setCartItems(
       cartItems.map((item) =>
         item.id === id ? { ...item, quantity } : item
@@ -42,12 +38,25 @@ export default function CartPage() {
     );
   };
 
-  const removeItem = (id: string) => {
-    setCartItems(cartItems.filter((item) => item.id !== id));
+  const updatePackage = (id: string, packageId: string) => {
+    setCartItems(
+      cartItems.map((item) =>
+        item.id === id ? { ...item, selectedPackage: packageId } : item
+      )
+    );
+  };
+
+  const getItemPrice = (item: typeof cartItems[0]) => {
+    const selectedPkg = item.packages.find(pkg => pkg.id === item.selectedPackage);
+    return selectedPkg ? selectedPkg.price : 0;
   };
 
   const calculateSubtotal = () => {
-    return cartItems.reduce((total, item) => total + item.price * item.quantity, 0);
+    return cartItems.reduce((total, item) => total + getItemPrice(item) * item.quantity, 0);
+  };
+
+  const removeItem = (id: string) => {
+    setCartItems(cartItems.filter((item) => item.id !== id));
   };
 
   const calculateShipping = () => {
@@ -99,8 +108,21 @@ export default function CartPage() {
                             >
                               {item.name}
                             </Link>
-                            <div className="text-sm text-muted-foreground">
-                              ৳ {item.price} x {item.quantity}
+                            <div className="mt-2 flex gap-2">
+                              {item.packages.map(pkg => (
+                                <button
+                                  key={pkg.id}
+                                  onClick={() => updatePackage(item.id, pkg.id)}
+                                  className={`px-3 py-1 rounded text-sm ${item.selectedPackage === pkg.id 
+                                    ? 'bg-green-700 text-white' 
+                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+                                >
+                                  {pkg.name}
+                                </button>
+                              ))}
+                            </div>
+                            <div className="mt-1 text-sm text-muted-foreground">
+                              ৳ {getItemPrice(item)} x {item.quantity}
                             </div>
                           </div>
                           <div className="flex items-center gap-2">
@@ -136,7 +158,7 @@ export default function CartPage() {
                             </Button>
                           </div>
                           <div className="font-semibold ml-auto">
-                            ৳ {item.price * item.quantity}
+                            ৳ {getItemPrice(item) * item.quantity}
                           </div>
                         </div>
                       ))}
