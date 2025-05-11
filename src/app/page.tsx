@@ -7,6 +7,10 @@ import RootLayout from "@/components/layout/RootLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import banner from "@/assets/images/banner.jpg";
+import garden from "@/assets/images/farmar.jpg";
+import product from "@/assets/images/gobindovog-mango.jpg";
+import packaging from "@/assets/images/gopalvog.jpg";
+import delivery from "@/assets/images/mango-delivary.jpeg";
 
 export default function HomePage() {
   const featuredProducts = [
@@ -43,27 +47,27 @@ export default function HomePage() {
   const features = [
     {
       id: "01",
-      title: "Registered Safe Garden",
+      title: "Registered Safe Garden", 
       description: "We collect fruits from our registered & harmful chemical free fruit gardens.",
-      image: "https://ext.same-assets.com/377203966/1134941912.webp",
+      image: garden.src,
     },
     {
       id: "02",
       title: "Premium Quality Product",
       description: "We only select and sort premium standards fruits for your best experience.",
-      image: "https://ext.same-assets.com/377203966/1681878220.webp",
+      image: product.src,
     },
     {
       id: "03",
       title: "Premium Packaging",
       description: "Maybe you want to gift yourself, your family, your friends. We packaged the best package!",
-      image: "https://ext.same-assets.com/377203966/220553349.webp",
+      image: packaging.src,
     },
     {
       id: "04",
       title: "Garden Fresh Delivery",
       description: "We take pre-orders from customers and deliver quicker direct from garden to table.",
-      image: "https://ext.same-assets.com/377203966/2606514306.webp",
+      image: delivery.src,
     },
   ];
 

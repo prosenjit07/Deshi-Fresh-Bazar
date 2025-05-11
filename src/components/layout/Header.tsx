@@ -9,6 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import logo from "@/assets/images/fresh-logo.jpg";
 
 export default function Header() {
   const navLinks = [
@@ -28,11 +29,13 @@ export default function Header() {
         <div className="flex items-center gap-6">
           <Link href="/" className="flex items-center gap-2">
             <Image
-              src="/assets/images/fresh-bazar.jpg"
+              src={logo}
               alt="Deshi Fresh Bazar"
-              width={150}
-              height={40}
-              className="h-auto"
+              width={80}
+              height={15}
+              className="h-[40px] w-auto xs:h-[45px] sm:h-[50px] md:h-[55px] lg:h-[60px] xl:h-[65px] 2xl:h-[70px] transition-all duration-200"
+              priority
+              quality={100}
             />
           </Link>
           <nav className="hidden md:flex items-center gap-6">

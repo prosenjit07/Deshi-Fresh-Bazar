@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Facebook, Instagram, Youtube, Mail, MapPin, Phone, ArrowRight } from "lucide-react";
 import { useState } from "react";
+import brandLogo from "@/assets/images/fresh-bazar.jpg";
 
 export default function Footer() {
   return (
@@ -12,11 +13,11 @@ export default function Footer() {
           <div className="xl:col-span-2">
             <Link href="/" className="mb-4 inline-block transition-transform hover:scale-105">
               <Image
-                src="/assets/images/fresh-bazar.jpg"
+                src={brandLogo}
                 alt="Deshi Fresh Bazar"
-                width={150}
-                height={40}
-                className="h-auto w-auto rounded-md bg-white p-1 shadow-md"
+                width={200}
+                height={60}
+                className="h-[80px] w-auto xs:h-[60px] sm:h-[70px] md:h-[80px] lg:h-[100px] xl:h-[90px] 2xl:h-[100px] transition-all duration-200"
               />
             </Link>
             <p className="mt-4 text-sm text-gray-600">
