@@ -6,73 +6,43 @@ import Link from "next/link";
 import RootLayout from "@/components/layout/RootLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import p1 from "@/assets/images/gopalvog.jpg";
+import p2 from "@/assets/images/gobindovog-mango.jpg";
 
 export default function FruitsPage() {
   const products = [
     {
       id: 1,
-      name: "Katimon (2 KG Crate)",
+      name: "হিমসাগর আম (বিষমুক্ত) – প্রতি কেজি ১৬০ টাকা",
       description: "Home Delivery (Dhaka, Gazipur)",
       price: 1199,
-      image: "https://ext.same-assets.com/377203966/610671350.webp",
+      image: p1.src,
       category: "Katimon",
     },
     {
       id: 2,
-      name: "Katimon (5 KG Crate)",
+      name: "ল্যাংড়া আম (বিষমুক্ত) – প্রতি কেজি ১৬০ টাকা",
       description: "Home Delivery (Dhaka, Gazipur)",
       price: 2299,
-      image: "https://ext.same-assets.com/377203966/610671350.webp",
-      category: "Katimon",
+      image: p2.src,
+      category: "Mango",
     },
     {
       id: 3,
-      name: "Katimon (10 KG Crate)",
+      name: "হাড়িভাঙ্গা আম (বিষমুক্ত) – প্রতি কেজি ১৫০ টাকা",
       description: "Home Delivery (Dhaka, Gazipur)",
       price: 4499,
-      image: "https://ext.same-assets.com/377203966/610671350.webp",
+      image: p1.src,
       category: "Katimon",
     },
     {
       id: 4,
-      name: "Katimon (20 KG Crate)",
+      name: "Gopalvhog– প্রতি কেজি ১৬০ টাকা",
       description: "Home Delivery (Dhaka, Gazipur)",
       price: 9000,
-      image: "https://ext.same-assets.com/377203966/610671350.webp",
-      category: "Katimon",
-    },
-    // More products
-    {
-      id: 5,
-      name: "Watermelon (1 Pcs)",
-      description: "Home Delivery (Dhaka, Gazipur)",
-      price: 350,
-      image: "https://ext.same-assets.com/377203966/610671350.webp",
-      category: "Watermelon",
-    },
-    {
-      id: 6,
-      name: "Mango (1 KG)",
-      description: "Home Delivery (Dhaka, Gazipur)",
-      price: 250,
-      image: "https://ext.same-assets.com/377203966/610671350.webp",
+      // image: "https://ext.same-assets.com/377203966/610671350.webp",
+      image: p1.src,
       category: "Mango",
-    },
-    {
-      id: 7,
-      name: "Dragon Fruit (500g)",
-      description: "Home Delivery (Dhaka, Gazipur)",
-      price: 320,
-      image: "https://ext.same-assets.com/377203966/610671350.webp",
-      category: "Dragon Fruit",
-    },
-    {
-      id: 8,
-      name: "Premium Banana (1 Dozen)",
-      description: "Home Delivery (Dhaka, Gazipur)",
-      price: 180,
-      image: "https://ext.same-assets.com/377203966/610671350.webp",
-      category: "Banana",
     },
   ];
 

@@ -290,7 +290,7 @@ export default function HomePage() {
           </div>
 
           <div className="mt-12 text-center">
-            <p className="mb-6 text-sm text-gray-600">Please click the link to place your order.</p>
+            <p className="mb-6 text-sm text-gray-600">আপনার অর্ডার দিতে লিঙ্কে ক্লিক করুন।</p>
             <Button asChild className="bg-green-700 hover:bg-green-800 transform transition-transform hover:scale-105">
               <Link href="/fruits">Shop Now</Link>
             </Button>
