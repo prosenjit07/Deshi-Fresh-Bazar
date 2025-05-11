@@ -6,41 +6,48 @@ import Link from "next/link";
 import RootLayout from "@/components/layout/RootLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import banner from "@/assets/images/banner.jpg";
 import garden from "@/assets/images/farmar.jpg";
 import product from "@/assets/images/gobindovog-mango.jpg";
 import packaging from "@/assets/images/gopalvog.jpg";
 import delivery from "@/assets/images/mango-delivary.jpeg";
+import p1 from "@/assets/images/gopalvog.jpg";
+import p2 from "@/assets/images/gobindovog-mango.jpg";
+import banner from "@/assets/images/v1.jpg"; 
 
 export default function HomePage() {
+//   হিমসাগর আম (বিষমুক্ত) – প্রতি কেজি ১৬০ টাকা
+// ল্যাংড়া আম (বিষমুক্ত) – প্রতি কেজি ১৬০ টাকা
+// হাড়িভাঙ্গা আম (বিষমুক্ত) – প্রতি কেজি ১৫০ টাকা
+
   const featuredProducts = [
     {
       id: 1,
-      name: "Katimon (2 KG Crate)",
+      name: "হিমসাগর আম (বিষমুক্ত) – প্রতি কেজি ১৬০ টাকা",
       description: "Home Delivery (Dhaka, Gazipur)",
       price: 1199,
-      image: "https://ext.same-assets.com/377203966/610671350.webp",
+      image: p1.src,
     },
     {
       id: 2,
-      name: "Katimon (5 KG Crate)",
+      name: "ল্যাংড়া আম (বিষমুক্ত) – প্রতি কেজি ১৬০ টাকা",
       description: "Home Delivery (Dhaka, Gazipur)",
       price: 2299,
-      image: "https://ext.same-assets.com/377203966/610671350.webp",
+      image: p2.src,
     },
     {
       id: 3,
-      name: "Katimon (10 KG Crate)",
+      name: "হাড়িভাঙ্গা আম (বিষমুক্ত) – প্রতি কেজি ১৫০ টাকা",
       description: "Home Delivery (Dhaka, Gazipur)",
       price: 4499,
-      image: "https://ext.same-assets.com/377203966/610671350.webp",
+      image: p1.src,
     },
     {
       id: 4,
-      name: "Katimon (20 KG Crate)",
+      name: "Gopalvhog– প্রতি কেজি ১৬০ টাকা",
       description: "Home Delivery (Dhaka, Gazipur)",
       price: 9000,
-      image: "https://ext.same-assets.com/377203966/610671350.webp",
+      // image: "https://ext.same-assets.com/377203966/610671350.webp",
+      image: p1.src,
     },
   ];
 
@@ -105,14 +112,14 @@ export default function HomePage() {
                 asChild
                 className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-full transform transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-green-500/20"
               >
-                <Link href="/gardens">Our Contracted Gardens</Link>
+                <Link href="/gardens">Our Trusted Gardens</Link>
               </Button>
               <Button
                 asChild
                 variant="outline"
                 className="border-2 border-white text-gray hover:bg-white hover:text-green-700 px-8 py-3 rounded-full transform transition-all duration-300 hover:scale-105"
               >
-                <Link href="/fruits">Try our fruits</Link>
+                <Link href="/fruits">Try our mango</Link>
               </Button>
             </div>
           </div>
@@ -168,9 +175,9 @@ export default function HomePage() {
             <div className="mx-auto mt-2 h-1 w-16 rounded-full bg-green-500"></div>
           </h2>
 
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          <div className={`grid grid-cols-1 sm:grid-cols-2 ${featuredProducts.length === 3 ? 'lg:grid-cols-3' : 'lg:grid-cols-4'} gap-6 max-w-[1200px] mx-auto`}>
             {featuredProducts.map((product) => (
-              <Card key={product.id} className="overflow-hidden">
+              <Card key={product.id} className="overflow-hidden w-full">
                 <div className="aspect-square overflow-hidden">
                   <Image
                     src={product.image}
@@ -208,7 +215,7 @@ export default function HomePage() {
       <section className="bg-white py-16">
         <div className="container">
           <h2 className="mb-12 text-center text-3xl font-bold uppercase">
-            Why We Are Different
+          আমরা কেন আলাদা?
             <div className="mx-auto mt-2 h-1 w-16 rounded-full bg-green-500"></div>
           </h2>
 
@@ -234,12 +241,11 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-
       {/* Video section */}
       <section className="bg-gray-50 py-16">
         <div className="container">
           <h2 className="mb-12 text-center text-3xl font-bold uppercase">
-            Our Stories
+            আমাদের গল্প
             <div className="mx-auto mt-2 h-1 w-16 rounded-full bg-green-500"></div>
           </h2>
 
@@ -291,6 +297,8 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+      
     </RootLayout>
+
   );
 }

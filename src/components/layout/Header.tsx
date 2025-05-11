@@ -11,6 +11,7 @@ import {
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import logo from "@/assets/images/fresh-logo.jpg";
 
+
 export default function Header() {
   const navLinks = [
     { title: "Home", path: "/" },
