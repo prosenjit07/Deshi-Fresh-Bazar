@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
@@ -9,10 +11,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { useCart } from "@/contexts/CartContext";
 import logo from "@/assets/images/fresh-logo.jpg";
 
-
 export default function Header() {
+  const { getCartCount } = useCart();
+  const cartCount = getCartCount();
+
   const navLinks = [
     { title: "Home", path: "/" },
     { title: "Fruits", path: "/fruits" },
@@ -52,8 +57,13 @@ export default function Header() {
           </nav>
         </div>
         <div className="flex items-center gap-4">
-          <Link href="/cart" className="hidden sm:flex items-center gap-2">
+          <Link href="/cart" className="hidden sm:flex items-center gap-2 relative">
             <ShoppingCart className="h-5 w-5" />
+            {cartCount > 0 && (
+              <span className="absolute -top-4 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-green-700 text-xs text-white">
+                {cartCount}
+              </span>
+            )}
             <span className="text-sm font-medium">Cart</span>
           </Link>
           <DropdownMenu>
@@ -90,9 +100,14 @@ export default function Header() {
                 ))}
                 <Link
                   href="/cart"
-                  className="flex items-center gap-2 text-sm font-medium text-muted-foreground"
+                  className="flex items-center gap-2 text-sm font-medium text-muted-foreground relative"
                 >
                   <ShoppingCart className="h-4 w-4" />
+                  {cartCount > 0 && (
+                    <span className="absolute -top-2 left-3 flex h-5 w-5 items-center justify-center rounded-full bg-green-700 text-xs text-white">
+                      {cartCount}
+                    </span>
+                  )}
                   <span>Cart</span>
                 </Link>
                 <Link

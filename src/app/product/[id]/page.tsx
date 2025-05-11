@@ -19,6 +19,11 @@ interface Product {
   category: string;
   inStock: boolean;
   related: string[];
+  packages: Array<{
+    id: string;
+    name: string;
+    price: number;
+  }>;
 }
 // Mock products data
 const products: Product[] = [
@@ -41,7 +46,11 @@ const products: Product[] = [
     ],
     category: "Katimon",
     inStock: true,
-    related: ["2", "3", "4"]
+    related: ["2", "3", "4"],
+    packages: [
+      { id: '10kg', name: '10 kg', price: 1199 },
+      { id: '20kg', name: '20 kg', price: 2158 }
+    ]
   },
   {
     id: "2",
@@ -62,7 +71,11 @@ const products: Product[] = [
     ],
     category: "Katimon",
     inStock: true,
-    related: ["1", "3", "4"]
+    related: ["1", "3", "4"],
+    packages: [
+      { id: '10kg', name: '10 kg', price: 2299 },
+      { id: '20kg', name: '20 kg', price: 4138 }
+    ]
   },
   {
     id: "3",
@@ -83,7 +96,11 @@ const products: Product[] = [
     ],
     category: "Katimon",
     inStock: true,
-    related: ["1", "2", "4"]
+    related: ["1", "2", "4"],
+    packages: [
+      { id: '10kg', name: '10 kg', price: 4499 },
+      { id: '20kg', name: '20 kg', price: 8098 }
+    ]
   },
   {
     id: "4",
@@ -104,7 +121,11 @@ const products: Product[] = [
     ],
     category: "Katimon",
     inStock: true,
-    related: ["1", "2", "3"]
+    related: ["1", "2", "3"],
+    packages: [
+      { id: '10kg', name: '10 kg', price: 9000 },
+      { id: '20kg', name: '20 kg', price: 16200 }
+    ]
   },
   // {
   //   id: "5",

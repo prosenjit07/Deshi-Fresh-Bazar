@@ -1,6 +1,7 @@
 import "@/app/globals.css";
 import type { Metadata } from "next";
 import ClientBody from "./ClientBody";
+import { CartProvider } from '@/contexts/CartContext';
 
 export const metadata: Metadata = {
   title: "Deshi Fresh Bazar | Fresh Fruits Delivery from Gardens",
@@ -16,9 +17,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className="min-h-screen bg-background font-sans antialiased">
-        <ClientBody>{children}</ClientBody>
+    <html lang="en">
+      <body>
+        <CartProvider>
+          {children}
+        </CartProvider>
       </body>
     </html>
   );

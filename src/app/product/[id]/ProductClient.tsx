@@ -5,8 +5,15 @@ import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { useCart } from '@/contexts/CartContext';
+import { toast } from "sonner";
 
-// Define product type (must match the one in page.tsx)
+interface Package {
+  id: string;
+  name: string;
+  price: number;
+}
+
 interface Product {
   id: string;
   name: string;
@@ -17,6 +24,7 @@ interface Product {
   category: string;
   inStock: boolean;
   related: string[];
+  packages: Package[];
 }
 
 interface ProductClientProps {
@@ -27,6 +35,7 @@ interface ProductClientProps {
 export default function ProductClient({ product, products }: ProductClientProps) {
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(0);
+  const { addItem } = useCart();
 
   // Get related products
   const relatedProducts = product
@@ -44,6 +53,25 @@ export default function ProductClient({ product, products }: ProductClientProps)
       </div>
     );
   }
+
+  // Define default packages if not provided
+  const defaultPackages: Package[] = [
+    { id: '10kg', name: '10 kg', price: product.price },
+    { id: '20kg', name: '20 kg', price: product.price * 1.8 }
+  ];
+
+  const packages = product.packages || defaultPackages;
+  const [selectedPackage, setSelectedPackage] = useState(packages[0]);
+
+  const handleAddToCart = () => {
+    if (!product.inStock) {
+      toast.error("This product is currently out of stock");
+      return;
+    }
+
+    addItem(product, quantity, selectedPackage.id);
+    toast.success("Added to cart successfully");
+  };
 
   return (
     <div className="bg-gray-50 py-8">
@@ -98,7 +126,7 @@ export default function ProductClient({ product, products }: ProductClientProps)
           {/* Product info */}
           <div>
             <h1 className="text-3xl font-bold">{product.name}</h1>
-            <p className="mt-2 text-2xl font-semibold text-green-700">৳ {product.price}</p>
+            <p className="mt-2 text-2xl font-semibold text-green-700">৳{product.price}</p>
             <div className="mt-6">
               <h3 className="text-lg font-medium">Description</h3>
               <p className="mt-2 text-muted-foreground">{product.description}</p>
@@ -115,37 +143,64 @@ export default function ProductClient({ product, products }: ProductClientProps)
 
             <div className="mt-8 space-y-4">
               <div className="flex items-center gap-4">
-                <span>Quantity:</span>
-                <div className="flex items-center">
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="h-8 w-8 rounded-l-md rounded-r-none"
-                  >
-                    -
-                  </Button>
-                  <div className="flex h-8 w-12 items-center justify-center border border-x-0 border-input">
-                    {quantity}
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => setQuantity(quantity + 1)}
-                    className="h-8 w-8 rounded-l-none rounded-r-md"
-                  >
-                    +
-                  </Button>
+                <span>Package:</span>
+                <div className="flex gap-2">
+                  {packages.map(pkg => (
+                    <button
+                      key={pkg.id}
+                      onClick={() => setSelectedPackage(pkg)}
+                      className={`px-3 py-1 rounded text-sm ${
+                        selectedPackage.id === pkg.id
+                          ? 'bg-green-700 text-white'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                    >
+                      {pkg.name} - ৳{pkg.price}
+                    </button>
+                  ))}
                 </div>
               </div>
-              <div className="flex flex-wrap gap-2">
-                <Button className="w-full bg-green-700 hover:bg-green-800 sm:w-auto">
-                  Add to Cart
+              <div className="flex items-center">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                  className="h-8 w-8 rounded-l-md rounded-r-none"
+                  disabled={quantity <= 1}
+                >
+                  -
                 </Button>
-                <Button variant="outline" className="w-full border-green-700 text-green-700 hover:bg-green-700 hover:text-white sm:w-auto">
+                <div className="flex h-8 w-12 items-center justify-center border border-x-0 border-input">
+                  {quantity}
+                </div>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setQuantity(quantity + 1)}
+                  className="h-8 w-8 rounded-l-none rounded-r-md"
+                >
+                  +
+                </Button>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  className="w-full bg-green-700 hover:bg-green-800 sm:w-auto"
+                  onClick={handleAddToCart}
+                  disabled={!product.inStock}
+                >
+                  {product.inStock ? "Add to Cart" : "Out of Stock"}
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="w-full border-green-700 text-green-700 hover:bg-green-700 hover:text-white sm:w-auto"
+                  disabled={!product.inStock}
+                >
                   Buy Now
                 </Button>
               </div>
+              {!product.inStock && (
+                <p className="text-sm text-red-500">This product is currently out of stock</p>
+              )}
             </div>
           </div>
         </div>
@@ -172,7 +227,7 @@ export default function ProductClient({ product, products }: ProductClientProps)
                         <h3 className="font-semibold">{relProduct.name}</h3>
                       </Link>
                       <div className="mt-2 flex justify-between items-center">
-                        <p className="font-medium text-green-700">৳ {relProduct.price}</p>
+                        <p className="font-medium text-green-700">৳{relProduct.price}</p>
                         <Button asChild size="sm" className="bg-green-700 hover:bg-green-800">
                           <Link href={`/product/${relProduct.id}`}>
                             View
@@ -189,4 +244,4 @@ export default function ProductClient({ product, products }: ProductClientProps)
       </div>
     </div>
   );
-} 
+}
