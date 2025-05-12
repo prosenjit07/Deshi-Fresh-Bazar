@@ -21,7 +21,7 @@ export default function Header() {
   const navLinks = [
     { title: "Home", path: "/" },
     { title: "Fruits", path: "/fruits" },
-    { title: "Corporate Gift", path: "/corporate-gift" },
+    // { title: "Corporate Gift", path: "/corporate-gift" },
     { title: "FAQ", path: "/faq" },
     { title: "About", path: "/about" },
     { title: "Contact", path: "/contact" },

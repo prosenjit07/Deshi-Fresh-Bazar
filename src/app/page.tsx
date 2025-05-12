@@ -12,12 +12,12 @@ import packaging from "@/assets/images/gopalvog.jpg";
 import delivery from "@/assets/images/mango-delivary.jpeg";
 import p1 from "@/assets/images/gopalvog.jpg";
 import p2 from "@/assets/images/gobindovog-mango.jpg";
-import banner from "@/assets/images/v1.jpg"; 
+import banner from "@/assets/images/v1.jpg";
 
 export default function HomePage() {
-//   হিমসাগর আম (বিষমুক্ত) – প্রতি কেজি ১৬০ টাকা
-// ল্যাংড়া আম (বিষমুক্ত) – প্রতি কেজি ১৬০ টাকা
-// হাড়িভাঙ্গা আম (বিষমুক্ত) – প্রতি কেজি ১৫০ টাকা
+  //   হিমসাগর আম (বিষমুক্ত) – প্রতি কেজি ১৬০ টাকা
+  // ল্যাংড়া আম (বিষমুক্ত) – প্রতি কেজি ১৬০ টাকা
+  // হাড়িভাঙ্গা আম (বিষমুক্ত) – প্রতি কেজি ১৫০ টাকা
 
   const featuredProducts = [
     {
@@ -54,7 +54,7 @@ export default function HomePage() {
   const features = [
     {
       id: "01",
-      title: "Registered Safe Garden", 
+      title: "Registered Safe Garden",
       description: "We collect fruits from our registered & harmful chemical free fruit gardens.",
       image: garden.src,
     },
@@ -90,7 +90,7 @@ export default function HomePage() {
       >
         {/* Gradient overlay for better text visibility */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/40 to-black/60 backdrop-blur-[2px]" />
-        
+
         <div className="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-24 lg:py-32">
           <div className="flex flex-col items-center text-center space-y-8 max-w-4xl mx-auto">
             <div className="space-y-4">
@@ -194,7 +194,7 @@ export default function HomePage() {
                     <p className="font-medium text-green-700">৳ {product.price}</p>
                     <Button asChild size="sm" className="bg-green-700 hover:bg-green-800">
                       <Link href={`/product/${product.id}`}>
-                        Add to cart
+                        View
                       </Link>
                     </Button>
                   </div>
@@ -218,6 +218,47 @@ export default function HomePage() {
           আমরা কেন আলাদা?
             <div className="mx-auto mt-2 h-1 w-16 rounded-full bg-green-500"></div>
           </h2>
+
+          {/* Intro Video Card */}
+          <div className="mb-16 overflow-hidden rounded-2xl bg-gradient-to-br from-green-50 to-white shadow-xl transition-all hover:shadow-2xl">
+            <div 
+              className="aspect-video relative overflow-hidden w-full"
+              id="intro-video-container"
+            >
+              <iframe
+                src="https://www.youtube.com/embed/j2hduSXuU8o?enablejsapi=1&autoplay=1&mute=1&playsinline=1"
+                title="Welcome to Deshi Fresh Bazar"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                className="absolute inset-0 h-full w-full object-cover"
+                loading="lazy"
+                id="intro-video"
+              />
+            </div>
+          </div>
+
+          <script dangerouslySetInnerHTML={{ __html: `
+            document.addEventListener('DOMContentLoaded', function() {
+              const videoContainer = document.getElementById('intro-video-container');
+              const video = document.getElementById('intro-video');
+              
+              const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                  if (entry.isIntersecting) {
+                    // When video comes into view
+                    video.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'playVideo' }), '*');
+                  } else {
+                    // When video goes out of view
+                    video.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'pauseVideo' }), '*');
+                  }
+                });
+              }, { threshold: 0.5 });
+
+              if (videoContainer) {
+                observer.observe(videoContainer);
+              }
+            });
+          `}} />
 
           <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4">
             {features.map((feature) => (
@@ -263,7 +304,7 @@ export default function HomePage() {
               </div>
               <div className="p-6">
                 <h3 className="mb-2 text-xl font-semibold text-gray-800 group-hover:text-green-700 transition-colors">
-                নিবন্ধিত বাগান থেকে সরাসরি ফল সংগ্রহ
+                  নিবন্ধিত বাগান থেকে সরাসরি ফল সংগ্রহ
                 </h3>
                 <p className="text-sm text-gray-600">আমাদের নিবন্ধিত বাগান থেকে আমরা কীভাবে সাবধানে তাজা ফল সংগ্রহ করি, আমাদের গ্রাহকদের জন্যর সর্বোচ্চ মানের ফল নিশ্চিত করি তা দেখুন।</p>
               </div>
@@ -282,7 +323,7 @@ export default function HomePage() {
               </div>
               <div className="p-6">
                 <h3 className="mb-2 text-xl font-semibold text-gray-800 group-hover:text-green-700 transition-colors">
-                আমাদের প্রিমিয়াম প্যাকেজিং প্রক্রিয়া
+                  আমাদের প্রিমিয়াম প্যাকেজিং প্রক্রিয়া
                 </h3>
                 <p className="text-sm text-gray-600">আমাদের সূক্ষ্ম প্যাকেজিং প্রক্রিয়া আবিষ্কার করুন যা নিশ্চিত করে যে আপনার ফলগুলি তাজা এবং নিখুঁত অবস্থায় পৌঁছায়।</p>
               </div>
@@ -297,7 +338,7 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-      
+
     </RootLayout>
 
   );
