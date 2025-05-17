@@ -1,13 +1,13 @@
 // For static site generation
 export const dynamic = 'force-static';
-
 import Image from "next/image";
 import Link from "next/link";
 import RootLayout from "@/components/layout/RootLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import ProductClient from "./ProductClient";
-
+import p1 from "@/assets/images/gopalvog.jpg";
+import p2 from "@/assets/images/gobindovog-mango.jpg";
 // Define product type
 interface Product {
   id: string;
@@ -30,19 +30,20 @@ const products: Product[] = [
   {
     id: "1",
     name: "হিমসাগর আম (বিষমুক্ত) – প্রতি কেজি ১৬০ টাকা",
-    description: "Premium Katimon fruits directly from our contracted gardens. Fresh, juicy, and selected for their premium quality. Our fruits are grown without harmful chemicals and harvested at the perfect ripeness to ensure maximum flavor and nutrition.",
+    description: "মিষ্টি স্বাদ ও রসালো গঠনের জন্য জনপ্রিয় এই আম সাতক্ষীরা ও রাজশাহী অঞ্চল থেকে সংগ্রহ করা হয়। প্রতি কেজিতে গড়ে ৪-৫টি মাঝারি আকৃতির আম থাকে। আমরা পরিপক্ক কাঁচা আম সরবরাহ করি, যা ঘরের উষ্ণ স্থানে রেখে প্রাকৃতিকভাবে পাকিয়ে খেতে হয়। কাঁচা অবস্থায় খেলে কিছুটা টক লাগতে পারে। ডেলিভারির জন্য আমরা স্টেডফাস্ট কুরিয়ার সার্ভিস ব্যবহার করি, যা দেশের যেকোনো জায়গায় (উপজেলাসহ) পৌঁছে দেয়। এখনই প্রি-বুক করুন এবং ঘরে বসে উপভোগ করুন মৌসুমি হিমসাগরের স্বাদ!",
     details: [
-      "Weight: 2 KG approx",
-      "Origin: North Bengal, Bangladesh",
-      "Cultivar: Premium Katimon",
-      "Storage: Keep in cool, dry place",
-      "Shelf Life: 7-10 days at room temperature"
+      "ওজন: ১২ অথবা ২২ kg",
+      "উৎপত্তি: উত্তরবঙ্গ, বাংলাদেশ",
+      "জাত: প্রিমিয়াম হিমসাগর",
+      "সংরক্ষণ: ঠাণ্ডা ও শুকনো জায়গায় রাখুন",
+      "মেয়াদ: স্বাভাবিক তাপমাত্রায় ৭-১০ দিন"
     ],
     price: 1199,
     images: [
-      "https://ext.same-assets.com/377203966/610671350.webp",
-      "https://ext.same-assets.com/377203966/610671350.webp",
-      "https://ext.same-assets.com/377203966/610671350.webp"
+      p1.src,
+      p1.src,
+      p1.src
+      // "https://ext.same-assets.com/377203966/610671350.webp"
     ],
     category: "Katimon",
     inStock: true,
@@ -55,19 +56,19 @@ const products: Product[] = [
   {
     id: "2",
     name: "ল্যাংড়া আম (বিষমুক্ত) – প্রতি কেজি ১৬০ টাকা",
-    description: "Premium Katimon fruits directly from our contracted gardens. Fresh, juicy, and selected for their premium quality. Our fruits are grown without harmful chemicals and harvested at the perfect ripeness to ensure maximum flavor and nutrition.",
+    description: "ল্যাংড়া আমের স্বাদ ও সুগন্ধের জন্য এটি বাংলাদেশের অন্যতম জনপ্রিয় আম। রাজশাহী অঞ্চলের বিশেষ যত্নে চাষ করা এই আম প্রাকৃতিক পদ্ধতিতে পাকানো হয়। আমাদের নিজস্ব বাগান থেকে সংগ্রহ করা এই আম সম্পূর্ণ বিষমুক্ত ও স্বাস্থ্যসম্মত।",
     details: [
-      "Weight: 5 KG approx",
-      "Origin: North Bengal, Bangladesh",
-      "Cultivar: Premium Katimon",
-      "Storage: Keep in cool, dry place",
-      "Shelf Life: 7-10 days at room temperature"
+      "ওজন: ১২ অথবা ২২ kg",
+      "উৎপত্তি: উত্তরবঙ্গ, বাংলাদেশ",
+      "জাত: প্রিমিয়াম হিমসাগর",
+      "সংরক্ষণ: ঠাণ্ডা ও শুকনো জায়গায় রাখুন",
+      "মেয়াদ: স্বাভাবিক তাপমাত্রায় ৭-১০ দিন"
     ],
     price: 2299,
     images: [
-      "https://ext.same-assets.com/377203966/610671350.webp",
-      "https://ext.same-assets.com/377203966/610671350.webp",
-      "https://ext.same-assets.com/377203966/610671350.webp"
+      p2.src,
+      p2.src,
+      p2.src
     ],
     category: "Katimon",
     inStock: true,
@@ -80,19 +81,19 @@ const products: Product[] = [
   {
     id: "3",
     name: "হাড়িভাঙ্গা আম (বিষমুক্ত) – প্রতি কেজি ১৫০ টাকা",
-    description: "Premium Katimon fruits directly from our contracted gardens. Fresh, juicy, and selected for their premium quality. Our fruits are grown without harmful chemicals and harvested at the perfect ripeness to ensure maximum flavor and nutrition.",
+    description: "হাড়িভাঙ্গা আম বাংলাদেশের ঐতিহ্যবাহী জাতের আম। এর মিষ্টি স্বাদ ও সুগন্ধ এটিকে অনন্য করে তুলেছে। আমাদের নিজস্ব বাগান থেকে সরাসরি সংগ্রহ করা এই আম কীটনাশকমুক্ত ও প্রাকৃতিকভাবে পাকানো হয়।.",
     details: [
-      "Weight: 10 KG approx",
-      "Origin: North Bengal, Bangladesh",
-      "Cultivar: Premium Katimon",
-      "Storage: Keep in cool, dry place",
-      "Shelf Life: 7-10 days at room temperature"
+      "ওজন: ১২ অথবা ২২ kg",
+      "উৎপত্তি: উত্তরবঙ্গ, বাংলাদেশ",
+      "জাত: প্রিমিয়াম হিমসাগর",
+      "সংরক্ষণ: ঠাণ্ডা ও শুকনো জায়গায় রাখুন",
+      "মেয়াদ: স্বাভাবিক তাপমাত্রায় ৭-১০ দিন"
     ],
     price: 4499,
     images: [
-      "https://ext.same-assets.com/377203966/610671350.webp",
-      "https://ext.same-assets.com/377203966/610671350.webp",
-      "https://ext.same-assets.com/377203966/610671350.webp"
+      p1.src,
+      p1.src,
+      p1.src
     ],
     category: "Katimon",
     inStock: true,
@@ -105,19 +106,19 @@ const products: Product[] = [
   {
     id: "4",
     name: "Gopalvhog– প্রতি কেজি ১৬০ টাকা",
-    description: "Premium Katimon fruits directly from our contracted gardens. Fresh, juicy, and selected for their premium quality. Our fruits are grown without harmful chemicals and harvested at the perfect ripeness to ensure maximum flavor and nutrition.",
+    description: "গোপালভোগ আম তার মিষ্টি স্বাদ ও সুবাসের জন্য বিখ্যাত। বাংলাদেশের উত্তরাঞ্চলের বিশেষ যত্নে চাষ করা এই আম প্রাকৃতিক পদ্ধতিতে পাকানো হয়। আমাদের নিজস্ব বাগান থেকে সংগ্রহ করা এই আম সম্পূর্ণ বিষমুক্ত।",
     details: [
-      "Weight: 20 KG approx",
-      "Origin: North Bengal, Bangladesh",
-      "Cultivar: Premium Katimon",
-      "Storage: Keep in cool, dry place",
-      "Shelf Life: 7-10 days at room temperature"
+      "ওজন: ১২ অথবা ২২ kg",
+      "উৎপত্তি: উত্তরবঙ্গ, বাংলাদেশ",
+      "জাত: প্রিমিয়াম হিমসাগর",
+      "সংরক্ষণ: ঠাণ্ডা ও শুকনো জায়গায় রাখুন",
+      "মেয়াদ: স্বাভাবিক তাপমাত্রায় ৭-১০ দিন"
     ],
     price: 9000,
     images: [
-      "https://ext.same-assets.com/377203966/610671350.webp",
-      "https://ext.same-assets.com/377203966/610671350.webp",
-      "https://ext.same-assets.com/377203966/610671350.webp"
+      p1.src,
+      p1.src,
+      p1.src
     ],
     category: "Katimon",
     inStock: true,

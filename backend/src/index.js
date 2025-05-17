@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import { config } from 'dotenv';
-import connectDB from './config/db.js';
+import supabase from './config/db.js';
 import { notFound, errorHandler } from './middleware/errorMiddleware.js';
 
 // Import routes
@@ -13,15 +13,23 @@ import userRoutes from './routes/userRoutes.js';
 // Configure environment variables
 config();
 
-// Connect to MongoDB
-connectDB();
-
 // Initialize Express app
 const app = express();
 
 // Middleware
 app.use(cors());
 app.use(express.json());
+
+// Test Supabase connection
+app.get('/api/test-db', async (req, res) => {
+  try {
+    const { data, error } = await supabase.from('users').select('count');
+    if (error) throw error;
+    res.json({ message: 'Supabase connection successful', data });
+  } catch (error) {
+    res.status(500).json({ message: 'Database connection error', error: error.message });
+  }
+});
 
 // Routes
 app.get('/', (req, res) => {

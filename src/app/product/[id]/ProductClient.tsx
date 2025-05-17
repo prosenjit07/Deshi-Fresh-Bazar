@@ -97,9 +97,9 @@ export default function ProductClient({ product, products }: ProductClientProps)
               <Image
                 src={product.images[selectedImage]}
                 alt={product.name}
-                width={600}
-                height={600}
-                className="h-full w-full object-contain"
+                width={500}
+                height={500}
+                className="h-[450px] w-full object-cover"
               />
             </div>
             <div className="flex gap-2">
@@ -217,9 +217,9 @@ export default function ProductClient({ product, products }: ProductClientProps)
                       <Image
                         src={relProduct.images[0]}
                         alt={relProduct.name}
-                        width={300}
+                        width={400}
                         height={300}
-                        className="h-full w-full object-cover transition-transform hover:scale-105"
+                        className="h-[300px] w-full object-cover transition-transform hover:scale-105"
                       />
                     </div>
                     <CardContent className="p-4">
