@@ -21,29 +21,13 @@ import {
   FormMessage
 } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
-
-// Mock cart data
-const cartItems = [
-  {
-    id: "1",
-    name: "Katimon (2 KG Crate)",
-    price: 1199,
-    quantity: 1,
-    image: "https://ext.same-assets.com/377203966/610671350.webp",
-  },
-  {
-    id: "5",
-    name: "Watermelon (1 Pcs)",
-    price: 350,
-    quantity: 2,
-    image: "https://ext.same-assets.com/377203966/610671350.webp",
-  },
-];
+import { useCart } from '@/contexts/CartContext';
 
 export default function CheckoutPage() {
   const router = useRouter();
   const [paymentMethod, setPaymentMethod] = useState("SSLCommerz");
   const [loading, setLoading] = useState(false);
+  const { items, getCartTotal, getItemPrice } = useCart();
 
   const form = useForm({
     defaultValues: {
@@ -58,7 +42,7 @@ export default function CheckoutPage() {
   });
 
   const calculateSubtotal = () => {
-    return cartItems.reduce((total, item) => total + item.price * item.quantity, 0);
+    return getCartTotal();
   };
 
   const calculateShipping = () => {
@@ -73,12 +57,20 @@ export default function CheckoutPage() {
 
   const onSubmit = async (data: any) => {
     setLoading(true);
-    console.log("Order placed with:", { ...data, paymentMethod, items: cartItems });
+    console.log("Order placed with:", { ...data, paymentMethod, items });
 
     // Simulate payment process and order placement
     setTimeout(() => {
       setLoading(false);
-      router.push("/checkout/success");
+      const queryParams = new URLSearchParams({
+        fullName: data.fullName,
+        email: data.email || "",
+        phone: data.phone,
+        address: data.address,
+        city: data.city,
+        postalCode: data.postalCode,
+      }).toString();
+      router.push(`/checkout/success?${queryParams}`);
     }, 1500);
   };
 
@@ -102,9 +94,9 @@ export default function CheckoutPage() {
                             name="fullName"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>Full Name</FormLabel>
+                                <FormLabel>Full Name <span className="text-red-500">*</span></FormLabel>
                                 <FormControl>
-                                  <Input placeholder="John Doe" required {...field} />
+                                  <Input placeholder="Your name" required {...field} />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
@@ -120,7 +112,6 @@ export default function CheckoutPage() {
                                   <Input
                                     type="email"
                                     placeholder="your@email.com"
-                                    required
                                     {...field}
                                   />
                                 </FormControl>
@@ -133,10 +124,10 @@ export default function CheckoutPage() {
                             name="phone"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>Phone</FormLabel>
+                                <FormLabel>Phone <span className="text-red-500">*</span></FormLabel>
                                 <FormControl>
                                   <Input
-                                    placeholder="+880 1XXXXXXXXX"
+                                    placeholder="018XXXXXXXX"
                                     required
                                     {...field}
                                   />
@@ -157,7 +148,7 @@ export default function CheckoutPage() {
                               name="address"
                               render={({ field }) => (
                                 <FormItem>
-                                  <FormLabel>Address</FormLabel>
+                                  <FormLabel>Address <span className="text-red-500">*</span></FormLabel>
                                   <FormControl>
                                     <Input
                                       placeholder="House #123, Road #10"
@@ -175,7 +166,7 @@ export default function CheckoutPage() {
                             name="city"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>City</FormLabel>
+                                <FormLabel>City <span className="text-red-500">*</span></FormLabel>
                                 <FormControl>
                                   <Input
                                     placeholder="Dhaka"
@@ -192,7 +183,7 @@ export default function CheckoutPage() {
                             name="postalCode"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>Postal Code</FormLabel>
+                                <FormLabel>Postal Code <span className="text-red-500">*</span></FormLabel>
                                 <FormControl>
                                   <Input
                                     placeholder="1207"
@@ -204,7 +195,7 @@ export default function CheckoutPage() {
                               </FormItem>
                             )}
                           />
-                          <FormField
+                          {/* <FormField
                             control={form.control}
                             name="country"
                             render={({ field }) => (
@@ -220,14 +211,17 @@ export default function CheckoutPage() {
                                 <FormMessage />
                               </FormItem>
                             )}
-                          />
+                          /> */}
                         </div>
                       </div>
 
                       <div>
                         <h2 className="mb-4 text-xl font-semibold">Payment Method</h2>
                         <div className="space-y-3">
-                          <div className="flex items-center gap-2">
+                        <Label htmlFor="cashOnDelivery" className="cursor-pointer">
+                              Cash on Delivery
+                            </Label>
+                          {/* <div className="flex items-center gap-2">
                             <input
                               type="radio"
                               id="sslcommerz"
@@ -247,8 +241,8 @@ export default function CheckoutPage() {
                               />
                               <span>Pay with SSLCommerz</span>
                             </Label>
-                          </div>
-                          <div className="flex items-center gap-2">
+                          </div> */}
+                          {/* <div className="flex items-center gap-2">
                             <input
                               type="radio"
                               id="cashOnDelivery"
@@ -261,8 +255,8 @@ export default function CheckoutPage() {
                             <Label htmlFor="cashOnDelivery" className="cursor-pointer">
                               Cash on Delivery
                             </Label>
-                          </div>
-                          <div className="flex items-center gap-2">
+                          </div> */}
+                          {/* <div className="flex items-center gap-2">
                             <input
                               type="radio"
                               id="bKash"
@@ -289,7 +283,7 @@ export default function CheckoutPage() {
                             <Label htmlFor="nagad" className="cursor-pointer">
                               Nagad
                             </Label>
-                          </div>
+                          </div> */}
                         </div>
                       </div>
 
@@ -312,8 +306,8 @@ export default function CheckoutPage() {
                   <h2 className="mb-4 text-xl font-semibold">Order Summary</h2>
 
                   <div className="divide-y">
-                    {cartItems.map((item) => (
-                      <div key={item.id} className="flex items-center gap-3 py-3">
+                    {items.map((item) => (
+                      <div key={`${item.id}-${item.selectedPackage}`} className="flex items-center gap-3 py-3">
                         <div className="relative h-16 w-16 overflow-hidden rounded">
                           <Image
                             src={item.image}
@@ -327,10 +321,10 @@ export default function CheckoutPage() {
                         </div>
                         <div>
                           <div className="font-medium">{item.name}</div>
-                          <div className="text-sm text-muted-foreground">৳ {item.price} × {item.quantity}</div>
+                          <div className="text-sm text-muted-foreground">৳ {getItemPrice(item)} × {item.quantity}</div>
                         </div>
                         <div className="ml-auto font-medium">
-                          ৳ {item.price * item.quantity}
+                          ৳ {item.totalPrice}
                         </div>
                       </div>
                     ))}

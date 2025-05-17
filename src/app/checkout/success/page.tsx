@@ -1,6 +1,9 @@
+"use client";
+
 // For static site generation
 export const dynamic = 'force-static';
 
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { CheckCircle } from "lucide-react";
 import RootLayout from "@/components/layout/RootLayout";
@@ -8,6 +11,16 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 
 export default function CheckoutSuccessPage() {
+  const searchParams = useSearchParams();
+  const formData = {
+    fullName: searchParams.get("fullName") || "N/A",
+    email: searchParams.get("email") || "N/A",
+    phone: searchParams.get("phone") || "N/A",
+    address: searchParams.get("address") || "N/A",
+    city: searchParams.get("city") || "N/A",
+    postalCode: searchParams.get("postalCode") || "N/A",
+  };
+
   const orderId = `PF-${Math.floor(10000 + Math.random() * 90000)}`;
   const orderDate = new Date().toLocaleDateString("en-US", {
     year: "numeric",
@@ -30,9 +43,7 @@ export default function CheckoutSuccessPage() {
             <CardContent className="p-6">
               <div className="mb-6 text-center">
                 <p className="text-muted-foreground">
-                  We&apos;ve received your order and will contact you as soon as
-                  your package is shipped. You can find your purchase
-                  information below.
+                আমরা আপনার অর্ডার পেয়েছি এবং আপনার প্যাকেজ পাঠানোর সাথে সাথেই আপনার সাথে যোগাযোগ করব। আপনি নীচে আপনার ক্রয়ের তথ্য পেতে পারেন।
                 </p>
               </div>
 
@@ -55,7 +66,7 @@ export default function CheckoutSuccessPage() {
                   <p className="text-sm font-medium text-muted-foreground">
                     Email
                   </p>
-                  <p className="font-medium">your@email.com</p>
+                  <p className="font-medium">{formData.email}</p>
                 </div>
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">
@@ -69,11 +80,11 @@ export default function CheckoutSuccessPage() {
                 <h2 className="mb-4 text-lg font-semibold">
                   Delivery Information
                 </h2>
-                <p className="mb-1">John Doe</p>
-                <p className="mb-1">House #123, Road #10</p>
-                <p className="mb-1">Dhaka, 1207</p>
+                <p className="mb-1">{formData.fullName}</p>
+                <p className="mb-1">{formData.address}</p>
+                <p className="mb-1">{formData.city}, {formData.postalCode}</p>
                 <p className="mb-1">Bangladesh</p>
-                <p>Phone: +880 1XXXXXXXXX</p>
+                <p>Phone: {formData.phone}</p>
               </div>
             </CardContent>
             <CardFooter className="flex flex-col gap-4 p-6">
