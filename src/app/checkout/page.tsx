@@ -163,7 +163,7 @@ export default function CheckoutPage() {
                                 <FormControl>
                                   <Input
                                     type="email"
-                                    placeholder="your@email.com"
+                                    placeholder="xxx@gmail.com"
                                     {...field}
                                   />
                                 </FormControl>

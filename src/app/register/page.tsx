@@ -94,7 +94,7 @@ export default function RegisterPage() {
                     id="email"
                     name="email"
                     type="email"
-                    placeholder="your@email.com"
+                    placeholder="xxx@gmail.com"
                     value={formData.email}
                     onChange={handleChange}
                     required

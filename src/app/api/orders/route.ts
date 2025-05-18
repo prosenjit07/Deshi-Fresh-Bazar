@@ -77,6 +77,21 @@ export async function POST(request: Request) {
       );
     }
 
+    // Defensive check: ensure all products exist
+    const productIds = orderData.items.map(item => item.id);
+    const products = await prisma.product.findMany({
+      where: { id: { in: productIds } },
+      select: { id: true }
+    });
+    const existingIds = new Set(products.map(p => p.id));
+    const missing = productIds.filter(id => !existingIds.has(id));
+    if (missing.length > 0) {
+      return NextResponse.json(
+        { message: `Invalid product(s): ${missing.join(', ')}` },
+        { status: 400 }
+      );
+    }
+
     // Create order using Prisma
     const order = await prisma.order.create({
       data: {
