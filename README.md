@@ -33,7 +33,9 @@ freshbazar/
 ├── package.json # Backend dependencies
 └── node_modules/ # Backend node modules
 
+## 🛠️ Databse Schema
 
+![supabase-schema-jftgaryiaxgadhuwiiys](https://github.com/user-attachments/assets/22cea62c-ccf3-434a-adb9-f55f0a415324)
 
 
 ## 🛠️ Prerequisites
