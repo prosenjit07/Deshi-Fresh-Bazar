@@ -84,7 +84,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 
 # Backend 
-
+```plaintext
 src/
 ├── api/
 │   ├── controllers/
@@ -114,7 +114,7 @@ src/
 └── utils/
     ├── logger.ts
     └── helpers.ts
-
+```
 ## Implementation Steps
 1. Setup Project
 npm init -y
