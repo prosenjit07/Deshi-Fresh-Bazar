@@ -1,127 +1,216 @@
-# FreshBazar
+# Deshi Fresh Bazar 🥭
 
-FreshBazar is a modern e-commerce platform built with Next.js and Node.js, designed to provide a seamless shopping experience for fresh produce and groceries.
+Deshi Fresh Bazar is an Agritech fruit chain initiative delivering safer fruits directly from gardens to your doorstep. Built with Next.js, TypeScript, and Tailwind CSS.
 
-## 🚀 Tech Stack
+## 🌟 Features
 
-### Frontend
-- **Framework**: Next.js 14 (React)
-- **Language**: TypeScript
-- **State Management**: React Context API
-- **Styling**: Tailwind CSS
-- **Asset Management**: Built-in Next.js asset handling
-- **API Integration**: Axios/Fetch API
+* **Product Catalog**: Browse through a variety of premium-quality fruits
+* **Shopping Cart**: Manage your purchases with an intuitive cart system
+* **Package Selection**: Choose from different package sizes for each product
+* **Image Gallery**: View our collection of product and delivery images
+* **Order Tracking**: Track your order status
+* **Responsive Design**: Fully responsive across all devices
 
-### Backend
-- **Runtime**: Node.js
-- **Framework**: Express.js
-- **Database**: MongoDB (assumed based on typical Node.js stack)
-- **Authentication**: JWT (JSON Web Tokens)
-- **API Documentation**: Swagger/OpenAPI
+## 🛠️ Tech Stack
 
-## 📁 Project Structure
-freshbazar/
-├── src/ # Frontend source code
-│ ├── app/ # Next.js app directory (pages and routing)
-│ ├── components/ # Reusable React components
-│ ├── contexts/ # React Context providers
-│ ├── lib/ # Utility functions and shared logic
-│ └── assets/ # Static assets (images, fonts, etc.)
-│
-└── backend/ # Backend source code
-├── src/ # Backend source files
-├── package.json # Backend dependencies
-└── node_modules/ # Backend node modules
+* **Frontend Framework**: Next.js 13+ with App Router
+* **Language**: TypeScript
+* **Styling**: Tailwind CSS
+* **UI Components**: Radix UI
+* **State Management**: React Context API
+* **Image Optimization**: Next.js Image Component
+* **Backend Services**: Supabase (or your preferred BaaS)
 
-## 🛠️ Databse Schema
+## 📦 Project Structure
 
-![supabase-schema-jftgaryiaxgadhuwiiys](https://github.com/user-attachments/assets/22cea62c-ccf3-434a-adb9-f55f0a415324)
-
-
-## 🛠️ Prerequisites
-
-- Node.js (v18 or higher)
-- npm or yarn
-- MongoDB (if using MongoDB as database)
-- Git
+```plaintext
+src/
+├── app/                    # Next.js 13 app directory
+│   ├── about/             # About page
+│   ├── cart/              # Shopping cart
+│   ├── checkout/          # Checkout process
+│   ├── contact/           # Contact information
+│   ├── fruits/            # Products listing
+│   ├── gallery/           # Image gallery
+│   ├── privacy/           # Privacy policy
+│   ├── product/           # Product details
+│   ├── return-policy/     # Return policy
+│   ├── terms/             # Terms and conditions
+│   └── track-order/       # Order tracking
+├── assets/                # Static assets
+├── components/            # Reusable components
+│   ├── layout/           # Layout components
+│   └── ui/               # UI components
+└── contexts/             # React Context providers
+```
 
 ## 🚀 Getting Started
 
-### Frontend Setup
+### Setup Instructions
 
-1. Navigate to the project root:
-   ```bash
-   cd freshbazar
-   ```
+1. **Clone the repository**
 
-2. Install dependencies:
-   ```bash
-   npm install
-   # or
-   yarn install
-   ```
+```bash
+git clone https://github.com/yourusername/freshbazar.git
+cd freshbazar
+```
 
-3. Create a `.env.local` file in the root directory:
-   ```env
-   NEXT_PUBLIC_API_URL=http://localhost:5000
-   # Add other environment variables as needed
-   ```
+2. **Install dependencies**
 
-4. Start the development server:
-   ```bash
-   npm run dev
-   # or
-   yarn dev
-   ```
+```bash
+npm install
+# or
+yarn install
+```
 
-### Backend Setup
+3. **Configure environment variables**
 
-1. Navigate to the backend directory:
-   ```bash
-   cd backend
-   ```
+Create a `.env.local` file in the root directory and add:
 
-2. Install dependencies:
-   ```bash
-   npm install
-   # or
-   yarn install
-   ```
+```env
+NEXT_PUBLIC_API_URL=https://your-api-url.com
+# Add any other public environment variables here
+```
 
-3. Create a `.env` file in the backend directory:
-   ```env
-   PORT=5000
-   MONGODB_URI=your_mongodb_connection_string
-   JWT_SECRET=your_jwt_secret
-   # Add other environment variables as needed
-   ```
+4. **Start the development server**
 
-4. Start the backend server:
-   ```bash
-   npm run dev
-   # or
-   yarn dev
-   ```
+```bash
+npm run dev
+# or
+yarn dev
+```
 
-## 🔧 Available Scripts
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-### Frontend
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run start` - Start production server
-- `npm run lint` - Run ESLint
-- `npm run test` - Run tests
 
-### Backend
-- `npm run dev` - Start development server with nodemon
-- `npm run start` - Start production server
-- `npm run test` - Run tests
-- `npm run lint` - Run ESLint
+# Backend 
 
-## 📚 API Documentation
+src/
+├── api/
+│   ├── controllers/
+│   │   ├── authController.ts
+│   │   ├── productController.ts
+│   │   ├── orderController.ts
+│   │   └── userController.ts
+│   ├── middlewares/
+│   │   ├── auth.ts
+│   │   ├── errorHandler.ts
+│   │   └── validation.ts
+│   ├── routes/
+│   │   ├── auth.ts
+│   │   ├── products.ts
+│   │   ├── orders.ts
+│   │   └── users.ts
+│   └── validators/
+│       ├── auth.ts
+│       ├── product.ts
+│       └── order.ts
+├── config/
+│   └── index.ts
+├── services/
+│   ├── auth.service.ts
+│   ├── product.service.ts
+│   └── order.service.ts
+└── utils/
+    ├── logger.ts
+    └── helpers.ts
 
-The API documentation is available at `/api-docs` when running the backend server. It provides detailed information about all available endpoints, request/response formats, and authentication requirements.
+## Implementation Steps
+1. Setup Project
+npm init -y
+npm install express prisma @prisma/client cors dotenv jsonwebtoken bcryptjs
+npm install -D typescript @types/node @types/express
+
+2. Configure TypeScript
+tsc --init
+
+4. Initialize Prisma
+prisma init
+
+6. Environment Variables
+MONGODB_URI=
+JWT_SECRET=
+PORT=
+SUPABASE_DATABASE_DIRECT_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+SUPABASE_SERVICE_ROLE_KEY=
+DATABASE_URL=
+SUPABASE_DATABASE=
+NEXT_PUBLIC_SUPABASE_URL=
+
+## 🛠️ Database Schema
+
+![supabase-schema-jftgaryiaxgadhuwiiys](https://github.com/user-attachments/assets/22cea62c-ccf3-434a-adb9-f55f0a415324)
+
+## 📱 Key Features
+
+### Product Management
+
+* Browse products by category
+* View detailed product information
+* Select package sizes
+* Add products to cart
+
+### Shopping Cart
+
+* Add/remove items
+* Update quantities
+* Change package sizes
+* Calculate total with shipping
+
+### User Experience
+
+* Responsive image gallery
+* Order tracking system
+* Contact information
+* Privacy and return policies
 
 ## 🔐 Authentication
 
-The application uses JWT (JSON Web Tokens) for authentication. Protected routes require a valid JWT token in the Authorization header:
+Authentication is handled using \[Supabase/Firebase/Auth Provider] (e.g., Supabase Auth). Protected routes require users to be logged in. JWT or session-based security is managed by the authentication provider.
+
+## 📚 API Integration
+
+All data interactions are handled via API calls to the backend-as-a-service platform (e.g., Supabase):
+
+* Products
+* Cart items
+* Orders
+* User profiles
+
+API URLs and configurations are stored in environment variables.
+
+## 🌐 Deployment
+
+The app is ready for deployment on [**Vercel**](https://vercel.com):
+
+```bash
+vercel deploy
+```
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create your feature branch: `git checkout -b feature/AmazingFeature`
+3. Commit your changes: `git commit -m 'Add some AmazingFeature'`
+4. Push to the branch: `git push origin feature/AmazingFeature`
+5. Open a Pull Request
+
+
+## 📄 License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+
+## 👥 Contact
+
+* Website: [www.deshifreshbazar.com](https://www.deshifreshbazar.com)
+* Email: [deshifreshbazar@gmail.com](mailto:deshifreshbazar@gmail.com)
+* Phone: 01782285171
+
+## 🙏 Acknowledgments
+
+* [Next.js](https://nextjs.org) team
+* [Tailwind CSS](https://tailwindcss.com)
+* [Radix UI](https://www.radix-ui.com)
+* Our farmers and loyal customers ❤️
+
