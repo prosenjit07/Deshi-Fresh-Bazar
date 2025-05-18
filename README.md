@@ -116,9 +116,7 @@ yarn dev
 Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 
-# Backend 
-
-## Implementation Steps
+## Backend Implementation Steps
 1. Setup Project
 npm init -y
 npm install express prisma @prisma/client cors dotenv jsonwebtoken bcryptjs
