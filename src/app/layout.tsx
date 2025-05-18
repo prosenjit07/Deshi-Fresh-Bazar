@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import ClientBody from "./ClientBody";
 import { CartProvider } from '@/contexts/CartContext';
 import favicon from "@/assets/favicon/favicon.ico";
+import { UserProvider } from "@/contexts/UserContext";
 
 export const metadata: Metadata = {
   title: "Deshi Fresh Bazar",
@@ -20,9 +21,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <CartProvider>
-          {children}
-        </CartProvider>
+        <UserProvider>
+          <CartProvider>
+            {children}
+          </CartProvider>
+        </UserProvider>
       </body>
     </html>
   );

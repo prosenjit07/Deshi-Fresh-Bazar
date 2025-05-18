@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { register } from "@/lib/auth";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -40,16 +41,20 @@ export default function RegisterPage() {
     }
 
     try {
-      // This will be replaced with actual API call later
-      console.log("Registering with:", formData);
+      // Register user
+      await register({
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+      });
 
-      // Simulate successful registration
-      setTimeout(() => {
-        router.push("/login");
-        setLoading(false);
-      }, 1000);
-    } catch (err) {
-      setError("Registration failed. Please try again.");
+      // Redirect to home page after successful registration
+      router.push("/");
+      router.refresh(); // Refresh the page to update auth state
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Registration failed. Please try again.';
+      setError(errorMessage);
+    } finally {
       setLoading(false);
     }
   };

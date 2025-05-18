@@ -8,9 +8,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { login } from "@/lib/auth";
+import { useUser } from "@/contexts/UserContext";
 
 export default function LoginPage() {
   const router = useRouter();
+  const { setUser } = useUser();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -32,16 +35,18 @@ export default function LoginPage() {
     setError("");
 
     try {
-      // This will be replaced with actual API call later
-      console.log("Logging in with:", formData);
-
-      // Simulate successful login
-      setTimeout(() => {
-        router.push("/");
-        setLoading(false);
-      }, 1000);
-    } catch (err) {
-      setError("Invalid email or password. Please try again.");
+      const result = await login(formData);
+      // Set user data in context
+      setUser({
+        id: result.id,
+        name: result.name,
+        email: result.email,
+      });
+      router.push("/"); // Redirect to home page after successful login
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Login failed. Please try again.';
+      setError(errorMessage);
+    } finally {
       setLoading(false);
     }
   };
