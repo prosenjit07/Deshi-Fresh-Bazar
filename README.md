@@ -23,6 +23,7 @@ Deshi Fresh Bazar is an Agritech fruit chain initiative delivering safer fruits 
 
 ## 📦 Project Structure
 
+# Frontend
 ```plaintext
 src/
 ├── app/                    # Next.js 13 app directory
@@ -44,6 +45,38 @@ src/
 └── contexts/             # React Context providers
 ```
 
+# Backend 
+```plaintext
+src/
+├── api/
+│   ├── controllers/
+│   │   ├── authController.ts
+│   │   ├── productController.ts
+│   │   ├── orderController.ts
+│   │   └── userController.ts
+│   ├── middlewares/
+│   │   ├── auth.ts
+│   │   ├── errorHandler.ts
+│   │   └── validation.ts
+│   ├── routes/
+│   │   ├── auth.ts
+│   │   ├── products.ts
+│   │   ├── orders.ts
+│   │   └── users.ts
+│   └── validators/
+│       ├── auth.ts
+│       ├── product.ts
+│       └── order.ts
+├── config/
+│   └── index.ts
+├── services/
+│   ├── auth.service.ts
+│   ├── product.service.ts
+│   └── order.service.ts
+└── utils/
+    ├── logger.ts
+    └── helpers.ts
+```
 ## 🚀 Getting Started
 
 ### Setup Instructions
@@ -84,37 +117,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 
 # Backend 
-```plaintext
-src/
-├── api/
-│   ├── controllers/
-│   │   ├── authController.ts
-│   │   ├── productController.ts
-│   │   ├── orderController.ts
-│   │   └── userController.ts
-│   ├── middlewares/
-│   │   ├── auth.ts
-│   │   ├── errorHandler.ts
-│   │   └── validation.ts
-│   ├── routes/
-│   │   ├── auth.ts
-│   │   ├── products.ts
-│   │   ├── orders.ts
-│   │   └── users.ts
-│   └── validators/
-│       ├── auth.ts
-│       ├── product.ts
-│       └── order.ts
-├── config/
-│   └── index.ts
-├── services/
-│   ├── auth.service.ts
-│   ├── product.service.ts
-│   └── order.service.ts
-└── utils/
-    ├── logger.ts
-    └── helpers.ts
-```
+
 ## Implementation Steps
 1. Setup Project
 npm init -y
