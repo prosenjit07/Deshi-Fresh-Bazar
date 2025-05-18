@@ -2,6 +2,11 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
 import jwt from 'jsonwebtoken';
+import { prisma } from '@/lib/prisma';
+
+// Configure dynamic route handling
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
 
 // Initialize Supabase client
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -48,7 +53,7 @@ interface OrderData {
 export async function POST(request: Request) {
   try {
     // Get token from cookies
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const token = cookieStore.get('token')?.value;
 
     // Get user ID if logged in
@@ -72,66 +77,45 @@ export async function POST(request: Request) {
       );
     }
 
-    // Start a Supabase transaction
-    const { data: order, error: orderError } = await supabase
-      .from('orders')
-      .insert([
-        {
-          user_id: userId,
-          customer_name: orderData.fullName,
-          customer_email: orderData.email,
-          customer_phone: orderData.phone,
-          shipping_address: orderData.address,
-          shipping_city: orderData.city,
-          shipping_postal_code: orderData.postalCode,
-          shipping_country: orderData.country,
-          subtotal: orderData.subtotal,
-          shipping_cost: orderData.shipping,
-          total_amount: orderData.total,
-          payment_method: orderData.paymentMethod,
-          status: 'pending', // Initial order status
+    // Create order using Prisma
+    const order = await prisma.order.create({
+      data: {
+        userId: userId,
+        customerName: orderData.fullName,
+        customerEmail: orderData.email,
+        customerPhone: orderData.phone,
+        shippingAddress: orderData.address,
+        shippingCity: orderData.city,
+        shippingPostalCode: orderData.postalCode,
+        shippingCountry: orderData.country,
+        subtotal: orderData.subtotal,
+        shippingCost: orderData.shipping,
+        totalAmount: orderData.total,
+        paymentMethod: orderData.paymentMethod,
+        status: 'PENDING',
+        items: {
+          create: orderData.items.map(item => ({
+            productId: item.id,
+            productName: item.name,
+            productImage: item.image,
+            quantity: item.quantity,
+            unitPrice: item.price,
+            totalPrice: item.totalPrice,
+            packageType: item.selectedPackage,
+          })),
         },
-      ])
-      .select()
-      .single();
+      },
+      include: {
+        items: true,
+      },
+    });
 
-    if (orderError) throw orderError;
-
-    // Insert order items
-    const orderItems = orderData.items.map(item => ({
-      order_id: order.id,
-      product_id: item.id,
-      product_name: item.name,
-      product_image: item.image,
-      quantity: item.quantity,
-      unit_price: item.price,
-      total_price: item.totalPrice,
-      package_type: item.selectedPackage,
-    }));
-
-    const { error: itemsError } = await supabase
-      .from('order_items')
-      .insert(orderItems);
-
-    if (itemsError) throw itemsError;
-
-    // Return the created order with its items
-    const { data: completeOrder, error: fetchError } = await supabase
-      .from('orders')
-      .select(`
-        *,
-        order_items (*)
-      `)
-      .eq('id', order.id)
-      .single();
-
-    if (fetchError) throw fetchError;
-
-    return NextResponse.json(completeOrder);
-  } catch (error: any) {
+    return NextResponse.json(order);
+  } catch (error: unknown) {
     console.error('Order creation error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Failed to create order';
     return NextResponse.json(
-      { message: error.message },
+      { message: errorMessage },
       { status: 500 }
     );
   }
@@ -141,7 +125,7 @@ export async function POST(request: Request) {
 export async function GET(request: Request) {
   try {
     // Get token from cookies
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const token = cookieStore.get('token')?.value;
 
     if (!token) {
@@ -160,22 +144,24 @@ export async function GET(request: Request) {
       );
     }
 
-    // Get orders for the user
-    const { data: orders, error } = await supabase
-      .from('orders')
-      .select(`
-        *,
-        order_items (*)
-      `)
-      .eq('user_id', decoded.id)
-      .order('created_at', { ascending: false });
-
-    if (error) throw error;
+    // Get orders using Prisma
+    const orders = await prisma.order.findMany({
+      where: {
+        userId: decoded.id,
+      },
+      include: {
+        items: true,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
 
     return NextResponse.json(orders);
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Failed to fetch orders';
     return NextResponse.json(
-      { message: error.message },
+      { message: errorMessage },
       { status: 500 }
     );
   }
