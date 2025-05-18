@@ -3,19 +3,22 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { ShoppingCart, User, Menu } from "lucide-react";
+import { ShoppingCart, User, Menu, LogOut } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useCart } from "@/contexts/CartContext";
+import { useUser } from "@/contexts/UserContext";
 import logo from "@/assets/images/fresh-logo.jpg";
 
 export default function Header() {
   const { getCartCount } = useCart();
+  const { user, logout } = useUser();
   const cartCount = getCartCount();
 
   const navLinks = [
@@ -81,12 +84,30 @@ export default function Header() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem asChild>
-                <Link href="/login">Login</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href="/register">Register</Link>
-              </DropdownMenuItem>
+              {user ? (
+                <>
+                  <DropdownMenuItem asChild>
+                    <Link href="/profile">Profile</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/orders">My Orders</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={logout} className="text-red-600">
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Logout
+                  </DropdownMenuItem>
+                </>
+              ) : (
+                <>
+                  <DropdownMenuItem asChild>
+                    <Link href="/login">Login</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/register">Register</Link>
+                  </DropdownMenuItem>
+                </>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
           <Sheet>
@@ -118,13 +139,38 @@ export default function Header() {
                   )}
                   <span>Cart</span>
                 </Link>
-                <Link
-                  href="/login"
-                  className="flex items-center gap-2 text-sm font-medium text-muted-foreground"
-                >
-                  <User className="h-4 w-4" />
-                  <span>Login</span>
-                </Link>
+                {user ? (
+                  <>
+                    <Link
+                      href="/profile"
+                      className="flex items-center gap-2 text-sm font-medium text-muted-foreground"
+                    >
+                      <User className="h-4 w-4" />
+                      <span>Profile</span>
+                    </Link>
+                    <Link
+                      href="/orders"
+                      className="flex items-center gap-2 text-sm font-medium text-muted-foreground"
+                    >
+                      <span>My Orders</span>
+                    </Link>
+                    <button
+                      onClick={logout}
+                      className="flex items-center gap-2 text-sm font-medium text-red-600"
+                    >
+                      <LogOut className="h-4 w-4" />
+                      <span>Logout</span>
+                    </button>
+                  </>
+                ) : (
+                  <Link
+                    href="/login"
+                    className="flex items-center gap-2 text-sm font-medium text-muted-foreground"
+                  >
+                    <User className="h-4 w-4" />
+                    <span>Login</span>
+                  </Link>
+                )}
               </nav>
             </SheetContent>
           </Sheet>

@@ -23,13 +23,23 @@ import {
 import { useForm } from "react-hook-form";
 import { useCart } from '@/contexts/CartContext';
 
+interface OrderFormData {
+  fullName: string;
+  email?: string;
+  phone: string;
+  address: string;
+  city: string;
+  postalCode: string;
+  country: string;
+}
+
 export default function CheckoutPage() {
   const router = useRouter();
   const [paymentMethod, setPaymentMethod] = useState("SSLCommerz");
   const [loading, setLoading] = useState(false);
   const { items, getCartTotal, getItemPrice } = useCart();
 
-  const form = useForm({
+  const form = useForm<OrderFormData>({
     defaultValues: {
       fullName: "",
       email: "",
@@ -55,14 +65,49 @@ export default function CheckoutPage() {
     return calculateSubtotal() + calculateShipping();
   };
 
-  const onSubmit = async (data: any) => {
-    setLoading(true);
-    console.log("Order placed with:", { ...data, paymentMethod, items });
+  const onSubmit = async (data: OrderFormData) => {
+    try {
+      setLoading(true);
 
-    // Simulate payment process and order placement
-    setTimeout(() => {
-      setLoading(false);
+      const orderData = {
+        ...data,
+        items: items.map(item => ({
+          id: item.id,
+          name: item.name,
+          image: item.image,
+          quantity: item.quantity,
+          price: getItemPrice(item),
+          totalPrice: item.totalPrice,
+          selectedPackage: item.selectedPackage,
+        })),
+        subtotal: calculateSubtotal(),
+        shipping: calculateShipping(),
+        total: calculateTotal(),
+        paymentMethod,
+      };
+
+      const response = await fetch('/api/orders', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(orderData),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to create order');
+      }
+
+      const order = await response.json();
+      
+      // Clear cart after successful order
+      // You'll need to implement this in your CartContext
+      // clearCart();
+
+      // Redirect to success page with order ID
       const queryParams = new URLSearchParams({
+        orderId: order.id,
         fullName: data.fullName,
         email: data.email || "",
         phone: data.phone,
@@ -70,8 +115,15 @@ export default function CheckoutPage() {
         city: data.city,
         postalCode: data.postalCode,
       }).toString();
+      
       router.push(`/checkout/success?${queryParams}`);
-    }, 1500);
+    } catch (error: unknown) {
+      console.error('Order creation error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to create order. Please try again.';
+      alert(errorMessage);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -111,7 +163,7 @@ export default function CheckoutPage() {
                                 <FormControl>
                                   <Input
                                     type="email"
-                                    placeholder="your@email.com"
+                                    placeholder="xxx@gmail.com"
                                     {...field}
                                   />
                                 </FormControl>
