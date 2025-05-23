@@ -53,9 +53,19 @@ export async function PUT(request: Request) {
       return NextResponse.json({ message: 'Invalid credentials' }, { status: 401 });
     }
 
-    const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET!, { expiresIn: '30d' });
+    const token = jwt.sign(
+      { id: user.id, role: user.role },  // Include role in JWT token
+      process.env.JWT_SECRET!,
+      { expiresIn: '30d' }
+    );
 
-    return NextResponse.json({ id: user.id, name: user.name, email: user.email, token });
+    return NextResponse.json({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,  // Include role in response
+      token
+    });
   } catch (error: any) {
     return NextResponse.json({ message: error.message }, { status: 500 });
   }
