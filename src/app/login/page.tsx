@@ -46,8 +46,10 @@ export default function LoginPage() {
       
       // Redirect based on role
       if (result.role === 'ADMIN') {
+        console.log("Admin login successful");
         router.push("/admin");
       } else {
+        console.log("User login successful");
         router.push("/");
       }
     } catch (err: unknown) {
