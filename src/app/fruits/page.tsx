@@ -12,7 +12,7 @@ import p2 from "@/assets/images/gobindovog-mango.jpg";
 export default function FruitsPage() {
   const products = [
     {
-      id: 1,
+      id: "cmb3fmy6900024clh02oxg059",
       name: "হিমসাগর আম (বিষমুক্ত) – প্রতি কেজি ১৬০ টাকা",
       description: "Home Delivery (Dhaka, Gazipur)",
       price: 1199,
@@ -20,7 +20,7 @@ export default function FruitsPage() {
       category: "Katimon",
     },
     {
-      id: 2,
+      id: "cmb3fmz1200084clhjprreg26",
       name: "ল্যাংড়া আম (বিষমুক্ত) – প্রতি কেজি ১৬০ টাকা",
       description: "Home Delivery (Dhaka, Gazipur)",
       price: 2299,
@@ -28,7 +28,7 @@ export default function FruitsPage() {
       category: "Mango",
     },
     {
-      id: 3,
+      id: "cmb3fmzvj000e4clh00expef1",
       name: "হাড়িভাঙ্গা আম (বিষমুক্ত) – প্রতি কেজি ১৫০ টাকা",
       description: "Home Delivery (Dhaka, Gazipur)",
       price: 4499,
@@ -36,7 +36,7 @@ export default function FruitsPage() {
       category: "Katimon",
     },
     {
-      id: 4,
+      id: "cmb3fn0or000k4clh5d00jye2",
       name: "Gopalvhog– প্রতি কেজি ১৬০ টাকা",
       description: "Home Delivery (Dhaka, Gazipur)",
       price: 9000,

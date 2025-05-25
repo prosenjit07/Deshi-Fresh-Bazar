@@ -21,28 +21,28 @@ export default function HomePage() {
 
   const featuredProducts = [
     {
-      id: 1,
+      id: "cmb3fmy6900024clh02oxg059",
       name: "হিমসাগর আম (বিষমুক্ত) – প্রতি কেজি ১৬০ টাকা",
       description: "Home Delivery (Dhaka, Gazipur)",
       price: 1199,
       image: p1.src,
     },
     {
-      id: 2,
+      id: "cmb3fmz1200084clhjprreg26",
       name: "ল্যাংড়া আম (বিষমুক্ত) – প্রতি কেজি ১৬০ টাকা",
       description: "Home Delivery (Dhaka, Gazipur)",
       price: 2299,
       image: p2.src,
     },
     {
-      id: 3,
+      id: "cmb3fmzvj000e4clh00expef1",
       name: "হাড়িভাঙ্গা আম (বিষমুক্ত) – প্রতি কেজি ১৫০ টাকা",
       description: "Home Delivery (Dhaka, Gazipur)",
       price: 4499,
       image: p1.src,
     },
     {
-      id: 4,
+      id: "cmb3fn0or000k4clh5d00jye2",
       name: "Gopalvhog– প্রতি কেজি ১৬০ টাকা",
       description: "Home Delivery (Dhaka, Gazipur)",
       price: 9000,

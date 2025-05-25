@@ -74,16 +74,32 @@ function OrderDetails() {
               <p className="text-green-600 font-medium">Processing</p>
             </div>
           </div>
-
           <div className="border-t pt-6">
             <h2 className="mb-4 text-lg font-semibold">
               Delivery Information
             </h2>
-            <p className="mb-1">{formData.fullName}</p>
-            <p className="mb-1">{formData.address}</p>
-            <p className="mb-1">{formData.city}, {formData.postalCode}</p>
-            <p className="mb-1">Bangladesh</p>
-            <p>Phone: {formData.phone}</p>
+            <div className="grid gap-4">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-1">
+                <label className="text-sm font-medium text-muted-foreground">Full Name</label>
+                <p className="font-medium text center">{formData.fullName}</p>
+              </div>
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-1">
+                <label className="text-sm font-medium text-muted-foreground">Address</label>
+                <p className="font-medium text-right">{formData.address}</p>
+              </div>
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-1">
+                <label className="text-sm font-medium text-muted-foreground">City & Postal Code</label>
+                <p className="font-medium text-right">{formData.city}, {formData.postalCode}</p>
+              </div>
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-1">
+                <label className="text-sm font-medium text-muted-foreground">Country</label>
+                <p className="font-medium text-right">Bangladesh</p>
+              </div>
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-1">
+                <label className="text-sm font-medium text-muted-foreground">Phone</label>
+                <p className="font-medium text-right">{formData.phone}</p>
+              </div>
+            </div>
           </div>
         </CardContent>
         <CardFooter className="flex flex-col gap-4 p-6">

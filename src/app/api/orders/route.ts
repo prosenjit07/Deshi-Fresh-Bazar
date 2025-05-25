@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
 import jwt from 'jsonwebtoken';
 import prismaClient from '../util';
+import { PrismaClient } from '@prisma/client';
 
 // Configure dynamic route handling
 export const dynamic = 'force-dynamic';
@@ -12,6 +13,8 @@ export const runtime = 'nodejs';
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 const supabase = createClient(supabaseUrl, supabaseKey);
+
+const prisma = new PrismaClient();
 
 // Helper function to verify JWT token
 async function verifyToken(token: string) {
@@ -52,106 +55,59 @@ interface OrderData {
 // Create new order
 export async function POST(request: Request) {
   try {
-    // Get token from cookies
-    const cookieStore = await cookies();
-    const token = cookieStore.get('token')?.value;
+    const data = await request.json();
+    const { 
+      fullName, 
+      email, 
+      phone, 
+      address, 
+      city, 
+      postalCode, 
+      country,
+      items,
+      subtotal,
+      shipping,
+      total,
+      paymentMethod 
+    } = data;
 
-    // Get user ID if logged in
-    let userId: string | null = null;
-    if (token) {
-      const decoded = await verifyToken(token);
-      if (decoded) {
-        userId = decoded.id;
-      }
-    }
-
-    const orderData: OrderData = await request.json();
-
-    // Validate required fields
-    if (!orderData.fullName || !orderData.phone || !orderData.address || 
-        !orderData.city || !orderData.postalCode || !orderData.items || 
-        orderData.items.length === 0) {
-      return NextResponse.json(
-        { message: 'Missing required fields' },
-        { status: 400 }
-      );
-    }
-
-    // Validate that all products exist
-    const productIds = orderData.items.map(item => item.id);
-    const products = await prismaClient.product.findMany({
-      where: { id: { in: productIds } },
-      select: { 
-        id: true,
-        name: true,
-        price: true,
-        image: true
-      }
-    });
-
-    // Check if all products were found
-    if (products.length !== productIds.length) {
-      const foundIds = new Set(products.map(p => p.id));
-      const missingIds = productIds.filter(id => !foundIds.has(id));
-      return NextResponse.json(
-        { message: `Invalid product(s) with ID(s): ${missingIds.join(', ')}` },
-        { status: 400 }
-      );
-    }
-
-    // Verify prices match
-    const priceMismatches = orderData.items.filter(item => {
-      const product = products.find(p => p.id === item.id);
-      return product && product.price !== item.price;
-    });
-
-    if (priceMismatches.length > 0) {
-      return NextResponse.json(
-        { message: 'Product prices have changed. Please refresh your cart.' },
-        { status: 400 }
-      );
-    }
-
-    console.log("before oder!!!!");
-    // Create order using Prisma
-    const order = await prismaClient.order.create({
+    // Create the order
+    const order = await prisma.order.create({
       data: {
-        userId: userId,
-        customerName: orderData.fullName,
-        customerEmail: orderData.email,
-        customerPhone: orderData.phone,
-        shippingAddress: orderData.address,
-        shippingCity: orderData.city,
-        shippingPostalCode: orderData.postalCode,
-        shippingCountry: orderData.country,
-        subtotal: orderData.subtotal,
-        shippingCost: orderData.shipping,
-        totalAmount: orderData.total,
-        paymentMethod: orderData.paymentMethod,
+        customerName: fullName,
+        customerEmail: email,
+        customerPhone: phone,
+        shippingAddress: address,
+        shippingCity: city,
+        shippingPostalCode: postalCode,
+        shippingCountry: country,
+        subtotal: subtotal,
+        shippingCost: shipping,
+        totalAmount: total,
+        paymentMethod: paymentMethod,
         status: 'PENDING',
         items: {
-          create: orderData.items.map(item => ({
+          create: items.map((item: any) => ({
             productId: item.id,
             productName: item.name,
             productImage: item.image,
             quantity: item.quantity,
             unitPrice: item.price,
             totalPrice: item.totalPrice,
-            packageType: item.selectedPackage,
-          })),
-        },
+            packageType: item.selectedPackage
+          }))
+        }
       },
       include: {
-        items: true,
-      },
+        items: true
+      }
     });
-    console.log("after oder!!!!");
+
     return NextResponse.json(order);
-  } catch (error: unknown) {
+  } catch (error) {
     console.error('Order creation error:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Failed to create order';
     return NextResponse.json(
-      { message: errorMessage },
+      { error: 'Failed to create order' },
       { status: 500 }
     );
   }
