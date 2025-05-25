@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Role } from '@prisma/client';
 
 const prisma = new PrismaClient({
   datasources: {
@@ -48,25 +48,41 @@ export async function PUT(request: Request) {
       return NextResponse.json({ message: 'Email and password required' }, { status: 400 });
     }
 
-    const user = await prisma.user.findUnique({ where: { email } });
+    const user = await prisma.user.findUnique({ 
+      where: { email },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        password: true,
+        role: true
+      }
+    });
+
     if (!user || !(await bcrypt.compare(password, user.password))) {
       return NextResponse.json({ message: 'Invalid credentials' }, { status: 401 });
     }
 
+    // Create token with role from Prisma enum
     const token = jwt.sign(
-      { id: user.id, role: user.role },  // Include role in JWT token
+      { 
+        id: user.id, 
+        role: user.role // This will be the Role enum value from Prisma
+      },
       process.env.JWT_SECRET!,
       { expiresIn: '30d' }
     );
 
+    // Return user data with role from Prisma
     return NextResponse.json({
       id: user.id,
       name: user.name,
       email: user.email,
-      role: user.role,  // Include role in response
+      role: user.role, // This will be the Role enum value
       token
     });
   } catch (error: any) {
+    console.error('Login error:', error);
     return NextResponse.json({ message: error.message }, { status: 500 });
   }
 }

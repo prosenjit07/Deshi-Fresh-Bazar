@@ -48,6 +48,7 @@ export default function LoginPage() {
       if (result.role === 'ADMIN') {
         console.log("Admin login successful");
         router.push("/admin");
+        // window.location.href = "/admin"; 
       } else {
         console.log("User login successful");
         router.push("/");
