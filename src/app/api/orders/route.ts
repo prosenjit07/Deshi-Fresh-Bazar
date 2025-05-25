@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
 import jwt from 'jsonwebtoken';
-import { prisma } from '@/lib/prisma';
+import prismaClient from '../util';
 
 // Configure dynamic route handling
 export const dynamic = 'force-dynamic';
@@ -77,23 +77,44 @@ export async function POST(request: Request) {
       );
     }
 
-    // Defensive check: ensure all products exist
+    // Validate that all products exist
     const productIds = orderData.items.map(item => item.id);
-    const products = await prisma.product.findMany({
+    const products = await prismaClient.product.findMany({
       where: { id: { in: productIds } },
-      select: { id: true }
+      select: { 
+        id: true,
+        name: true,
+        price: true,
+        image: true
+      }
     });
-    const existingIds = new Set(products.map(p => p.id));
-    const missing = productIds.filter(id => !existingIds.has(id));
-    if (missing.length > 0) {
+
+    // Check if all products were found
+    if (products.length !== productIds.length) {
+      const foundIds = new Set(products.map(p => p.id));
+      const missingIds = productIds.filter(id => !foundIds.has(id));
       return NextResponse.json(
-        { message: `Invalid product(s): ${missing.join(', ')}` },
+        { message: `Invalid product(s) with ID(s): ${missingIds.join(', ')}` },
         { status: 400 }
       );
     }
 
+    // Verify prices match
+    const priceMismatches = orderData.items.filter(item => {
+      const product = products.find(p => p.id === item.id);
+      return product && product.price !== item.price;
+    });
+
+    if (priceMismatches.length > 0) {
+      return NextResponse.json(
+        { message: 'Product prices have changed. Please refresh your cart.' },
+        { status: 400 }
+      );
+    }
+
+    console.log("before oder!!!!");
     // Create order using Prisma
-    const order = await prisma.order.create({
+    const order = await prismaClient.order.create({
       data: {
         userId: userId,
         customerName: orderData.fullName,
@@ -124,7 +145,7 @@ export async function POST(request: Request) {
         items: true,
       },
     });
-
+    console.log("after oder!!!!");
     return NextResponse.json(order);
   } catch (error: unknown) {
     console.error('Order creation error:', error);
@@ -160,7 +181,7 @@ export async function GET(request: Request) {
     }
 
     // Get orders using Prisma
-    const orders = await prisma.order.findMany({
+    const orders = await prismaClient.order.findMany({
       where: {
         userId: decoded.id,
       },

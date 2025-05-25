@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/accordion";
 
 export default function FAQPage() {
+  
   const faqs = [
     {
       question: "১/ কোন আম কখন পাওয়া যাবে?",

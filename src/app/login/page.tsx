@@ -41,16 +41,24 @@ export default function LoginPage() {
         id: result.id,
         name: result.name,
         email: result.email,
+        role: result.role, // Add role to user context
       });
-      router.push("/"); // Redirect to home page after successful login
+      
+      // Redirect based on role
+      if (result.role === 'ADMIN') {
+        console.log("Admin login successful");
+        router.push("/admin");
+      } else {
+        console.log("User login successful");
+        router.push("/");
+      }
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Login failed. Please try again.';
       setError(errorMessage);
     } finally {
       setLoading(false);
     }
-  };
-
+  }; // Added missing closing brace and semicolon
   return (
     <RootLayout>
       <div className="container py-12">

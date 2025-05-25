@@ -6,6 +6,7 @@ interface User {
   id: string;
   name: string;
   email: string;
+  role: 'USER' | 'ADMIN'; // Add this line to match your Prisma schema
 }
 
 interface UserContextType {
@@ -53,4 +54,4 @@ export function useUser() {
     throw new Error("useUser must be used within a UserProvider");
   }
   return context;
-} 
+}

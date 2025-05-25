@@ -17,6 +17,7 @@ interface AuthResponse {
   name: string;
   email: string;
   token: string;
+  role: 'USER' | 'ADMIN'; 
 }
 
 // Helper function to set cookie
