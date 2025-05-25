@@ -1,6 +1,11 @@
 // Remove server-side imports
 // import { cookies } from 'next/headers';
 
+import { NextAuthOptions } from 'next-auth';
+import CredentialsProvider from 'next-auth/providers/credentials';
+import { prisma } from './prisma';
+import { compare } from 'bcryptjs';
+
 interface LoginData {
   email: string;
   password: string;
@@ -37,6 +42,92 @@ function getCookie(name: string): string | null {
   return null;
 }
 
+export const authOptions: NextAuthOptions = {
+  providers: [
+    CredentialsProvider({
+      name: 'Credentials',
+      credentials: {
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" }
+      },
+      async authorize(credentials) {
+        if (!credentials?.email || !credentials?.password) {
+          throw new Error('Invalid credentials');
+        }
+
+        const user = await prisma.user.findUnique({
+          where: {
+            email: credentials.email
+          }
+        });
+
+        if (!user) {
+          throw new Error('User not found');
+        }
+
+        const isPasswordValid = await compare(credentials.password, user.password);
+
+        if (!isPasswordValid) {
+          throw new Error('Invalid password');
+        }
+
+        return {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          role: user.role,
+        };
+      }
+    })
+  ],
+  callbacks: {
+    async jwt({ token, user }) {
+      if (user) {
+        token.role = user.role;
+        token.id = user.id;
+      }
+      return token;
+    },
+    async session({ session, token }) {
+      if (token) {
+        session.user.role = token.role;
+        session.user.id = token.id;
+      }
+      return session;
+    }
+  },
+  pages: {
+    signIn: '/login',
+  },
+  session: {
+    strategy: 'jwt',
+    maxAge: 30 * 24 * 60 * 60, // 30 days
+  },
+  secret: process.env.NEXTAUTH_SECRET,
+};
+
+// Extend next-auth types
+declare module 'next-auth' {
+  interface User {
+    role: string;
+    id: string;
+  }
+  
+  interface Session {
+    user: User & {
+      role: string;
+      id: string;
+    };
+  }
+}
+
+declare module 'next-auth/jwt' {
+  interface JWT {
+    role: string;
+    id: string;
+  }
+}
+
 export async function login(data: LoginData): Promise<AuthResponse> {
   const response = await fetch('/api/users', {
     method: 'PUT',
@@ -53,8 +144,8 @@ export async function login(data: LoginData): Promise<AuthResponse> {
 
   const result = await response.json();
   
-  // Store token in localStorage
-  localStorage.setItem('token', result.token);
+  // Store token in cookie instead of localStorage
+  setCookie('token', result.token, 30); // 30 days expiry
   
   return result;
 }
@@ -75,19 +166,19 @@ export async function register(data: RegisterData): Promise<AuthResponse> {
 
   const result = await response.json();
   
-  // Store token in localStorage
-  localStorage.setItem('token', result.token);
+  // Store token in cookie instead of localStorage
+  setCookie('token', result.token, 30); // 30 days expiry
   
   return result;
 }
 
 export async function logout() {
-  // Remove token from localStorage
-  localStorage.removeItem('token');
+  // Remove token from cookie
+  setCookie('token', '', -1); // Set expiry to past date to remove cookie
 }
 
 export async function getCurrentUser() {
-  const token = localStorage.getItem('token');
+  const token = getCookie('token');
   
   if (!token) {
     return null;
@@ -111,5 +202,5 @@ export async function getCurrentUser() {
 }
 
 export function isAuthenticated(): boolean {
-  return !!localStorage.getItem('token');
+  return !!getCookie('token');
 } 

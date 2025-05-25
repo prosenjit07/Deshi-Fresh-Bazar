@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import jwt from 'jsonwebtoken';
-import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs';
+import { getToken } from 'next-auth/jwt';
 
 // Add paths that should be protected
 const protectedPaths = [
@@ -10,27 +9,15 @@ const protectedPaths = [
 ];
 
 export async function middleware(req: NextRequest) {
-  const res = NextResponse.next();
-  const supabase = createMiddlewareClient({ req, res });
-
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-
   // Protect admin routes
   if (req.nextUrl.pathname.startsWith('/admin')) {
-    if (!session) {
+    const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+
+    if (!token) {
       return NextResponse.redirect(new URL('/login', req.url));
     }
 
-    // Check if user has admin role
-    const { data: userData } = await supabase
-      .from('User')
-      .select('role')
-      .eq('id', session.user.id)
-      .single();
-
-    if (!userData || userData.role !== 'ADMIN') {
+    if (token.role !== 'ADMIN') {
       return NextResponse.redirect(new URL('/', req.url));
     }
   }
@@ -41,11 +28,10 @@ export async function middleware(req: NextRequest) {
   );
 
   if (!isProtectedPath) {
-    return res;
+    return NextResponse.next();
   }
 
-  // Get token from cookies
-  const token = req.cookies.get('token')?.value;
+  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
 
   if (!token) {
     return NextResponse.json(
@@ -54,16 +40,7 @@ export async function middleware(req: NextRequest) {
     );
   }
 
-  try {
-    // Verify token
-    jwt.verify(token, process.env.JWT_SECRET!);
-    return res;
-  } catch (error) {
-    return NextResponse.json(
-      { message: 'Not authorized, token failed' },
-      { status: 401 }
-    );
-  }
+  return NextResponse.next();
 }
 
 // Configure which paths the middleware should run on
