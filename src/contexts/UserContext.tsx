@@ -1,5 +1,8 @@
 "use client";
 
+import { deleteCookie } from '@/utils/cookies'; // adjust path as needed
+
+
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 
 interface User {
@@ -28,11 +31,17 @@ export function UserProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+ // adjust path as needed
+
   const logout = () => {
-    localStorage.removeItem("user");
-    localStorage.removeItem("token");
+    // Clear both localStorage and cookie
+    localStorage.removeItem('user');
+    localStorage.removeItem('token');
+    deleteCookie('token'); // removes cookie
+  
     setUser(null);
   };
+  
 
   const value = {
     user,

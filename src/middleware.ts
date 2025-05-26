@@ -1,54 +1,56 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { getToken } from 'next-auth/jwt';
+import { jwtVerify } from 'jose';
 
-// Add paths that should be protected
-const protectedPaths = [
-  '/api/users/profile',
-  // Add more protected paths here as needed
-];
+const secret = new TextEncoder().encode(process.env.JWT_SECRET!);
 
 export async function middleware(req: NextRequest) {
+  const { pathname } = req.nextUrl;
+
   // Protect admin routes
-  if (req.nextUrl.pathname.startsWith('/admin')) {
-    const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+  if (pathname.startsWith('/admin')) {
+    const token = req.cookies.get('token')?.value;
 
     if (!token) {
       return NextResponse.redirect(new URL('/login', req.url));
     }
 
-    if (token.role !== 'ADMIN') {
-      return NextResponse.redirect(new URL('/', req.url));
+    try {
+      const { payload } = await jwtVerify(token, secret);
+      if (payload.role !== 'ADMIN') {
+        return NextResponse.redirect(new URL('/', req.url));
+      }
+    } catch (error) {
+      return NextResponse.redirect(new URL('/login', req.url));
     }
   }
 
-  // Check if the path should be protected
-  const isProtectedPath = protectedPaths.some(path => 
-    req.nextUrl.pathname.startsWith(path)
-  );
+  // Additional protected paths
+  const protectedPaths = ['/api/users/profile'];
+  const isProtectedPath = protectedPaths.some(path => pathname.startsWith(path));
 
-  if (!isProtectedPath) {
-    return NextResponse.next();
-  }
+  if (isProtectedPath) {
+    const token = req.cookies.get('token')?.value;
 
-  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+    if (!token) {
+      return NextResponse.json({ message: 'Not authorized, no token' }, { status: 401 });
+    }
 
-  if (!token) {
-    return NextResponse.json(
-      { message: 'Not authorized, no token' },
-      { status: 401 }
-    );
+    try {
+      await jwtVerify(token, secret);
+      return NextResponse.next();
+    } catch (error) {
+      return NextResponse.json({ message: 'Not authorized, invalid token' }, { status: 401 });
+    }
   }
 
   return NextResponse.next();
 }
 
-// Configure which paths the middleware should run on
 export const config = {
   matcher: [
-    // '/admin/:path*',
-    // '/api/admin/:path*',
+    '/admin/:path*',
+    '/api/admin/:path*',
     '/api/users/profile/:path*',
-    // Add more matchers here as needed
   ],
-}; 
+};
