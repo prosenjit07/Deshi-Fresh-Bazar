@@ -125,8 +125,9 @@ export default function OrdersList() {
         </div>
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="w-full">
+      <div className="w-full overflow-x-auto">
+        <div className="mb-2 text-sm text-gray-500">Scroll horizontally to view all columns &rarr;</div>
+        <table className="min-w-[1500px] w-full border-separate border-spacing-0">
           <thead>
             <tr className="border-b">
               <th className="py-2 text-left">Order ID</th>
