@@ -1,4 +1,5 @@
 // For static site generation
+"use client";
 export const dynamic = 'force-static';
 
 import Image from "next/image";
@@ -13,6 +14,67 @@ import delivery from "@/assets/images/mango-delivary.jpeg";
 import p1 from "@/assets/images/gopalvog.jpg";
 import p2 from "@/assets/images/gobindovog-mango.jpg";
 import banner from "@/assets/images/v1.jpg";
+import { useState, useEffect } from "react";
+
+type Feature = {
+  id: string;
+  title: string;
+  description: string;
+  image: string;
+};
+
+function MobileFeatureCarousel({ features }: { features: Feature[] }) {
+  const [current, setCurrent] = useState(0);
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrent((prev) => (prev + 1) % features.length);
+    }, 2500);
+    return () => clearInterval(interval);
+  }, [features.length]);
+
+  return (
+    <div className="relative w-full h-[340px] overflow-hidden">
+      {features.map((feature: Feature, idx: number) => {
+        let distance = idx - current;
+        const totalItems = features.length;
+        
+        if (Math.abs(distance) > totalItems / 2) {
+          distance = distance > 0 
+            ? distance - totalItems 
+            : distance + totalItems;
+        }
+        
+        return (
+          <div
+            key={feature.id}
+            className="absolute top-0 left-0 w-full h-full flex flex-col items-center transition-transform duration-500"
+            style={{
+              transform: `translateX(${distance * 100}%)`,
+              zIndex: idx === current ? 2 : 1,
+              opacity: idx === current ? 1 : 0.7,
+              pointerEvents: idx === current ? 'auto' : 'none'
+            }}
+          >
+            <div className="mb-4 w-full flex justify-center">
+              <div className="rounded-lg overflow-hidden aspect-[4/3] w-4/5 mx-auto hover:scale-105 transition-transform duration-300">
+                <Image
+                  src={feature.image}
+                  alt={feature.title}
+                  width={280}
+                  height={210}
+                  className="h-full w-full object-cover"
+                />
+              </div>
+            </div>
+            <div className="mb-2 text-lg font-medium">{feature.id}</div>
+            <h3 className="mb-2 text-lg font-semibold whitespace-normal text-center">{feature.title}</h3>
+            <p className="text-sm text-muted-foreground whitespace-normal text-center">{feature.description}</p>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
 export default function HomePage() {
   //   হিমসাগর আম (বিষমুক্ত) – প্রতি কেজি ১৬০ টাকা
@@ -212,10 +274,10 @@ export default function HomePage() {
       </section>
 
       {/* Why we are different section */}
-      <section className="bg-white py-16">
-        <div className="container">
+      <section className="bg-white py-16 overflow-hidden">
+        <div className="container mx-auto px-4">
           <h2 className="mb-12 text-center text-3xl font-bold uppercase">
-          আমরা কেন আলাদা?
+            আমরা কেন আলাদা?
             <div className="mx-auto mt-2 h-1 w-16 rounded-full bg-green-500"></div>
           </h2>
 
@@ -226,7 +288,7 @@ export default function HomePage() {
               id="intro-video-container"
             >
               <iframe
-                src="https://www.youtube.com/embed/j2hduSXuU8o?enablejsapi=1&autoplay=1&mute=1&playsinline=1"
+                src="https://www.youtube.com/embed/j2hduSXuU8o?enablejsapi=1&autoplay=1&playsinline=1"
                 title="Welcome to Deshi Fresh Bazar"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
@@ -260,25 +322,36 @@ export default function HomePage() {
             });
           `}} />
 
-          <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4">
-            {features.map((feature) => (
-              <div key={feature.id} className="text-center">
-                <div className="mb-4 flex justify-center">
-                  <div className="rounded-md overflow-hidden h-48 w-60">
-                    <Image
-                      src={feature.image}
-                      alt={feature.title}
-                      width={240}
-                      height={180}
-                      className="h-full w-full object-cover"
-                    />
+          {/* Features Carousel Section */}
+          <div className="relative w-full overflow-hidden">
+            {/* Mobile: 1 card at a time, auto-slide */}
+            <div className="block sm:hidden">
+              <MobileFeatureCarousel features={features} />
+            </div>
+            {/* Desktop: 4 cards at a time, continuous animation */}
+            <div className="hidden sm:flex gap-8 whitespace-nowrap">
+              {[...features, ...features, ...features].map((feature, index) => (
+                <div 
+                  key={`${feature.id}-${index}`} 
+                  className="inline-flex flex-col items-center w-[300px] flex-shrink-0 animate-slide"
+                >
+                  <div className="mb-4 w-full">
+                    <div className="rounded-lg overflow-hidden aspect-[4/3] w-full hover:scale-105 transition-transform duration-300">
+                      <Image
+                        src={feature.image}
+                        alt={feature.title}
+                        width={280}
+                        height={210}
+                        className="h-full w-full object-cover"
+                      />
+                    </div>
                   </div>
+                  <div className="mb-2 text-lg font-medium">{feature.id}</div>
+                  <h3 className="mb-2 text-lg font-semibold whitespace-normal">{feature.title}</h3>
+                  <p className="text-sm text-muted-foreground whitespace-normal">{feature.description}</p>
                 </div>
-                <div className="mb-2 text-lg font-medium">{feature.id}</div>
-                <h3 className="mb-2 text-lg font-semibold">{feature.title}</h3>
-                <p className="text-sm text-muted-foreground">{feature.description}</p>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
       </section>

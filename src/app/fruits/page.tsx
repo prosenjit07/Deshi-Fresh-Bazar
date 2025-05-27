@@ -92,7 +92,7 @@ export default function FruitsPage() {
                     <p className="font-medium text-green-700">৳ {product.price}</p>
                     <Button asChild size="sm" className="bg-green-700 hover:bg-green-800">
                       <Link href={`/product/${product.id}`}>
-                        Add to cart
+                        View Details
                       </Link>
                     </Button>
                   </div>

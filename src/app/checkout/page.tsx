@@ -179,9 +179,18 @@ export default function CheckoutPage() {
                                 <FormLabel>Phone <span className="text-red-500">*</span></FormLabel>
                                 <FormControl>
                                   <Input
+                                    type="tel"
+                                    pattern="[0-9]{11}"
+                                    maxLength={11}
                                     placeholder="018XXXXXXXX"
                                     required
                                     {...field}
+                                    onChange={(e) => {
+                                      const value = e.target.value.replace(/[^0-9]/g, '');
+                                      if (value.length <= 11) {
+                                        field.onChange(value);
+                                      }
+                                    }}
                                   />
                                 </FormControl>
                                 <FormMessage />
@@ -239,8 +248,16 @@ export default function CheckoutPage() {
                                 <FormControl>
                                   <Input
                                     placeholder="1207"
+                                    type="number"
+                                    maxLength={4}
                                     required
                                     {...field}
+                                    onChange={(e) => {
+                                      const value = e.target.value.replace(/[^0-9]/g, '');
+                                      if (value.length <= 4) {
+                                        field.onChange(value);
+                                      }
+                                    }}
                                   />
                                 </FormControl>
                                 <FormMessage />
