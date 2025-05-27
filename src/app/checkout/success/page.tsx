@@ -5,7 +5,7 @@ export const dynamic = 'force-static';
 
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { CheckCircle } from "lucide-react";
+import { CheckCircle, Copy } from "lucide-react";
 import { Suspense } from "react";
 import RootLayout from "@/components/layout/RootLayout";
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,10 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 
 function OrderDetails() {
   const searchParams = useSearchParams();
+  if (!searchParams) {
+    return <div>Loading...</div>;
+  }
+  
   const formData = {
     fullName: searchParams.get("fullName") || "N/A",
     email: searchParams.get("email") || "N/A",
@@ -22,7 +26,7 @@ function OrderDetails() {
     postalCode: searchParams.get("postalCode") || "N/A",
   };
 
-  const orderId = `PF-${Math.floor(10000 + Math.random() * 90000)}`;
+  const orderId = searchParams.get("orderId") || "N/A";
   const orderDate = new Date().toLocaleDateString("en-US", {
     year: "numeric",
     month: "long",
@@ -47,19 +51,27 @@ function OrderDetails() {
           </div>
 
           <div className="mb-6 rounded-lg bg-gray-50 p-4">
-            <div className="mb-4 grid grid-cols-2 gap-4">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">
-                  Order Number
-                </p>
+            <div className="mb-4">
+              <p className="text-sm font-medium text-muted-foreground">
+                Order Number
+              </p>
+              <div className="flex items-center gap-2">
                 <p className="font-medium">{orderId}</p>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(orderId);
+                    // You could add a toast notification here if you want
+                  }}
+                  className="p-1 hover:bg-gray-100 rounded-md transition-colors"
+                  title="Copy order number"
+                >
+                  <Copy className="h-4 w-4 text-gray-500" />
+                </button>
               </div>
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">
-                  Date
-                </p>
-                <p className="font-medium">{orderDate}</p>
-              </div>
+              <p className="text-sm font-medium text-muted-foreground mt-2">
+                Date
+              </p>
+              <p className="font-medium">{orderDate}</p>
             </div>
             <div className="mb-4">
               <p className="text-sm font-medium text-muted-foreground">
