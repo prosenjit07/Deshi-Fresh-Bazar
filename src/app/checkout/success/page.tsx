@@ -6,32 +6,107 @@ export const dynamic = 'force-static';
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { CheckCircle, Copy } from "lucide-react";
-import { Suspense } from "react";
+import { Suspense, useEffect, useState } from "react";
 import RootLayout from "@/components/layout/RootLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 
+interface Order {
+  id: string;
+  status: 'PENDING' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED';
+  customerName: string;
+  customerEmail: string;
+  customerPhone: string;
+  shippingAddress: string;
+  shippingCity: string;
+  shippingPostalCode: string;
+  shippingCountry: string;
+  createdAt: string;
+}
+
 function OrderDetails() {
   const searchParams = useSearchParams();
+  const [order, setOrder] = useState<Order | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const orderId = searchParams?.get("orderId");
+
+  useEffect(() => {
+    if (orderId) {
+      fetch(`/api/orders/${orderId}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.message === 'Order not found') {
+            setError('Order not found');
+          } else {
+            setOrder(data);
+          }
+        })
+        .catch(err => {
+          setError('Failed to fetch order');
+          console.error('Error fetching order:', err);
+        })
+        .finally(() => {
+          setLoading(false);
+        });
+    } else {
+      setLoading(false);
+    }
+  }, [orderId]);
+
   if (!searchParams) {
     return <div>Loading...</div>;
   }
-  
+
   const formData = {
-    fullName: searchParams.get("fullName") || "N/A",
-    email: searchParams.get("email") || "N/A",
-    phone: searchParams.get("phone") || "N/A",
-    address: searchParams.get("address") || "N/A",
-    city: searchParams.get("city") || "N/A",
-    postalCode: searchParams.get("postalCode") || "N/A",
+    fullName: order?.customerName || searchParams.get("fullName") || "N/A",
+    email: order?.customerEmail || searchParams.get("email") || "N/A",
+    phone: order?.customerPhone || searchParams.get("phone") || "N/A",
+    address: order?.shippingAddress || searchParams.get("address") || "N/A",
+    city: order?.shippingCity || searchParams.get("city") || "N/A",
+    postalCode: order?.shippingPostalCode || searchParams.get("postalCode") || "N/A",
   };
 
-  const orderId = searchParams.get("orderId") || "N/A";
-  const orderDate = new Date().toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
+  const orderDate = order?.createdAt 
+    ? new Date(order.createdAt).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      })
+    : new Date().toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      });
+
+  if (loading) {
+    return <div>Loading order details...</div>;
+  }
+
+  if (error) {
+    return (
+      <div className="container max-w-2xl">
+        <Card className="overflow-hidden">
+          <div className="bg-red-700 p-6 text-center text-white">
+            <h1 className="text-3xl font-bold">Order Not Found</h1>
+            <p className="mt-2 text-red-100">
+              We couldn't find the order you're looking for
+            </p>
+          </div>
+          <CardFooter className="flex flex-col gap-4 p-6">
+            <Button
+              asChild
+              variant="outline"
+              className="w-full"
+            >
+              <Link href="/">Continue Shopping</Link>
+            </Button>
+          </CardFooter>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="container max-w-2xl">
@@ -59,8 +134,7 @@ function OrderDetails() {
                 <p className="font-medium">{orderId}</p>
                 <button
                   onClick={() => {
-                    navigator.clipboard.writeText(orderId);
-                    // You could add a toast notification here if you want
+                    navigator.clipboard.writeText(orderId || '');
                   }}
                   className="p-1 hover:bg-gray-100 rounded-md transition-colors"
                   title="Copy order number"
@@ -83,7 +157,13 @@ function OrderDetails() {
               <p className="text-sm font-medium text-muted-foreground">
                 Order Status
               </p>
-              <p className="text-green-600 font-medium">Processing</p>
+              <p className={`font-medium ${
+                order?.status === 'DELIVERED' ? 'text-green-600' :
+                order?.status === 'CANCELLED' ? 'text-red-600' :
+                'text-blue-600'
+              }`}>
+                {order?.status || 'Processing'}
+              </p>
             </div>
           </div>
           <div className="border-t pt-6">

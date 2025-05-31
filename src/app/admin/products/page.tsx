@@ -15,17 +15,19 @@ export default function AdminProductsPage() {
   const [products, setProducts] = useState<ProductWithCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const router = useRouter();
 
   useEffect(() => {
-    fetchProducts();
-  }, []);
+    fetchProducts(page);
+  }, [page]);
 
-  const fetchProducts = async () => {
+  const fetchProducts = async (page = 1) => {
     try {
       setLoading(true);
       setError(null);
-      const response = await fetch('/api/admin/products');
+      const response = await fetch(`/api/admin/products?page=${page}`);
       
       if (!response.ok) {
         throw new Error('Failed to fetch products');
@@ -33,11 +35,12 @@ export default function AdminProductsPage() {
       
       const data = await response.json();
       
-      if (!Array.isArray(data)) {
+      if (!Array.isArray(data.products)) {
         throw new Error('Invalid data format received');
       }
       
-      setProducts(data);
+      setProducts(data.products);
+      setTotalPages(data.totalPages || 1);
     } catch (error) {
       console.error('Error fetching products:', error);
       setError(error instanceof Error ? error.message : 'Failed to load products');
@@ -81,7 +84,7 @@ export default function AdminProductsPage() {
           <p className="font-medium">Error</p>
           <p>{error}</p>
           <button
-            onClick={fetchProducts}
+            onClick={() => fetchProducts(page)}
             className="mt-2 text-sm underline hover:no-underline"
           >
             Try again
@@ -196,6 +199,23 @@ export default function AdminProductsPage() {
             ))}
           </tbody>
         </table>
+        <div className="flex justify-between items-center p-4 border-t">
+          <button
+            className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            disabled={page === 1}
+          >
+            Previous
+          </button>
+          <span>Page {page} of {totalPages}</span>
+          <button
+            className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
+            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+            disabled={page === totalPages}
+          >
+            Next
+          </button>
+        </div>
       </div>
     </div>
   );

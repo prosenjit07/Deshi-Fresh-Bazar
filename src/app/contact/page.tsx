@@ -79,7 +79,7 @@ export default function ContactPage() {
                         <h2 className="mt-8 text-xl font-semibold">কর্পোরেট অফিস</h2>
                         <p>কর্পোরেট অর্ডার বা চুক্তির জন্য যোগাযোগ করুন:<br />
                             ফোন: +৮৮০ ১৮১২ ৩৪৫৬৭৮<br />
-                            ইমেইল: corporate@deshifreshbazar.com</p>
+                            ইমেইল: deshifreshbazar@gmail.com</p>
                     </div>
                 </div>
             </div>

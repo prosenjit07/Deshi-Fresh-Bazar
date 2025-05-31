@@ -10,18 +10,35 @@ export default function TrackOrderPage() {
   const [orderId, setOrderId] = useState("");
   const [orderStatus, setOrderStatus] = useState<null | string>(null);
   const [error, setError] = useState("");
+  const [notFound, setNotFound] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
+    setOrderStatus(null);
+    setNotFound(false);
     if (!orderId) {
       setError("Please enter an order ID");
-      setOrderStatus(null);
       return;
     }
-
-    // For demo purposes, always show processing status
-    setOrderStatus("Processing");
-    setError("");
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/orders/${orderId}`);
+      if (res.status === 404) {
+        setNotFound(true);
+        setOrderStatus(null);
+      } else if (!res.ok) {
+        setError("Something went wrong. Please try again.");
+      } else {
+        const data = await res.json();
+        setOrderStatus(data.status || "Unknown");
+      }
+    } catch (err) {
+      setError("Failed to fetch order status.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -43,8 +60,8 @@ export default function TrackOrderPage() {
                     onChange={(e) => setOrderId(e.target.value)}
                     className="flex-1"
                   />
-                  <Button type="submit" className="bg-green-700 hover:bg-green-800">
-                    Track
+                  <Button type="submit" className="bg-green-700 hover:bg-green-800" disabled={loading}>
+                    {loading ? "Loading..." : "Track"}
                   </Button>
                 </div>
                 {error && (
@@ -52,7 +69,14 @@ export default function TrackOrderPage() {
                 )}
               </form>
 
-              {orderStatus && (
+              {notFound && (
+                <div className="rounded-lg bg-gray-100 p-4">
+                  <h2 className="mb-2 font-semibold">Order Status</h2>
+                  <p className="text-red-700">No data found</p>
+                </div>
+              )}
+
+              {orderStatus && !notFound && (
                 <div className="rounded-lg bg-gray-100 p-4">
                   <h2 className="mb-2 font-semibold">Order Status</h2>
                   <p className="text-green-700">{orderStatus}</p>

@@ -37,7 +37,6 @@ const ORDER_STATUSES = [
   'PROCESSING',
   'SHIPPED',
   'DELIVERED',
-  'CANCELLED',
 ];
 
 export default function OrdersList() {
@@ -90,6 +89,12 @@ export default function OrdersList() {
     }
   };
 
+  const handleCancel = (orderId: string) => {
+    if (window.confirm('Are you sure you want to cancel?')) {
+      handleStatusChange(orderId, 'CANCELLED');
+    }
+  };
+
   if (loading) return <div>Loading...</div>;
   if (error) return <div className="text-red-500">{error}</div>;
 
@@ -125,98 +130,108 @@ export default function OrdersList() {
         </div>
       </div>
 
-      <div className="w-full overflow-x-auto">
-        <div className="mb-2 text-sm text-gray-500">Scroll horizontally to view all columns &rarr;</div>
-        <table className="min-w-[1500px] w-full border-separate border-spacing-0">
+      <div className="w-full overflow-x-auto rounded-lg shadow-sm border border-gray-200 bg-white">
+        <table className="w-full">
           <thead>
-            <tr className="border-b">
-              <th className="py-2 text-left">Order ID</th>
-              <th className="py-2 text-left">Customer Name</th>
-              <th className="py-2 text-left">Email</th>
-              <th className="py-2 text-left">Phone</th>
-              <th className="py-2 text-left">Shipping Address</th>
-              <th className="py-2 text-left">Total Amount</th>
-              <th className="py-2 text-left">Payment Method</th>
-              <th className="py-2 text-left">Status</th>
-              <th className="py-2 text-left">Order Date</th>
-              <th className="py-2 text-left">Details</th>
+            <tr className="border-b border-gray-200 bg-gray-50">
+              <th className="py-4 px-4 text-left text-sm font-medium text-gray-600">Order ID</th>
+              <th className="py-4 px-4 text-left text-sm font-medium text-gray-600">Customer Name</th>
+              <th className="py-4 px-4 text-left text-sm font-medium text-gray-600">Phone</th>
+              <th className="py-4 px-4 text-left text-sm font-medium text-gray-600">Shipping Address</th>
+              <th className="py-4 px-4 text-left text-sm font-medium text-gray-600">Order Date</th>
+              <th className="py-4 px-4 text-left text-sm font-medium text-gray-600">Total Amount</th>
+              <th className="py-4 px-4 text-left text-sm font-medium text-gray-600">Payment Method</th>
+              <th className="py-4 px-4 text-left text-sm font-medium text-gray-600">Email</th>
+              <th className="py-4 px-4 text-left text-sm font-medium text-gray-600">Status</th>
+              <th className="py-4 px-4 text-left text-sm font-medium text-gray-600">Details</th>
+              <th className="py-4 px-4 text-left text-sm font-medium text-gray-600">Action</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="divide-y divide-gray-200">
             {orders.map((order) => (
               <React.Fragment key={order.id}>
-                <tr className="border-b">
-                  <td className="py-2">{order.id}</td>
-                  <td className="py-2">{order.customerName}</td>
-                  <td className="py-2">{order.customerEmail}</td>
-                  <td className="py-2">{order.customerPhone}</td>
-                  <td className="py-2">{order.shippingAddress}, {order.shippingCity}, {order.shippingPostalCode}, {order.shippingCountry}</td>
-                  <td className="py-2">৳{order.totalAmount}</td>
-                  <td className="py-2">{order.paymentMethod}</td>
-                  <td className="py-2">
-                    <div className="flex gap-2 items-center">
-                      <Select
-                        value={order.status}
-                        onValueChange={v => handleStatusChange(order.id, v)}
-                        disabled={order.status === 'CANCELLED'}
-                      >
-                        <SelectTrigger className="min-w-[120px]" />
-                        <SelectContent>
-                          {ORDER_STATUSES.map(status => (
-                            <SelectItem key={status} value={status}>{status}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      {order.status !== 'CANCELLED' && (
-                        <Button
-                          size="sm"
-                          variant="destructive"
-                          onClick={() => handleStatusChange(order.id, 'CANCELLED')}
-                        >
-                          Cancel
-                        </Button>
-                      )}
-                    </div>
+                <tr className="hover:bg-gray-50 transition-colors duration-200">
+                  <td className="py-4 px-4 text-sm text-gray-900">{order.id}</td>
+                  <td className="py-4 px-4 text-sm text-gray-900">{order.customerName}</td>
+                  <td className="py-4 px-4 text-sm text-gray-900">{order.customerPhone}</td>
+                  <td className="py-4 px-4 text-sm text-gray-900">{order.shippingAddress}, {order.shippingCity}, {order.shippingPostalCode}, {order.shippingCountry}</td>
+                  <td className="py-4 px-4 text-sm text-gray-900">{new Date(order.createdAt).toLocaleDateString()}</td>
+                  <td className="py-4 px-4 text-sm text-gray-900">৳{order.totalAmount}</td>
+                  <td className="py-4 px-4 text-sm text-gray-900">{order.paymentMethod}</td>
+                  <td className="py-4 px-4 text-sm text-gray-900">{order.customerEmail}</td>
+                  <td className="py-4 px-4">
+                    <Select
+                      value={order.status}
+                      onValueChange={v => handleStatusChange(order.id, v)}
+                      disabled={order.status === 'CANCELLED'}
+                    >
+                      <SelectTrigger className="min-w-[120px]">
+                        <SelectValue>{order.status}</SelectValue>
+                      </SelectTrigger>
+                      <SelectContent>
+                        {ORDER_STATUSES.map(status => (
+                          <SelectItem key={status} value={status}>{status}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </td>
-                  <td className="py-2">{new Date(order.createdAt).toLocaleDateString()}</td>
-                  <td className="py-2">
+                  <td className="py-4 px-4">
                     <Button size="sm" variant="outline" onClick={() => setExpandedOrderId(expandedOrderId === order.id ? null : order.id)}>
                       {expandedOrderId === order.id ? 'Hide' : 'View'}
                     </Button>
                   </td>
+                  <td className="py-4 px-4">
+                    {order.status === 'CANCELLED' ? (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleStatusChange(order.id, 'PENDING')}
+                      >
+                        Restore
+                      </Button>
+                    ) : (
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => handleCancel(order.id)}
+                      >
+                        Cancel
+                      </Button>
+                    )}
+                  </td>
                 </tr>
                 {expandedOrderId === order.id && (
                   <tr>
-                    <td colSpan={10} className="bg-gray-50">
-                      <div className="p-4">
-                        <h3 className="font-semibold mb-2">Order Items</h3>
-                        <div className="overflow-x-auto">
-                          <table className="w-full text-sm">
+                    <td colSpan={11} className="bg-gray-50 border-t border-b border-gray-200">
+                      <div className="p-6">
+                        <h3 className="font-semibold mb-4 text-gray-900">Order Items</h3>
+                        <div className="overflow-x-auto rounded-lg border border-gray-200">
+                          <table className="w-full">
                             <thead>
-                              <tr>
-                                <th className="py-1 text-left">Product Image</th>
-                                <th className="py-1 text-left">Product Name</th>
-                                <th className="py-1 text-left">Package Type</th>
-                                <th className="py-1 text-left">Unit Price</th>
-                                <th className="py-1 text-left">Quantity</th>
-                                <th className="py-1 text-left">Total Price</th>
+                              <tr className="border-b border-gray-200 bg-gray-50">
+                                <th className="py-3 px-4 text-left text-sm font-medium text-gray-600">Product Image</th>
+                                <th className="py-3 px-4 text-left text-sm font-medium text-gray-600">Product Name</th>
+                                <th className="py-3 px-4 text-left text-sm font-medium text-gray-600">Package Type</th>
+                                <th className="py-3 px-4 text-left text-sm font-medium text-gray-600">Unit Price</th>
+                                <th className="py-3 px-4 text-left text-sm font-medium text-gray-600">Quantity</th>
+                                <th className="py-3 px-4 text-left text-sm font-medium text-gray-600">Total Price</th>
                               </tr>
                             </thead>
-                            <tbody>
+                            <tbody className="divide-y divide-gray-200">
                               {order.items.map((item) => (
-                                <tr key={item.id}>
-                                  <td className="py-1">
+                                <tr key={item.id} className="hover:bg-gray-50 transition-colors duration-200">
+                                  <td className="py-3 px-4">
                                     {item.productImage ? (
-                                      <img src={item.productImage} alt={item.productName} className="w-12 h-12 object-cover rounded" />
+                                      <img src={item.productImage} alt={item.productName} className="w-16 h-16 object-cover rounded-lg" />
                                     ) : (
                                       <span className="text-gray-400">No image</span>
                                     )}
                                   </td>
-                                  <td className="py-1">{item.productName}</td>
-                                  <td className="py-1">{item.packageType || '-'}</td>
-                                  <td className="py-1">৳{item.unitPrice}</td>
-                                  <td className="py-1">{item.quantity}</td>
-                                  <td className="py-1">৳{item.totalPrice}</td>
+                                  <td className="py-3 px-4 text-sm text-gray-900">{item.productName}</td>
+                                  <td className="py-3 px-4 text-sm text-gray-900">{item.packageType || '-'}</td>
+                                  <td className="py-3 px-4 text-sm text-gray-900">৳{item.unitPrice}</td>
+                                  <td className="py-3 px-4 text-sm text-gray-900">{item.quantity}</td>
+                                  <td className="py-3 px-4 text-sm text-gray-900">৳{item.totalPrice}</td>
                                 </tr>
                               ))}
                             </tbody>

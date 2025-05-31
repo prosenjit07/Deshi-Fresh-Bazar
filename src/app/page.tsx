@@ -174,15 +174,15 @@ export default function HomePage() {
                 asChild
                 className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-full transform transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-green-500/20"
               >
-                <Link href="/gardens">Our Trusted Gardens</Link>
+                 <Link href="/fruits">Try our mango</Link>
               </Button>
-              <Button
+              {/* <Button
                 asChild
                 variant="outline"
                 className="border-2 border-white text-gray hover:bg-white hover:text-green-700 px-8 py-3 rounded-full transform transition-all duration-300 hover:scale-105"
               >
-                <Link href="/fruits">Try our mango</Link>
-              </Button>
+                 <Link href="/gardens">Our Trusted Gardens</Link>
+              </Button> */}
             </div>
           </div>
         </div>

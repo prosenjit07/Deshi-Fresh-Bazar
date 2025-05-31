@@ -1,45 +1,35 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { cookies } from 'next/headers';
+import jwt from 'jsonwebtoken';
 
 // GET /api/admin/products
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session) {
-      return NextResponse.json(
-        { error: 'Not authenticated' },
-        { status: 401 }
-      );
+    const cookieStore = await cookies();
+    const token = cookieStore.get('token')?.value;
+    if (!token) {
+      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
     }
-
-    if (session.user.role !== 'ADMIN') {
-      return NextResponse.json(
-        { error: 'Not authorized' },
-        { status: 403 }
-      );
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { role: string };
+    if (decoded.role !== 'ADMIN') {
+      return NextResponse.json({ error: 'Not authorized' }, { status: 403 });
     }
-
-    const products = await prisma.product.findMany({
-      include: {
-        category: {
-          select: {
-            name: true,
-          },
-        },
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
-    });
-
-    if (!products) {
-      return NextResponse.json([], { status: 200 });
-    }
-
-    return NextResponse.json(products);
+    const { searchParams } = new URL(request.url);
+    const page = parseInt(searchParams.get('page') || '1', 10);
+    const pageSize = 10;
+    const skip = (page - 1) * pageSize;
+    const [products, total] = await Promise.all([
+      prisma.product.findMany({
+        include: { category: { select: { name: true } } },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: pageSize,
+      }),
+      prisma.product.count(),
+    ]);
+    const totalPages = Math.ceil(total / pageSize);
+    return NextResponse.json({ products, totalPages });
   } catch (error) {
     console.error('Error fetching products:', error);
     return NextResponse.json(
@@ -52,22 +42,15 @@ export async function GET() {
 // POST /api/admin/products
 export async function POST(request: Request) {
   try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session) {
-      return NextResponse.json(
-        { error: 'Not authenticated' },
-        { status: 401 }
-      );
+    const cookieStore = await cookies();
+    const token = cookieStore.get('token')?.value;
+    if (!token) {
+      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
     }
-
-    if (session.user.role !== 'ADMIN') {
-      return NextResponse.json(
-        { error: 'Not authorized' },
-        { status: 403 }
-      );
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { role: string };
+    if (decoded.role !== 'ADMIN') {
+      return NextResponse.json({ error: 'Not authorized' }, { status: 403 });
     }
-
     const body = await request.json();
     const { name, description, price, image, categoryId, stock, slug } = body;
 
