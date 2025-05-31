@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select';
 import React from 'react';
 import { FaBoxOpen, FaShoppingCart, FaUsers, FaChartBar } from 'react-icons/fa';
+import { Loader } from '@/components/ui/loader';
+import { useRouter } from 'next/navigation';
 
 interface OrderItem {
   id: string;
@@ -70,6 +72,7 @@ export default function OrdersList() {
   const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState('');
   const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
+  const router = useRouter();
 
   const fetchOrders = async () => {
     try {
@@ -116,7 +119,13 @@ export default function OrdersList() {
     }
   };
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader size="lg" />
+      </div>
+    );
+  }
   if (error) return <div className="text-red-500">{error}</div>;
 
   const noOrders = !orders || orders.length === 0;
@@ -128,26 +137,53 @@ export default function OrdersList() {
         <div className="flex justify-between items-center px-4 py-4">
           <h1 className="text-2xl font-bold">Orders</h1>
         </div>
-        <div className="px-4 mb-4 flex gap-2">
-          <Input
-            type="search"
-            placeholder="Search orders..."
-            className="flex-1"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-          <Select value={statusFilter} onValueChange={v => setStatusFilter(v === 'ALL' ? '' : v)}>
-            <SelectTrigger className="min-w-[100px]">
-              <SelectValue placeholder="Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="ALL">All</SelectItem>
-              {ORDER_STATUSES.map(status => (
-                <SelectItem key={status} value={status}>{status}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+          <div className="px-4 mb-4 flex flex-col gap-3">
+            <div className="relative">
+              <Input
+                type="search"
+                placeholder="Search orders..."
+                className="w-full pl-10 rounded-lg border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+              <svg 
+                className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
+            <div className="flex gap-2">
+              <Select value={statusFilter} onValueChange={v => setStatusFilter(v === 'ALL' ? '' : v)}>
+                <SelectTrigger className="min-w-[100px] rounded-lg border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all">
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent className="rounded-lg border-gray-200 shadow-lg">
+                  <SelectItem value="ALL" className="hover:bg-blue-50 cursor-pointer">All</SelectItem>
+                  {ORDER_STATUSES.map(status => (
+                    <SelectItem 
+                      key={status} 
+                      value={status}
+                      className="hover:bg-blue-50 cursor-pointer"
+                    >
+                      {status}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={sortOrder} onValueChange={v => setSortOrder(v as 'desc' | 'asc')}>
+                <SelectTrigger className="min-w-[100px] rounded-lg border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all">
+                  <SelectValue placeholder="Sort" />
+                </SelectTrigger>
+                <SelectContent className="rounded-lg border-gray-200 shadow-lg">
+                  <SelectItem value="desc" className="hover:bg-blue-50 cursor-pointer">Newest</SelectItem>
+                  <SelectItem value="asc" className="hover:bg-blue-50 cursor-pointer">Oldest</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
         {loading ? (
           <div className="flex justify-center items-center py-8">Loading...</div>
         ) : error ? (
@@ -165,10 +201,29 @@ export default function OrdersList() {
                   <div className="font-semibold text-base text-gray-900">{order.customerName}</div>
                   <span className="text-xs px-2 py-1 rounded bg-gray-100 text-gray-700">{order.status}</span>
                 </div>
+                {/* Status update select for mobile */}
+                <div className="my-2">
+                  <Select
+                    value={order.status}
+                    onValueChange={v => handleStatusChange(order.id, v)}
+                    disabled={order.status === 'CANCELLED'}
+                  >
+                    <SelectTrigger className="w-full min-w-[100px] rounded-lg border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 text-xs h-9">
+                      <SelectValue>{order.status}</SelectValue>
+                    </SelectTrigger>
+                    <SelectContent className="rounded-lg border-gray-200 shadow-lg">
+                      {ORDER_STATUSES.map(status => (
+                        <SelectItem key={status} value={status} className="hover:bg-blue-50 cursor-pointer text-xs">
+                          {status}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
                 <div className="text-xs text-gray-500 mb-1">Order ID: {order.id}</div>
-                <div className="text-xs text-gray-500 mb-1">৳{order.totalAmount} • {new Date(order.createdAt).toLocaleDateString()}</div>
+                <div className="text-xs text-gray-500 mb-1">৳{order.totalAmount} • {new Date(order.createdAt).toISOString().slice(0, 10)}</div>
                 <div className="text-xs text-gray-500 mb-1">{order.shippingAddress}, {order.shippingCity}</div>
-                <div className="flex gap-2 mt-2">
+                <div className="flex gap-10 mt-2">
                   <button
                     onClick={() => setExpandedOrderId(expandedOrderId === order.id ? null : order.id)}
                     className="text-blue-600 text-xs font-medium"
@@ -226,25 +281,6 @@ export default function OrdersList() {
             Next
           </button>
         </div>
-        {/* Bottom Nav Bar */}
-        <nav className="fixed bottom-0 left-0 right-0 bg-white border-t flex justify-around items-center h-16 z-50 md:hidden">
-          <button onClick={() => window.location.href = '/admin'} className="flex flex-col items-center text-gray-500">
-            <FaChartBar className="text-xl" />
-            <span className="text-xs mt-1">Dashboard</span>
-          </button>
-          <button onClick={() => window.location.href = '/admin/products'} className="flex flex-col items-center text-gray-500">
-            <FaBoxOpen className="text-xl" />
-            <span className="text-xs mt-1">Products</span>
-          </button>
-          <button onClick={() => window.location.href = '/admin/orders'} className="flex flex-col items-center text-blue-600">
-            <FaShoppingCart className="text-xl" />
-            <span className="text-xs mt-1">Orders</span>
-          </button>
-          <button onClick={() => window.location.href = '/admin/users'} className="flex flex-col items-center text-gray-500">
-            <FaUsers className="text-xl" />
-            <span className="text-xs mt-1">Users</span>
-          </button>
-        </nav>
       </div>
       {/* Desktop Table */}
       <div className="hidden md:block">
@@ -310,7 +346,7 @@ export default function OrdersList() {
                         <td className="py-4 px-4 text-sm text-gray-900">{order.customerName}</td>
                         <td className="py-4 px-4 text-sm text-gray-900">{order.customerPhone}</td>
                         <td className="py-4 px-4 text-sm text-gray-900">{order.shippingAddress}, {order.shippingCity}, {order.shippingPostalCode}, {order.shippingCountry}</td>
-                        <td className="py-4 px-4 text-sm text-gray-900">{new Date(order.createdAt).toLocaleDateString()}</td>
+                        <td className="py-4 px-4 text-sm text-gray-900">{new Date(order.createdAt).toISOString().slice(0, 10)}</td>
                         <td className="py-4 px-4 text-sm text-gray-900">৳{order.totalAmount}</td>
                         <td className="py-4 px-4 text-sm text-gray-900">{order.paymentMethod}</td>
                         <td className="py-4 px-4 text-sm text-gray-900">{order.customerEmail}</td>

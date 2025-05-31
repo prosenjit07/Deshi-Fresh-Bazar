@@ -3,6 +3,8 @@ import { useState, useEffect } from 'react';
 import { FaBoxOpen, FaShoppingCart, FaUsers, FaChartBar, FaCrown, FaUserPlus, FaFilter } from 'react-icons/fa';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { useRouter } from 'next/navigation';
+import { Loader } from '@/components/ui/loader';
 
 interface User {
   id: string;
@@ -21,6 +23,8 @@ export default function AdminUsersPage() {
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({ total: 0, pending: 0, delivered: 0, admins: 0 });
+  const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     async function fetchUsers() {
@@ -37,14 +41,9 @@ export default function AdminUsersPage() {
           admins: data.filter((u: any) => u.role === 'ADMIN').length,
         });
       } catch (e) {
-        // fallback to demo data if API fails
-        const demoUsers: User[] = [
-          { id: '1', name: 'John Doe', email: 'john@example.com', role: 'CUSTOMER', ordersCount: 12, totalSpent: 1245.5, lastOrder: null, deliveredCount: 6, pendingCount: 4 },
-          { id: '2', name: 'Sarah Smith', email: 'sarah@example.com', role: 'CUSTOMER', ordersCount: 8, totalSpent: 567.3, lastOrder: null, deliveredCount: 2, pendingCount: 2 },
-          { id: '3', name: 'Mike Johnson', email: 'mike@example.com', role: 'ADMIN', ordersCount: 0, totalSpent: 0, lastOrder: null, deliveredCount: 0, pendingCount: 0 },
-        ];
-        setUsers(demoUsers);
-        setStats({ total: 8, pending: 4, delivered: 6, admins: 1 });
+        setUsers([]);
+        setStats({ total: 0, pending: 0, delivered: 0, admins: 0 });
+        setLoading(false);
       } finally {
         setLoading(false);
       }
@@ -54,13 +53,25 @@ export default function AdminUsersPage() {
 
   const filteredUsers = users.filter(u => u.name.toLowerCase().includes(search.toLowerCase()) || u.email.toLowerCase().includes(search.toLowerCase()));
 
+  const handleLogout = () => {
+    router.push('/login');
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader size="lg" />
+      </div>
+    );
+  }
+
   return (
     <>
       {/* Mobile Users Page */}
       <div className="block md:hidden bg-[#fcfdff] min-h-screen pb-24">
         <div className="flex justify-between items-center px-4 pt-4 pb-2">
           <h1 className="text-2xl font-bold">Users</h1>
-          <Button className="bg-red-600 hover:bg-red-700 text-white flex items-center gap-2 px-4 py-2 rounded-lg">
+          <Button onClick={handleLogout} className="bg-red-600 hover:bg-red-700 text-white flex items-center gap-2 px-4 py-2 rounded-lg">
             <FaUserPlus className="text-lg" /> Log Out
           </Button>
         </div>
@@ -98,9 +109,7 @@ export default function AdminUsersPage() {
             <FaFilter />
           </Button>
         </div>
-        {loading ? (
-          <div className="flex justify-center items-center py-8">Loading...</div>
-        ) : filteredUsers.length === 0 ? (
+        {filteredUsers.length === 0 ? (
           <div className="text-center text-gray-500 py-16 text-lg">No users found</div>
         ) : (
           <div className="flex flex-col gap-4 px-2">
@@ -127,7 +136,7 @@ export default function AdminUsersPage() {
                 </div>
                 <div className="flex justify-between items-center border-t pt-2 mt-2">
                   <div className="text-center">
-                    <div className="font-bold text-lg">{user.ordersCount}</div>
+                    <div className="font-bold text-lg">{user.orderCount}</div>
                     <div className="text-xs text-gray-500">Orders</div>
                   </div>
                   <div className="text-center">
@@ -139,25 +148,6 @@ export default function AdminUsersPage() {
             ))}
           </div>
         )}
-        {/* Bottom Nav Bar */}
-        <nav className="fixed bottom-0 left-0 right-0 bg-white border-t flex justify-around items-center h-16 z-50 md:hidden">
-          <button onClick={() => window.location.href = '/admin'} className="flex flex-col items-center text-gray-500">
-            <FaChartBar className="text-xl" />
-            <span className="text-xs mt-1">Dashboard</span>
-          </button>
-          <button onClick={() => window.location.href = '/admin/products'} className="flex flex-col items-center text-gray-500">
-            <FaBoxOpen className="text-xl" />
-            <span className="text-xs mt-1">Products</span>
-          </button>
-          <button onClick={() => window.location.href = '/admin/orders'} className="flex flex-col items-center text-gray-500">
-            <FaShoppingCart className="text-xl" />
-            <span className="text-xs mt-1">Orders</span>
-          </button>
-          <button onClick={() => window.location.href = '/admin/users'} className="flex flex-col items-center text-blue-600">
-            <FaUsers className="text-xl" />
-            <span className="text-xs mt-1">Users</span>
-          </button>
-        </nav>
       </div>
       {/* Desktop Users Page (placeholder) */}
       <div className="hidden md:block">

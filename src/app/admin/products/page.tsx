@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Product } from '@prisma/client';
 import { FaBoxOpen, FaShoppingCart, FaUsers, FaChartBar } from 'react-icons/fa';
+import { Loader } from '@/components/ui/loader';
 
 interface ProductWithCategory extends Product {
   category: {
@@ -72,8 +73,8 @@ export default function AdminProductsPage() {
 
   if (loading) {
     return (
-      <div className="p-8 flex items-center justify-center min-h-[400px]">
-        <div className="text-lg">Loading products...</div>
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader size="lg" />
       </div>
     );
   }
@@ -192,25 +193,6 @@ export default function AdminProductsPage() {
             Next
           </button>
         </div>
-        {/* Bottom Nav Bar */}
-        <nav className="fixed bottom-0 left-0 right-0 bg-white border-t flex justify-around items-center h-16 z-50 md:hidden">
-          <button onClick={() => router.push('/admin')} className="flex flex-col items-center text-gray-500">
-            <FaChartBar className="text-xl" />
-            <span className="text-xs mt-1">Dashboard</span>
-          </button>
-          <button onClick={() => router.push('/admin/products')} className="flex flex-col items-center text-blue-600">
-            <FaBoxOpen className="text-xl" />
-            <span className="text-xs mt-1">Products</span>
-          </button>
-          <button onClick={() => router.push('/admin/orders')} className="flex flex-col items-center text-gray-500">
-            <FaShoppingCart className="text-xl" />
-            <span className="text-xs mt-1">Orders</span>
-          </button>
-          <button onClick={() => router.push('/admin/users')} className="flex flex-col items-center text-gray-500">
-            <FaUsers className="text-xl" />
-            <span className="text-xs mt-1">Users</span>
-          </button>
-        </nav>
       </div>
       {/* Desktop Table */}
       <div className="hidden md:block p-8">

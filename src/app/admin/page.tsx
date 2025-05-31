@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useRouter } from 'next/navigation';
 import { FaDollarSign, FaBoxOpen, FaShoppingCart, FaUsers } from 'react-icons/fa';
+import { Loader } from '@/components/ui/loader';
 
 interface DashboardStats {
   totalOrders: number;
@@ -41,7 +42,11 @@ export default function AdminDashboard() {
   }, []);
 
   if (loading) {
-    return <div className="p-8">Loading...</div>;
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader size="lg" />
+      </div>
+    );
   }
 
   return (
