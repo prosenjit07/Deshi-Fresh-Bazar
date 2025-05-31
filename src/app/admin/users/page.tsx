@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
 import { Loader } from '@/components/ui/loader';
+import { useUser } from '@/contexts/UserContext';
 
 interface User {
   id: string;
@@ -13,7 +14,7 @@ interface User {
   role: string;
   ordersCount: number;
   totalSpent: number;
-  lastOrder: any;
+  lastOrder: string | null;
   deliveredCount: number;
   pendingCount: number;
 }
@@ -25,7 +26,7 @@ export default function AdminUsersPage() {
   const [stats, setStats] = useState({ total: 0, pending: 0, delivered: 0, admins: 0 });
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
-
+  const { logout } = useUser();
   useEffect(() => {
     async function fetchUsers() {
       setLoading(true);
@@ -54,6 +55,7 @@ export default function AdminUsersPage() {
   const filteredUsers = users.filter(u => u.name.toLowerCase().includes(search.toLowerCase()) || u.email.toLowerCase().includes(search.toLowerCase()));
 
   const handleLogout = () => {
+    logout();
     router.push('/login');
   };
 
@@ -136,7 +138,7 @@ export default function AdminUsersPage() {
                 </div>
                 <div className="flex justify-between items-center border-t pt-2 mt-2">
                   <div className="text-center">
-                    <div className="font-bold text-lg">{user.orderCount}</div>
+                    <div className="font-bold text-lg">{user.ordersCount}</div>
                     <div className="text-xs text-gray-500">Orders</div>
                   </div>
                   <div className="text-center">

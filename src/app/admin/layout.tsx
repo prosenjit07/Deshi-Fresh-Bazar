@@ -4,13 +4,15 @@ import React from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { BottomMenuBar } from '@/components/admin/BottomMenuBar';
+import { useUser } from '@/contexts/UserContext';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
+  const { logout } = useUser();
 
   const handleLogout = () => {
-    // Add your logout logic here, e.g., clearing cookies, local storage, etc.
+    logout();
     router.push('/login');
   };
 
