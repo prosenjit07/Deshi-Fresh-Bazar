@@ -17,7 +17,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   return (
     <div className="flex min-h-screen">
-      <aside className="fixed left-0 top-0 h-screen w-64 bg-[#101828] text-white z-20 flex flex-col shadow-xl">
+      <aside className="hidden md:fixed md:left-0 md:top-0 md:h-screen md:w-64 md:bg-[#101828] md:text-white md:z-20 md:flex md:flex-col md:shadow-xl">
         <div className="p-6 text-2xl font-bold border-b border-[#1a2233]">
           <Link href="/admin" className="hover:text-gray-200 transition-colors">Admin Panel</Link>
         </div>
@@ -64,7 +64,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </button>
         </div>
       </aside>
-      <main className="flex-1 ml-64 bg-[#f9fafb] min-h-screen p-8 overflow-x-auto">
+      <main className="flex-1 bg-[#f9fafb] min-h-screen p-0 md:ml-64 md:p-8 overflow-x-auto">
         {children}
       </main>
     </div>

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { cookies } from 'next/headers';
 import jwt from 'jsonwebtoken';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 
 // GET /api/admin/products/[id]
 export async function GET(
@@ -27,7 +28,6 @@ export async function GET(
     }
     return NextResponse.json(product);
   } catch (error) {
-    console.error('Error fetching product:', error);
     return NextResponse.json(
       { error: 'Internal Server Error' },
       { status: 500 }
@@ -69,14 +69,21 @@ export async function PUT(
         price: parseFloat(price),
         image,
         categoryId,
-        stock: stock || 0,
+        stock: parseInt(stock) || 0,
         slug,
       },
     });
 
     return NextResponse.json(product);
-  } catch (error) {
-    console.error('Error updating product:', error);
+  } catch (error: unknown) {
+    if (
+      error instanceof PrismaClientKnownRequestError &&
+      error.code === 'P2002' &&
+      error.meta?.target && Array.isArray(error.meta.target) && error.meta.target.includes('slug')
+    ) {
+      return NextResponse.json({ error: 'Slug must be unique.' }, { status: 400 });
+    }
+    console.error('!!!!Error updating product:!!!??', error);
     return NextResponse.json(
       { error: 'Internal Server Error' },
       { status: 500 }
@@ -105,7 +112,7 @@ export async function DELETE(
 
     return NextResponse.json({ message: 'Product deleted successfully' });
   } catch (error) {
-    console.error('Error deleting product:', error);
+    console.error('!!Error deleting product:!!', error);
     return NextResponse.json(
       { error: 'Internal Server Error' },
       { status: 500 }

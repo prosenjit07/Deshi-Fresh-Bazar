@@ -31,20 +31,24 @@ export async function GET(request: Request) {
     const url = new URL(request.url);
     const page = parseInt(url.searchParams.get('page') || '1');
     const search = url.searchParams.get('search') || '';
+    const status = url.searchParams.get('status') || '';
+    const sort = url.searchParams.get('sort') || 'desc';
 
     // Calculate skip value for pagination
     const skip = (page - 1) * ITEMS_PER_PAGE;
 
-    // Build the where clause for search
-    const where = search
-      ? {
-          OR: [
-            { customerName: { contains: search, mode: 'insensitive' as const } },
-            { customerEmail: { contains: search, mode: 'insensitive' as const } },
-            { customerPhone: { contains: search, mode: 'insensitive' as const } },
-          ],
-        }
-      : {};
+    // Build the where clause for search and status filter
+    let where: any = {};
+    if (search) {
+      where.OR = [
+        { customerName: { contains: search, mode: 'insensitive' } },
+        { customerEmail: { contains: search, mode: 'insensitive' } },
+        { customerPhone: { contains: search, mode: 'insensitive' } },
+      ];
+    }
+    if (status) {
+      where.status = status;
+    }
 
     // Get total count for pagination
     const totalOrders = await prismaClient.order.count({ where });
@@ -65,7 +69,7 @@ export async function GET(request: Request) {
         },
       },
       orderBy: {
-        createdAt: 'desc',
+        createdAt: sort === 'asc' ? 'asc' : 'desc',
       },
       skip,
       take: ITEMS_PER_PAGE,
