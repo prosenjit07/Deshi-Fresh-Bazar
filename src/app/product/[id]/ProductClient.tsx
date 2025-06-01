@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useCart } from '@/contexts/CartContext';
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 interface Package {
   id: string;
@@ -36,7 +37,7 @@ export default function ProductClient({ product, products }: ProductClientProps)
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(0);
   const { addItem } = useCart();
-
+  const router = useRouter();
   // Get related products
   const relatedProducts = product
     ? product.related.map((relId: string) => products.find((p: Product) => p.id === relId)).filter(Boolean)
@@ -71,6 +72,16 @@ export default function ProductClient({ product, products }: ProductClientProps)
 
     addItem(product, quantity, selectedPackage.id);
     toast.success("Added to cart successfully");
+  };
+
+  const handleBuyNow = () => {
+    if (!product.inStock) {
+      toast.error("This product is currently out of stock");
+      return;
+    }
+    addItem(product, quantity, selectedPackage.id);
+    toast.success("Added to cart successfully");
+    router.push("/cart");
   };
 
   return (
@@ -193,6 +204,7 @@ export default function ProductClient({ product, products }: ProductClientProps)
                 <Button 
                   variant="outline" 
                   className="w-full border-green-700 text-green-700 hover:bg-green-700 hover:text-white sm:w-auto"
+                  onClick={handleBuyNow}
                   disabled={!product.inStock}
                 >
                   Buy Now

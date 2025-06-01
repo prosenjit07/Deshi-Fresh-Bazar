@@ -38,6 +38,7 @@ export default function CheckoutPage() {
   const [paymentMethod, setPaymentMethod] = useState("SSLCommerz");
   const [loading, setLoading] = useState(false);
   const { items, getCartTotal, getItemPrice } = useCart();
+  const [agreed, setAgreed] = useState(false);
 
   const form = useForm<OrderFormData>({
     defaultValues: {
@@ -287,79 +288,41 @@ export default function CheckoutPage() {
                       <div>
                         <h2 className="mb-4 text-xl font-semibold">Payment Method</h2>
                         <div className="space-y-3">
-                        <Label htmlFor="cashOnDelivery" className="cursor-pointer">
-                              Cash on Delivery
-                            </Label>
-                          {/* <div className="flex items-center gap-2">
-                            <input
-                              type="radio"
-                              id="sslcommerz"
-                              name="paymentMethod"
-                              value="SSLCommerz"
-                              checked={paymentMethod === "SSLCommerz"}
-                              onChange={(e) => setPaymentMethod(e.target.value)}
-                              className="h-4 w-4 text-green-700"
-                            />
-                            <Label htmlFor="sslcommerz" className="flex cursor-pointer items-center gap-2">
-                              <Image
-                                src="https://ext.same-assets.com/377203966/3964408185.gif"
-                                alt="SSLCommerz"
-                                width={120}
-                                height={40}
-                                className="h-6 w-auto"
-                              />
-                              <span>Pay with SSLCommerz</span>
-                            </Label>
-                          </div> */}
-                          {/* <div className="flex items-center gap-2">
-                            <input
-                              type="radio"
-                              id="cashOnDelivery"
-                              name="paymentMethod"
-                              value="CashOnDelivery"
-                              checked={paymentMethod === "CashOnDelivery"}
-                              onChange={(e) => setPaymentMethod(e.target.value)}
-                              className="h-4 w-4 text-green-700"
-                            />
-                            <Label htmlFor="cashOnDelivery" className="cursor-pointer">
-                              Cash on Delivery
-                            </Label>
-                          </div> */}
-                          {/* <div className="flex items-center gap-2">
-                            <input
-                              type="radio"
-                              id="bKash"
-                              name="paymentMethod"
-                              value="bKash"
-                              checked={paymentMethod === "bKash"}
-                              onChange={(e) => setPaymentMethod(e.target.value)}
-                              className="h-4 w-4 text-green-700"
-                            />
-                            <Label htmlFor="bKash" className="cursor-pointer">
-                              bKash
-                            </Label>
+                          <Label htmlFor="cashOnDelivery" className="cursor-pointer">
+                            Cash on Delivery
+                          </Label>
+                        </div>
+                        {/* Agreement Checkbox Section */}
+                        <div className="mt-6">
+                          <div className="mb-4 rounded border border-gray-200 bg-gray-100 p-4 text-gray-700 text-sm">
+                            Your personal data will be used to process your order, support your experience throughout this website, and for other purposes described in our{' '}
+                            <Link href="/privacy" className="text-green-700 font-semibold hover:underline" target="_blank">Privacy Policy</Link>.
+                            (পেমেন্ট বা অর্ডার সংক্রান্ত যেকোনো সাহায্যের জন্য, অনুগ্রহ করে এখানে ইনবক্স করুন) <a href="https://wa.me/8801717171717" target="_blank" className="text-green-700 font-semibold hover:underline">এখানে</a>
                           </div>
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center mb-6">
                             <input
-                              type="radio"
-                              id="nagad"
-                              name="paymentMethod"
-                              value="Nagad"
-                              checked={paymentMethod === "Nagad"}
-                              onChange={(e) => setPaymentMethod(e.target.value)}
-                              className="h-4 w-4 text-green-700"
+                              id="agreement"
+                              type="checkbox"
+                              checked={agreed}
+                              onChange={() => setAgreed(!agreed)}
+                              className="h-5 w-5 border-gray-300 rounded mr-3 focus:ring-green-700"
+                              required
                             />
-                            <Label htmlFor="nagad" className="cursor-pointer">
-                              Nagad
-                            </Label>
-                          </div> */}
+                            <label htmlFor="agreement" className="text-gray-800 select-none">
+                              I have read and agree to the website{' '}
+                              <Link href="/terms" className="text-green-700 font-semibold hover:underline" target="_blank">Terms & Conditions</Link>,{' '}
+                              <Link href="/privacy" className="text-green-700 font-semibold hover:underline" target="_blank">Privacy Policy</Link> and{' '}
+                              <Link href="/return-policy" className="text-green-700 font-semibold hover:underline" target="_blank">Return Policy</Link>
+                              <span className="text-red-500 ml-1">*</span>
+                            </label>
+                          </div>
                         </div>
                       </div>
 
                       <Button
                         type="submit"
                         className="w-full bg-green-700 hover:bg-green-800"
-                        disabled={loading}
+                        disabled={loading || !agreed}
                       >
                         {loading ? "Processing Payment..." : "Place Order"}
                       </Button>

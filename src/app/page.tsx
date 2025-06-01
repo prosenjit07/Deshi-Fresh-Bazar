@@ -237,31 +237,41 @@ export default function HomePage() {
             <div className="mx-auto mt-2 h-1 w-16 rounded-full bg-green-500"></div>
           </h2>
 
-          <div className={`grid grid-cols-1 sm:grid-cols-2 ${featuredProducts.length === 3 ? 'lg:grid-cols-3' : 'lg:grid-cols-4'} gap-6 max-w-[1200px] mx-auto`}>
+
+          <div
+            className={`
+              grid
+              grid-cols-2
+              gap-4
+              sm:grid-cols-2
+              md:grid-cols-3
+              lg:grid-cols-4
+              max-w-[1200px]
+              mx-auto
+              justify-items-center
+            `}
+          >
             {featuredProducts.map((product) => (
-              <Card key={product.id} className="overflow-hidden w-full">
-                <div className="aspect-square overflow-hidden">
-                  <Image
-                    src={product.image}
-                    alt={product.name}
-                    width={600}
-                    height={600}
-                    className="h-full w-full object-cover transition-transform hover:scale-105"
-                  />
-                </div>
-                <CardContent className="p-4">
-                  <h3 className="font-semibold">{product.name}</h3>
-                  <p className="text-sm text-muted-foreground">{product.description}</p>
-                  <div className="mt-2 flex justify-between items-center">
-                    <p className="font-medium text-green-700">৳ {product.price}</p>
-                    <Button asChild size="sm" className="bg-green-700 hover:bg-green-800">
-                      <Link href={`/product/${product.id}`}>
-                        View
-                      </Link>
-                    </Button>
+              <Link key={product.id} href={`/product/${product.id}`} className="w-full h-[340px] flex flex-col group focus:outline-none focus:ring-2 focus:ring-green-600 rounded-xl">
+                <Card className="overflow-hidden w-full h-full flex flex-col cursor-pointer transition-transform duration-200 group-hover:scale-105 group-focus:scale-105">
+                  <div className="aspect-square overflow-hidden w-full h-[180px]">
+                    <Image
+                      src={product.image}
+                      alt={product.name}
+                      width={600}
+                      height={600}
+                      className="h-full w-full object-cover transition-transform"
+                    />
                   </div>
-                </CardContent>
-              </Card>
+                  <CardContent className="p-4 flex flex-col flex-1">
+                    <h3 className="font-semibold">{product.name}</h3>
+                    <p className="text-sm text-muted-foreground">{product.description}</p>
+                    <div className="mt-auto flex justify-between items-center">
+                      <p className="font-medium text-green-700">৳ {product.price}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
             ))}
           </div>
 
