@@ -7,10 +7,21 @@ import { Product } from '@prisma/client';
 import { FaBoxOpen, FaShoppingCart, FaUsers, FaChartBar } from 'react-icons/fa';
 import { Loader } from '@/components/ui/loader';
 
+interface Category {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string | null;
+  image?: string | null;
+}
+
 interface ProductWithCategory extends Product {
-  category: {
+  category: Category;
+  packages: Array<{
+    id: string;
     name: string;
-  };
+    price: number;
+  }>;
 }
 
 export default function AdminProductsPage() {

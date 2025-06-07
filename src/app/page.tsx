@@ -1,5 +1,7 @@
 // For static site generation
 "use client";
+
+// For static site generation
 export const dynamic = 'force-static';
 
 import Image from "next/image";
@@ -11,10 +13,9 @@ import garden from "@/assets/images/farmar.jpg";
 import product from "@/assets/images/gobindovog-mango.jpg";
 import packaging from "@/assets/images/gopalvog.jpg";
 import delivery from "@/assets/images/mango-delivary.jpeg";
-import p1 from "@/assets/images/gopalvog.jpg";
-import p2 from "@/assets/images/gobindovog-mango.jpg";
 import banner from "@/assets/images/v1.jpg";
 import { useState, useEffect } from "react";
+import brandLogo from "@/assets/images/fresh-bazar.jpg";
 
 type Feature = {
   id: string;
@@ -76,42 +77,51 @@ function MobileFeatureCarousel({ features }: { features: Feature[] }) {
   );
 }
 
-export default function HomePage() {
-  //   হিমসাগর আম (বিষমুক্ত) – প্রতি কেজি ১৬০ টাকা
-  // ল্যাংড়া আম (বিষমুক্ত) – প্রতি কেজি ১৬০ টাকা
-  // হাড়িভাঙ্গা আম (বিষমুক্ত) – প্রতি কেজি ১৫০ টাকা
+type Product = {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  image: string;
+};
 
-  const featuredProducts = [
-    {
-      id: "cmb3fmy6900024clh02oxg059",
-      name: "হিমসাগর আম (বিষমুক্ত) – প্রতি কেজি ১৬০ টাকা",
-      description: "Home Delivery (Dhaka, Gazipur)",
-      price: 1199,
-      image: p1.src,
-    },
-    {
-      id: "cmb3fmz1200084clhjprreg26",
-      name: "ল্যাংড়া আম (বিষমুক্ত) – প্রতি কেজি ১৬০ টাকা",
-      description: "Home Delivery (Dhaka, Gazipur)",
-      price: 2299,
-      image: p2.src,
-    },
-    {
-      id: "cmb3fmzvj000e4clh00expef1",
-      name: "হাড়িভাঙ্গা আম (বিষমুক্ত) – প্রতি কেজি ১৫০ টাকা",
-      description: "Home Delivery (Dhaka, Gazipur)",
-      price: 4499,
-      image: p1.src,
-    },
-    {
-      id: "cmb3fn0or000k4clh5d00jye2",
-      name: "Gopalvhog– প্রতি কেজি ১৬০ টাকা",
-      description: "Home Delivery (Dhaka, Gazipur)",
-      price: 9000,
-      // image: "https://ext.same-assets.com/377203966/610671350.webp",
-      image: p1.src,
-    },
-  ];
+export default function HomePage() {
+  const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchProducts() {
+      try {
+        const response = await fetch('/api/products');
+        if (!response.ok) throw new Error('Failed to fetch products');
+        const data = await response.json();
+        setFeaturedProducts(data.slice(0, 4)); // Get first 4 products for featured section
+      } catch (error) {
+        console.error('Error fetching products:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchProducts();
+  }, []);
+
+  if (loading) {
+    return (
+      <RootLayout>
+        <div className="flex items-center justify-center min-h-screen bg-white">
+          <div className="relative w-[200px] h-[200px] sm:w-[250px] sm:h-[250px] animate-pulse">
+            <Image
+              src={brandLogo}
+              alt="Fresh Bazar Loading"
+              fill
+              className="object-contain animate-bounce"
+              priority
+            />
+          </div>
+        </div>
+      </RootLayout>
+    );
+  }
 
   const features = [
     {

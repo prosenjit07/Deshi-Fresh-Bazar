@@ -13,18 +13,22 @@ interface Package {
   id: string;
   name: string;
   price: number;
+  productId: string;
 }
 
 interface Product {
   id: string;
   name: string;
   description: string;
-  details: string[];
   price: number;
-  images: string[];
-  category: string;
-  inStock: boolean;
-  related: string[];
+  image: string;
+  stock: number;
+  categoryId: string;
+  category: {
+    id: string;
+    name: string;
+    slug: string;
+  };
   packages: Package[];
 }
 
@@ -35,13 +39,8 @@ interface ProductClientProps {
 
 export default function ProductClient({ product, products }: ProductClientProps) {
   const [quantity, setQuantity] = useState(1);
-  const [selectedImage, setSelectedImage] = useState(0);
   const { addItem } = useCart();
   const router = useRouter();
-  // Get related products
-  const relatedProducts = product
-    ? product.related.map((relId: string) => products.find((p: Product) => p.id === relId)).filter(Boolean)
-    : [];
 
   if (!product) {
     return (
@@ -57,15 +56,15 @@ export default function ProductClient({ product, products }: ProductClientProps)
 
   // Define default packages if not provided
   const defaultPackages: Package[] = [
-    { id: '10kg', name: '10 kg', price: product.price },
-    { id: '20kg', name: '20 kg', price: product.price * 1.8 }
+    { id: '10kg', name: '10 kg', price: product.price, productId: product.id },
+    { id: '20kg', name: '20 kg', price: product.price * 1.8, productId: product.id }
   ];
 
-  const packages = product.packages || defaultPackages;
+  const packages = product.packages.length > 0 ? product.packages : defaultPackages;
   const [selectedPackage, setSelectedPackage] = useState(packages[0]);
 
   const handleAddToCart = () => {
-    if (!product.inStock) {
+    if (product.stock <= 0) {
       toast.error("This product is currently out of stock");
       return;
     }
@@ -75,7 +74,7 @@ export default function ProductClient({ product, products }: ProductClientProps)
   };
 
   const handleBuyNow = () => {
-    if (!product.inStock) {
+    if (product.stock <= 0) {
       toast.error("This product is currently out of stock");
       return;
     }
@@ -93,8 +92,8 @@ export default function ProductClient({ product, products }: ProductClientProps)
           <span>/</span>
           <Link href="/fruits" className="hover:text-foreground">Fruits</Link>
           <span>/</span>
-          <Link href={`/fruits/${product.category.toLowerCase()}`} className="hover:text-foreground">
-            {product.category}
+          <Link href={`/fruits/${product.category.slug}`} className="hover:text-foreground">
+            {product.category.name}
           </Link>
           <span>/</span>
           <span className="text-foreground">{product.name}</span>
@@ -102,35 +101,16 @@ export default function ProductClient({ product, products }: ProductClientProps)
 
         {/* Product details */}
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-          {/* Product images */}
+          {/* Product image */}
           <div className="space-y-4">
             <div className="overflow-hidden rounded-lg bg-white">
               <Image
-                src={product.images[selectedImage]}
+                src={product.image}
                 alt={product.name}
                 width={500}
                 height={500}
                 className="h-[450px] w-full object-cover"
               />
-            </div>
-            <div className="flex gap-2">
-              {product.images.map((image: string, index: number) => (
-                <div
-                  key={`image-${product.id}-${index}`}
-                  className={`overflow-hidden rounded-md border-2 ${
-                    selectedImage === index ? "border-green-500" : "border-transparent"
-                  }`}
-                  onClick={() => setSelectedImage(index)}
-                >
-                  <Image
-                    src={image}
-                    alt={`${product.name} - Image ${index + 1}`}
-                    width={100}
-                    height={100}
-                    className="h-16 w-16 cursor-pointer object-cover"
-                  />
-                </div>
-              ))}
             </div>
           </div>
 
@@ -141,15 +121,6 @@ export default function ProductClient({ product, products }: ProductClientProps)
             <div className="mt-6">
               <h3 className="text-lg font-medium">Description</h3>
               <p className="mt-2 text-muted-foreground">{product.description}</p>
-            </div>
-
-            <div className="mt-6">
-              <h3 className="text-lg font-medium">Details</h3>
-              <ul className="mt-2 space-y-1 text-muted-foreground">
-                {product.details.map((detail: string, index: number) => (
-                  <li key={`detail-${product.id}-${index}`}>{detail}</li>
-                ))}
-              </ul>
             </div>
 
             <div className="mt-8 space-y-4">
@@ -189,6 +160,7 @@ export default function ProductClient({ product, products }: ProductClientProps)
                   size="icon"
                   onClick={() => setQuantity(quantity + 1)}
                   className="h-8 w-8 rounded-l-none rounded-r-md"
+                  disabled={quantity >= product.stock}
                 >
                   +
                 </Button>
@@ -197,20 +169,20 @@ export default function ProductClient({ product, products }: ProductClientProps)
                 <Button
                   className="w-full bg-green-700 hover:bg-green-800 sm:w-auto"
                   onClick={handleAddToCart}
-                  disabled={!product.inStock}
+                  disabled={product.stock <= 0}
                 >
-                  {product.inStock ? "Add to Cart" : "Out of Stock"}
+                  {product.stock > 0 ? "Add to Cart" : "Out of Stock"}
                 </Button>
                 <Button 
                   variant="outline" 
                   className="w-full border-green-700 text-green-700 hover:bg-green-700 hover:text-white sm:w-auto"
                   onClick={handleBuyNow}
-                  disabled={!product.inStock}
+                  disabled={product.stock <= 0}
                 >
                   Buy Now
                 </Button>
               </div>
-              {!product.inStock && (
+              {product.stock <= 0 && (
                 <p className="text-sm text-red-500">This product is currently out of stock</p>
               )}
             </div>
@@ -218,37 +190,35 @@ export default function ProductClient({ product, products }: ProductClientProps)
         </div>
 
         {/* Related products */}
-        {relatedProducts.length > 0 && (
+        {products.length > 0 && (
           <div className="mt-16">
             <h2 className="mb-6 text-2xl font-bold">Related Products</h2>
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-              {relatedProducts.map((relProduct: Product | undefined) => (
-                relProduct && (
-                  <Card key={relProduct.id} className="overflow-hidden">
-                    <div className="aspect-square overflow-hidden">
-                      <Image
-                        src={relProduct.images[0]}
-                        alt={relProduct.name}
-                        width={400}
-                        height={300}
-                        className="h-[300px] w-full object-cover transition-transform hover:scale-105"
-                      />
+              {products.map((relProduct: Product) => (
+                <Card key={relProduct.id} className="overflow-hidden">
+                  <div className="aspect-square overflow-hidden">
+                    <Image
+                      src={relProduct.image}
+                      alt={relProduct.name}
+                      width={400}
+                      height={300}
+                      className="h-[300px] w-full object-cover transition-transform hover:scale-105"
+                    />
+                  </div>
+                  <CardContent className="p-4">
+                    <Link href={`/product/${relProduct.id}`} className="hover:underline">
+                      <h3 className="font-semibold">{relProduct.name}</h3>
+                    </Link>
+                    <div className="mt-2 flex justify-between items-center">
+                      <p className="font-medium text-green-700">৳{relProduct.price}</p>
+                      <Button asChild size="sm" className="bg-green-700 hover:bg-green-800">
+                        <Link href={`/product/${relProduct.id}`}>
+                          View
+                        </Link>
+                      </Button>
                     </div>
-                    <CardContent className="p-4">
-                      <Link href={`/product/${relProduct.id}`} className="hover:underline">
-                        <h3 className="font-semibold">{relProduct.name}</h3>
-                      </Link>
-                      <div className="mt-2 flex justify-between items-center">
-                        <p className="font-medium text-green-700">৳{relProduct.price}</p>
-                        <Button asChild size="sm" className="bg-green-700 hover:bg-green-800">
-                          <Link href={`/product/${relProduct.id}`}>
-                            View
-                          </Link>
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                )
+                  </CardContent>
+                </Card>
               ))}
             </div>
           </div>

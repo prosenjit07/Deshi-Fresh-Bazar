@@ -1,16 +1,30 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from "@/components/ui/textarea";
-import { FaBoxOpen, FaShoppingCart, FaUsers, FaChartBar } from 'react-icons/fa';
+import { FaBoxOpen, FaShoppingCart, FaUsers, FaChartBar, FaPlus, FaTrash } from 'react-icons/fa';
+import CategoryModal from '@/components/CategoryModal';
+
+interface Package {
+  name: string;
+  price: string;
+}
+
+interface Category {
+  id: string;
+  name: string;
+  slug: string;
+}
 
 export default function AddProduct() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   
   const [formData, setFormData] = useState({
     name: '',
@@ -22,9 +36,32 @@ export default function AddProduct() {
     stock: '0'
   });
 
+  const [packages, setPackages] = useState<Package[]>([
+    { name: '', price: '' }
+  ]);
+
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    // Fetch categories when component mounts
+    const fetchCategories = async () => {
+      try {
+        const response = await fetch('/api/admin/categories');
+        if (!response.ok) {
+          throw new Error('Failed to fetch categories');
+        }
+        const data = await response.json();
+        setCategories(data.categories);
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+        setError('Failed to load categories');
+      }
+    };
+
+    fetchCategories();
+  }, []);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -37,6 +74,23 @@ export default function AddProduct() {
       }
       setImageFile(file);
       setImagePreview(URL.createObjectURL(file));
+    }
+  };
+
+  const handlePackageChange = (index: number, field: keyof Package, value: string) => {
+    const newPackages = [...packages];
+    newPackages[index] = { ...newPackages[index], [field]: value };
+    setPackages(newPackages);
+  };
+
+  const addPackage = () => {
+    setPackages([...packages, { name: '', price: '' }]);
+  };
+
+  const removePackage = (index: number) => {
+    if (packages.length > 1) {
+      const newPackages = packages.filter((_, i) => i !== index);
+      setPackages(newPackages);
     }
   };
 
@@ -60,12 +114,23 @@ export default function AddProduct() {
         const uploadData = await uploadRes.json();
         imageUrl = uploadData.url;
       }
+
+      // Filter out empty packages
+      const validPackages = packages.filter(pkg => pkg.name && pkg.price);
+
       const response = await fetch('/api/admin/products', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ ...formData, image: imageUrl }),
+        body: JSON.stringify({ 
+          ...formData, 
+          image: imageUrl,
+          packages: validPackages.map(pkg => ({
+            name: pkg.name,
+            price: parseFloat(pkg.price)
+          }))
+        }),
       });
 
       if (!response.ok) {
@@ -83,8 +148,65 @@ export default function AddProduct() {
     }
   };
 
+  const handleCategorySuccess = (newCategory: { id: string; name: string; slug: string }) => {
+    setCategories([...categories, newCategory]);
+    setFormData({ ...formData, categoryId: newCategory.id });
+  };
+
+  const renderPackageFields = () => (
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <label className="block font-medium">Packages</label>
+        <Button
+          type="button"
+          onClick={addPackage}
+          className="flex items-center gap-2"
+          variant="outline"
+          size="sm"
+        >
+          <FaPlus className="w-4 h-4" /> Add Package
+        </Button>
+      </div>
+      {packages.map((pkg, index) => (
+        <div key={index} className="flex gap-4 items-start">
+          <div className="flex-1">
+            <Input
+              placeholder="Package Name (e.g., 10 kg)"
+              value={pkg.name}
+              onChange={(e) => handlePackageChange(index, 'name', e.target.value)}
+              className="mb-2"
+            />
+            <Input
+              type="number"
+              step="0.01"
+              placeholder="Package Price"
+              value={pkg.price}
+              onChange={(e) => handlePackageChange(index, 'price', e.target.value)}
+            />
+          </div>
+          {packages.length > 1 && (
+            <Button
+              type="button"
+              onClick={() => removePackage(index)}
+              variant="destructive"
+              size="icon"
+            >
+              <FaTrash className="w-4 h-4" />
+            </Button>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+
   return (
     <>
+      <CategoryModal 
+        isOpen={isCategoryModalOpen}
+        onClose={() => setIsCategoryModalOpen(false)}
+        onSuccess={handleCategorySuccess}
+      />
+
       {/* Mobile Add Product */}
       <div className="block md:hidden bg-[#fcfdff] min-h-screen pb-24">
         <div className="px-4 py-4">
@@ -106,7 +228,7 @@ export default function AddProduct() {
               <Textarea required value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} className="rounded-lg" />
             </div>
             <div>
-              <label className="block mb-1 font-medium">Price</label>
+              <label className="block mb-1 font-medium">Base Price</label>
               <Input required type="number" step="0.01" value={formData.price} onChange={e => setFormData({ ...formData, price: e.target.value })} className="rounded-lg" />
             </div>
             <div>
@@ -130,13 +252,36 @@ export default function AddProduct() {
               />
             </div>
             <div>
-              <label className="block mb-1 font-medium">Category ID</label>
-              <Input required value={formData.categoryId} onChange={e => setFormData({ ...formData, categoryId: e.target.value })} className="rounded-lg" />
+              <label className="block mb-1 font-medium">Category</label>
+              <div className="flex gap-2">
+                <select
+                  required
+                  value={formData.categoryId}
+                  onChange={e => setFormData({ ...formData, categoryId: e.target.value })}
+                  className="flex-1 rounded-lg border border-gray-300 focus:border-gray-400 focus:ring-gray-400 min-h-[40px] px-3"
+                >
+                  <option value="">Select a category</option>
+                  {categories.map(category => (
+                    <option key={category.id} value={category.id}>
+                      {category.name}
+                    </option>
+                  ))}
+                </select>
+                <Button
+                  type="button"
+                  onClick={() => setIsCategoryModalOpen(true)}
+                  variant="outline"
+                  className="whitespace-nowrap"
+                >
+                  New Category
+                </Button>
+              </div>
             </div>
             <div>
               <label className="block mb-1 font-medium">Stock</label>
               <Input type="number" value={formData.stock} onChange={e => setFormData({ ...formData, stock: e.target.value })} className="rounded-lg" />
             </div>
+            {renderPackageFields()}
             <Button type="submit" className="w-full rounded-lg" disabled={loading}>
               {loading ? 'Adding...' : 'Add Product'}
             </Button>
@@ -162,7 +307,7 @@ export default function AddProduct() {
           </button>
         </nav>
       </div>
-      {/* Desktop Add Product (unchanged) */}
+      {/* Desktop Add Product */}
       <div className="hidden md:block">
         <div className="max-w-2xl mx-auto py-8">
           <h1 className="text-2xl font-bold mb-6">Add New Product</h1>
@@ -202,7 +347,7 @@ export default function AddProduct() {
             </div>
 
             <div>
-              <label className="block mb-2">Price</label>
+              <label className="block mb-2">Base Price</label>
               <Input
                 required
                 type="number"
@@ -234,12 +379,30 @@ export default function AddProduct() {
             </div>
 
             <div>
-              <label className="block mb-2">Category ID</label>
-              <Input
-                required
-                value={formData.categoryId}
-                onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
-              />
+              <label className="block mb-2">Category</label>
+              <div className="flex gap-2">
+                <select
+                  required
+                  value={formData.categoryId}
+                  onChange={e => setFormData({ ...formData, categoryId: e.target.value })}
+                  className="flex-1 rounded-lg border border-gray-300 focus:border-gray-400 focus:ring-gray-400 min-h-[40px] px-3"
+                >
+                  <option value="">Select a category</option>
+                  {categories.map(category => (
+                    <option key={category.id} value={category.id}>
+                      {category.name}
+                    </option>
+                  ))}
+                </select>
+                <Button
+                  type="button"
+                  onClick={() => setIsCategoryModalOpen(true)}
+                  variant="outline"
+                  className="whitespace-nowrap"
+                >
+                  New Category
+                </Button>
+              </div>
             </div>
 
             <div>
@@ -251,12 +414,10 @@ export default function AddProduct() {
               />
             </div>
 
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={loading}
-            >
-              {loading ? 'Adding...' : 'Add Product'}
+            {renderPackageFields()}
+
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading ? "Adding..." : "Add Product"}
             </Button>
           </form>
         </div>

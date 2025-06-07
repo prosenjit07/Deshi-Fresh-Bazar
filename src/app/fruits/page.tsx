@@ -1,53 +1,68 @@
-// For static site generation
-export const dynamic = 'force-static';
+'use client';
 
+import { useEffect, useState } from 'react';
 import Image from "next/image";
 import Link from "next/link";
 import RootLayout from "@/components/layout/RootLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import p1 from "@/assets/images/gopalvog.jpg";
-import p2 from "@/assets/images/gobindovog-mango.jpg";
+import { Loader } from "@/components/ui/loader";
+
+interface Product {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  image: string;
+  category: {
+    name: string;
+  };
+}
 
 export default function FruitsPage() {
-  const products = [
-    {
-      id: "cmb3fmy6900024clh02oxg059",
-      name: "হিমসাগর আম (বিষমুক্ত) – প্রতি কেজি ১৬০ টাকা",
-      description: "Home Delivery (Dhaka, Gazipur)",
-      price: 1199,
-      image: p1.src,
-      category: "Katimon",
-    },
-    {
-      id: "cmb3fmz1200084clhjprreg26",
-      name: "ল্যাংড়া আম (বিষমুক্ত) – প্রতি কেজি ১৬০ টাকা",
-      description: "Home Delivery (Dhaka, Gazipur)",
-      price: 2299,
-      image: p2.src,
-      category: "Mango",
-    },
-    {
-      id: "cmb3fmzvj000e4clh00expef1",
-      name: "হাড়িভাঙ্গা আম (বিষমুক্ত) – প্রতি কেজি ১৫০ টাকা",
-      description: "Home Delivery (Dhaka, Gazipur)",
-      price: 4499,
-      image: p1.src,
-      category: "Katimon",
-    },
-    {
-      id: "cmb3fn0or000k4clh5d00jye2",
-      name: "Gopalvhog– প্রতি কেজি ১৬০ টাকা",
-      description: "Home Delivery (Dhaka, Gazipur)",
-      price: 9000,
-      // image: "https://ext.same-assets.com/377203966/610671350.webp",
-      image: p1.src,
-      category: "Mango",
-    },
-  ];
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function fetchProducts() {
+      try {
+        const response = await fetch('/api/products');
+        if (!response.ok) throw new Error('Failed to fetch products');
+        const data = await response.json();
+        setProducts(data);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load products');
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchProducts();
+  }, []);
+
+  if (loading) {
+    return (
+      <RootLayout>
+        <div className="flex items-center justify-center min-h-screen">
+          <Loader size="lg" />
+        </div>
+      </RootLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <RootLayout>
+        <div className="container py-12 text-center">
+          <h1 className="text-2xl font-bold text-red-600">Error</h1>
+          <p className="mt-4">{error}</p>
+        </div>
+      </RootLayout>
+    );
+  }
 
   const categories = Array.from(
-    new Set(products.map((product) => product.category))
+    new Set(products.map((product) => product.category.name))
   );
 
   return (

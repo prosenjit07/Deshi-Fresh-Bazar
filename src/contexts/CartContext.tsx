@@ -13,7 +13,7 @@ interface Product {
   name: string;
   description: string;
   price: number;
-  images: string[];
+  image: string;
   packages: Package[];
   category: string;
   inStock: boolean;
@@ -127,7 +127,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         description: product.description,
         price: product.price,
         quantity,
-        image: product.images[0],
+        image: product.image,
         category: product.category,
         packages: product.packages,
         selectedPackage,

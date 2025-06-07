@@ -21,7 +21,10 @@ export async function GET(
     }
     const product = await prisma.product.findUnique({
       where: { id: params.id },
-      include: { category: true },
+      include: { 
+        category: true,
+        packages: true
+      },
     });
     if (!product) {
       return NextResponse.json({ error: 'Product not found' }, { status: 404 });
@@ -51,7 +54,7 @@ export async function PUT(
       return NextResponse.json({ error: 'Not authorized' }, { status: 401 });
     }
     const body = await request.json();
-    const { name, description, price, image, categoryId, stock, slug } = body;
+    const { name, description, price, image, categoryId, stock, slug, packages } = body;
 
     // Validate required fields
     if (!name || !description || !price || !image || !categoryId || !slug) {
@@ -61,20 +64,57 @@ export async function PUT(
       );
     }
 
-    const product = await prisma.product.update({
-      where: { id: params.id },
-      data: {
-        name,
-        description,
-        price: parseFloat(price),
-        image,
-        categoryId,
-        stock: parseInt(stock) || 0,
-        slug,
-      },
+    // Start a transaction to handle both product and package updates
+    const updatedProduct = await prisma.$transaction(async (tx) => {
+      // 1. Update the product
+      const product = await tx.product.update({
+        where: { id: params.id },
+        data: {
+          name,
+          description,
+          price: parseFloat(price),
+          image,
+          categoryId,
+          stock: parseInt(stock) || 0,
+          slug,
+        },
+        include: {
+          packages: true,
+          category: true
+        }
+      });
+
+      // 2. Handle packages if they exist
+      if (packages && packages.length > 0) {
+        // Delete all existing packages
+        await tx.package.deleteMany({
+          where: { productId: params.id }
+        });
+
+        // Create new packages
+        const validPackages = packages.filter((pkg: any) => pkg.name && pkg.price);
+        if (validPackages.length > 0) {
+          await tx.package.createMany({
+            data: validPackages.map((pkg: any) => ({
+              name: pkg.name,
+              price: parseFloat(pkg.price),
+              productId: params.id
+            }))
+          });
+        }
+      }
+
+      // 3. Return the updated product with packages
+      return tx.product.findUnique({
+        where: { id: params.id },
+        include: {
+          packages: true,
+          category: true
+        }
+      });
     });
 
-    return NextResponse.json(product);
+    return NextResponse.json(updatedProduct);
   } catch (error: unknown) {
     if (
       error instanceof PrismaClientKnownRequestError &&
@@ -106,15 +146,25 @@ export async function DELETE(
     if (decoded.role !== 'ADMIN') {
       return NextResponse.json({ error: 'Not authorized' }, { status: 401 });
     }
-    await prisma.product.delete({
-      where: { id: params.id },
+
+    // Use a transaction to delete packages first, then the product
+    await prisma.$transaction(async (tx) => {
+      // 1. Delete all packages associated with the product
+      await tx.package.deleteMany({
+        where: { productId: params.id }
+      });
+
+      // 2. Delete the product
+      await tx.product.delete({
+        where: { id: params.id }
+      });
     });
 
     return NextResponse.json({ message: 'Product deleted successfully' });
   } catch (error) {
     console.error('!!Error deleting product:!!', error);
     return NextResponse.json(
-      { error: 'Internal Server Error' },
+      { error: 'Failed to delete product' },
       { status: 500 }
     );
   }

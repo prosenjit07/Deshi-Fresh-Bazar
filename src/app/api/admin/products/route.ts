@@ -21,7 +21,10 @@ export async function GET(request: Request) {
     const skip = (page - 1) * pageSize;
     const [products, total] = await Promise.all([
       prisma.product.findMany({
-        include: { category: { select: { name: true } } },
+        include: { 
+          category: true,
+          packages: true
+        },
         orderBy: { createdAt: 'desc' },
         skip,
         take: pageSize,
@@ -52,7 +55,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Not authorized' }, { status: 403 });
     }
     const body = await request.json();
-    const { name, description, price, image, categoryId, stock, slug } = body;
+    const { name, description, price, image, categoryId, stock, slug, packages } = body;
 
     // Validate required fields
     if (!name || !description || !price || !image || !categoryId || !slug) {
@@ -104,23 +107,47 @@ export async function POST(request: Request) {
       );
     }
 
-    const product = await prisma.product.create({
-      data: {
-        name,
-        description,
-        price: priceNum,
-        image,
-        categoryId,
-        stock: stockNum,
-        slug,
-      },
-      include: {
-        category: {
-          select: {
-            name: true,
-          },
+    // Create product and packages in a transaction
+    const product = await prisma.$transaction(async (tx) => {
+      // 1. Create the product
+      const newProduct = await tx.product.create({
+        data: {
+          name,
+          description,
+          price: priceNum,
+          image,
+          categoryId,
+          stock: stockNum,
+          slug,
         },
-      },
+      });
+
+      // 2. Create packages if they exist
+      if (packages && packages.length > 0) {
+        const validPackages = packages.filter((pkg: any) => pkg.name && pkg.price);
+        if (validPackages.length > 0) {
+          await tx.package.createMany({
+            data: validPackages.map((pkg: any) => ({
+              name: pkg.name,
+              price: parseFloat(pkg.price),
+              productId: newProduct.id
+            }))
+          });
+        }
+      }
+
+      // 3. Return the product with packages
+      return tx.product.findUnique({
+        where: { id: newProduct.id },
+        include: {
+          category: {
+            select: {
+              name: true,
+            },
+          },
+          packages: true
+        },
+      });
     });
 
     return NextResponse.json(product);

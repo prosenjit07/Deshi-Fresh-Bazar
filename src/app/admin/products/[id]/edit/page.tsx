@@ -5,14 +5,35 @@ import { useRouter, useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { FaBoxOpen, FaShoppingCart, FaUsers, FaChartBar } from 'react-icons/fa';
+import { FaBoxOpen, FaShoppingCart, FaUsers, FaChartBar, FaPlus, FaTrash } from 'react-icons/fa';
+import CategoryModal from '@/components/CategoryModal';
+
+interface Package {
+  id?: string;
+  name: string;
+  price: string;
+}
+
+interface Category {
+  id: string;
+  name: string;
+  slug: string;
+}
+
+interface ProductPackage {
+  id: string;
+  name: string;
+  price: number;
+}
 
 export default function EditProductPage() {
   const router = useRouter();
-  const params = useParams();
+  const params = useParams() as { id: string };
   const { id } = params;
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     slug: "",
@@ -22,39 +43,62 @@ export default function EditProductPage() {
     categoryId: "",
     stock: "0",
   });
+
+  const [packages, setPackages] = useState<Package[]>([
+    { name: '', price: '' }
+  ]);
+
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (!id) return;
-    const fetchProduct = async () => {
-      setLoading(true);
-      setError("");
+    const fetchData = async () => {
       try {
-        const res = await fetch(`/api/admin/products/${id}`);
-        if (!res.ok) {
-          const error = await res.json();
+        // Fetch categories
+        const categoriesRes = await fetch('/api/admin/categories');
+        if (!categoriesRes.ok) {
+          throw new Error('Failed to fetch categories');
+        }
+        const categoriesData = await categoriesRes.json();
+        setCategories(categoriesData.categories);
+
+        // Fetch product
+        const productRes = await fetch(`/api/admin/products/${id}`);
+        if (!productRes.ok) {
+          const error = await productRes.json();
           throw new Error(error.error || "Failed to fetch product");
         }
-        const data = await res.json();
+        const productData = await productRes.json();
         setFormData({
-          name: data.name || "",
-          slug: data.slug || "",
-          description: data.description || "",
-          price: data.price?.toString() || "",
-          image: data.image || "",
-          categoryId: data.categoryId || "",
-          stock: data.stock?.toString() || "0",
+          name: productData.name || "",
+          slug: productData.slug || "",
+          description: productData.description || "",
+          price: productData.price?.toString() || "",
+          image: productData.image || "",
+          categoryId: productData.categoryId || "",
+          stock: productData.stock?.toString() || "0",
         });
-        setImagePreview(data.image || "");
+        setImagePreview(productData.image || "");
+        
+        // Set packages if they exist
+        if (productData.packages && productData.packages.length > 0) {
+          setPackages(productData.packages.map((pkg: ProductPackage) => ({
+            id: pkg.id,
+            name: pkg.name,
+            price: pkg.price.toString()
+          })));
+        }
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to fetch product");
+        setError(err instanceof Error ? err.message : "Failed to fetch data");
       } finally {
         setLoading(false);
       }
     };
-    fetchProduct();
+
+    if (id) {
+      fetchData();
+    }
   }, [id]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -70,6 +114,69 @@ export default function EditProductPage() {
       setImagePreview(URL.createObjectURL(file));
     }
   };
+
+  const handlePackageChange = (index: number, field: keyof Package, value: string) => {
+    const newPackages = [...packages];
+    newPackages[index] = { ...newPackages[index], [field]: value };
+    setPackages(newPackages);
+  };
+
+  const addPackage = () => {
+    setPackages([...packages, { name: '', price: '' }]);
+  };
+
+  const removePackage = (index: number) => {
+    if (packages.length > 1) {
+      const newPackages = packages.filter((_, i) => i !== index);
+      setPackages(newPackages);
+    }
+  };
+
+  const renderPackageFields = () => (
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <label className="block font-medium">Packages</label>
+        <Button
+          type="button"
+          onClick={addPackage}
+          className="flex items-center gap-2"
+          variant="outline"
+          size="sm"
+        >
+          <FaPlus className="w-4 h-4" /> Add Package
+        </Button>
+      </div>
+      {packages.map((pkg, index) => (
+        <div key={index} className="flex gap-4 items-start">
+          <div className="flex-1">
+            <Input
+              placeholder="Package Name (e.g., 10 kg)"
+              value={pkg.name}
+              onChange={(e) => handlePackageChange(index, 'name', e.target.value)}
+              className="mb-2"
+            />
+            <Input
+              type="number"
+              step="0.01"
+              placeholder="Package Price"
+              value={pkg.price}
+              onChange={(e) => handlePackageChange(index, 'price', e.target.value)}
+            />
+          </div>
+          {packages.length > 1 && (
+            <Button
+              type="button"
+              onClick={() => removePackage(index)}
+              variant="destructive"
+              size="icon"
+            >
+              <FaTrash className="w-4 h-4" />
+            </Button>
+          )}
+        </div>
+      ))}
+    </div>
+  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -90,10 +197,28 @@ export default function EditProductPage() {
         const uploadData = await uploadRes.json();
         imageUrl = uploadData.url;
       }
+
+      // Filter out empty packages and prepare package data
+      const validPackages = packages.filter(pkg => pkg.name && pkg.price).map(pkg => {
+        const packageData: { name: string; price: number; id?: string } = {
+          name: pkg.name,
+          price: parseFloat(pkg.price)
+        };
+        // Only include id if it exists (for existing packages)
+        if (pkg.id) {
+          packageData.id = pkg.id;
+        }
+        return packageData;
+      });
+
       const response = await fetch(`/api/admin/products/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...formData, image: imageUrl }),
+        body: JSON.stringify({ 
+          ...formData, 
+          image: imageUrl,
+          packages: validPackages
+        }),
       });
       if (!response.ok) {
         const error = await response.json();
@@ -108,12 +233,23 @@ export default function EditProductPage() {
     }
   };
 
+  const handleCategorySuccess = (newCategory: { id: string; name: string; slug: string }) => {
+    setCategories([...categories, newCategory]);
+    setFormData({ ...formData, categoryId: newCategory.id });
+  };
+
   if (loading) {
     return <div className="p-8 text-center">Loading...</div>;
   }
 
   return (
     <>
+      <CategoryModal 
+        isOpen={isCategoryModalOpen}
+        onClose={() => setIsCategoryModalOpen(false)}
+        onSuccess={handleCategorySuccess}
+      />
+
       {/* Mobile Edit Product */}
       <div className="block md:hidden bg-[#fcfdff] min-h-screen pb-24">
         <div className="px-4 py-4">
@@ -138,7 +274,7 @@ export default function EditProductPage() {
                 <Textarea required value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} className="rounded-lg" />
               </div>
               <div>
-                <label className="block mb-1 font-medium">Price</label>
+                <label className="block mb-1 font-medium">Base Price</label>
                 <Input required type="number" step="0.01" value={formData.price} onChange={e => setFormData({ ...formData, price: e.target.value })} className="rounded-lg" />
               </div>
               <div>
@@ -162,13 +298,36 @@ export default function EditProductPage() {
                 />
               </div>
               <div>
-                <label className="block mb-1 font-medium">Category ID</label>
-                <Input required value={formData.categoryId} onChange={e => setFormData({ ...formData, categoryId: e.target.value })} className="rounded-lg" />
+                <label className="block mb-1 font-medium">Category</label>
+                <div className="flex gap-2">
+                  <select
+                    required
+                    value={formData.categoryId}
+                    onChange={e => setFormData({ ...formData, categoryId: e.target.value })}
+                    className="flex-1 rounded-lg border border-gray-300 focus:border-gray-400 focus:ring-gray-400 min-h-[40px] px-3"
+                  >
+                    <option value="">Select a category</option>
+                    {categories.map(category => (
+                      <option key={category.id} value={category.id}>
+                        {category.name}
+                      </option>
+                    ))}
+                  </select>
+                  <Button
+                    type="button"
+                    onClick={() => setIsCategoryModalOpen(true)}
+                    variant="outline"
+                    className="whitespace-nowrap"
+                  >
+                    New Category
+                  </Button>
+                </div>
               </div>
               <div>
                 <label className="block mb-1 font-medium">Stock</label>
                 <Input type="number" value={formData.stock} onChange={e => setFormData({ ...formData, stock: e.target.value })} className="rounded-lg" />
               </div>
+              {renderPackageFields()}
               <Button type="submit" className="w-full rounded-lg" disabled={loading}>
                 {loading ? 'Saving...' : 'Save Changes'}
               </Button>
@@ -195,7 +354,7 @@ export default function EditProductPage() {
           </button>
         </nav>
       </div>
-      {/* Desktop Edit Product (unchanged) */}
+      {/* Desktop Edit Product */}
       <div className="hidden md:block">
         <div className="max-w-2xl mx-auto py-8">
           <h1 className="text-2xl font-bold mb-6">Edit Product</h1>
@@ -214,7 +373,7 @@ export default function EditProductPage() {
               <Textarea required value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} />
             </div>
             <div>
-              <label className="block mb-2">Price</label>
+              <label className="block mb-2">Base Price</label>
               <Input required type="number" step="0.01" value={formData.price} onChange={e => setFormData({ ...formData, price: e.target.value })} />
             </div>
             <div>
@@ -238,14 +397,39 @@ export default function EditProductPage() {
               />
             </div>
             <div>
-              <label className="block mb-2">Category ID</label>
-              <Input required value={formData.categoryId} onChange={e => setFormData({ ...formData, categoryId: e.target.value })} />
+              <label className="block mb-2">Category</label>
+              <div className="flex gap-2">
+                <select
+                  required
+                  value={formData.categoryId}
+                  onChange={e => setFormData({ ...formData, categoryId: e.target.value })}
+                  className="flex-1 rounded-lg border border-gray-300 focus:border-gray-400 focus:ring-gray-400 min-h-[40px] px-3"
+                >
+                  <option value="">Select a category</option>
+                  {categories.map(category => (
+                    <option key={category.id} value={category.id}>
+                      {category.name}
+                    </option>
+                  ))}
+                </select>
+                <Button
+                  type="button"
+                  onClick={() => setIsCategoryModalOpen(true)}
+                  variant="outline"
+                  className="whitespace-nowrap"
+                >
+                  New Category
+                </Button>
+              </div>
             </div>
             <div>
               <label className="block mb-2">Stock</label>
               <Input type="number" value={formData.stock} onChange={e => setFormData({ ...formData, stock: e.target.value })} />
             </div>
-            <Button type="submit" className="w-full" disabled={loading}>{loading ? "Saving..." : "Save Changes"}</Button>
+            {renderPackageFields()}
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading ? "Saving..." : "Save Changes"}
+            </Button>
           </form>
         </div>
       </div>

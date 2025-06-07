@@ -33,6 +33,17 @@ interface OrderFormData {
   country: string;
 }
 
+// Update the imports and interfaces to match the database schema
+interface CartItem {
+  id: string;
+  name: string;
+  image: string;
+  quantity: number;
+  price: number;
+  totalPrice: number;
+  selectedPackage: string;
+}
+
 export default function CheckoutPage() {
   const router = useRouter();
   const [paymentMethod, setPaymentMethod] = useState("SSLCommerz");
