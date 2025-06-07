@@ -5,9 +5,10 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select';
 import React from 'react';
-import { FaBoxOpen, FaShoppingCart, FaUsers, FaChartBar } from 'react-icons/fa';
+import { FaBoxOpen, FaShoppingCart, FaUsers, FaChartBar, FaFileExport } from 'react-icons/fa';
 import { Loader } from '@/components/ui/loader';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 
 interface OrderItem {
   id: string;
@@ -65,6 +66,7 @@ function getPaginationRange(current: number, total: number, delta = 2) {
 export default function OrdersList() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [exporting, setExporting] = useState(false);
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
@@ -119,6 +121,43 @@ export default function OrdersList() {
     }
   };
 
+  const handleExport = async () => {
+    try {
+      setExporting(true);
+      const response = await fetch('/api/admin/orders/export');
+      
+      if (!response.ok) {
+        throw new Error('Export failed');
+      }
+
+      // Get the blob from the response
+      const blob = await response.blob();
+      
+      // Create a URL for the blob
+      const url = window.URL.createObjectURL(blob);
+      
+      // Create a temporary link element
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'orders.xlsx';
+      
+      // Append to body, click, and remove
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      // Clean up the URL
+      window.URL.revokeObjectURL(url);
+      
+      toast.success('Orders exported successfully');
+    } catch (error) {
+      console.error('Export error:', error);
+      toast.error('Failed to export orders');
+    } finally {
+      setExporting(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -136,6 +175,15 @@ export default function OrdersList() {
       <div className="block md:hidden bg-[#fcfdff] min-h-screen pb-24">
         <div className="flex justify-between items-center px-4 py-4">
           <h1 className="text-2xl font-bold">Orders</h1>
+          <Button
+            size="sm"
+            onClick={handleExport}
+            disabled={exporting || noOrders}
+            className="flex items-center gap-2"
+          >
+            <FaFileExport className="w-4 h-4" />
+            {exporting ? 'Exporting...' : 'Export'}
+          </Button>
         </div>
           <div className="px-4 mb-4 flex flex-col gap-3">
             <div className="relative">
@@ -315,6 +363,14 @@ export default function OrdersList() {
                   <SelectItem value="asc">Oldest First</SelectItem>
                 </SelectContent>
               </Select>
+              <Button
+                onClick={handleExport}
+                disabled={exporting || noOrders}
+                className="flex items-center gap-2"
+              >
+                <FaFileExport className="w-4 h-4" />
+                {exporting ? 'Exporting...' : 'Export Orders'}
+              </Button>
             </div>
           </div>
 
