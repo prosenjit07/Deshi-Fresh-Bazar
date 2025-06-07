@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useRouter } from 'next/navigation';
 import { FaDollarSign, FaBoxOpen, FaShoppingCart, FaUsers } from 'react-icons/fa';
 import { Loader } from '@/components/ui/loader';
+import { OrderStatsChart } from '@/components/OrderStatsChart';
 
 interface DashboardStats {
   totalOrders: number;
@@ -89,7 +90,10 @@ export default function AdminDashboard() {
             <span className="text-xs text-green-600 mt-1 font-semibold">+15.3%</span>
           </div>
         </div>
-        <div className="px-4 mt-2">
+        <div className="px-4">
+          <OrderStatsChart />
+        </div>
+        <div className="px-4 mt-6">
           <h2 className="text-lg font-semibold mb-2">Quick Actions</h2>
           <div className="grid grid-cols-2 gap-3">
             <button
@@ -167,6 +171,10 @@ export default function AdminDashboard() {
               <div className="text-2xl font-bold">{stats.recentOrders}</div>
             </CardContent>
           </Card>
+        </div>
+
+        <div className="mt-6">
+          <OrderStatsChart />
         </div>
 
         <div className="mt-8">
