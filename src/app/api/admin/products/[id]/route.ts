@@ -54,7 +54,7 @@ export async function PUT(
       return NextResponse.json({ error: 'Not authorized' }, { status: 401 });
     }
     const body = await request.json();
-    const { name, description, price, image, categoryId, stock, slug, packages } = body;
+    const { name, description, details, price, image, categoryId, stock, slug, packages } = body;
 
     // Validate required fields
     if (!name || !description || !price || !image || !categoryId || !slug) {
@@ -72,6 +72,7 @@ export async function PUT(
         data: {
           name,
           description,
+          details,
           price: parseFloat(price),
           image,
           categoryId,

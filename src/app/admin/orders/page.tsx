@@ -5,10 +5,11 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select';
 import React from 'react';
-import { FaBoxOpen, FaShoppingCart, FaUsers, FaChartBar, FaFileExport } from 'react-icons/fa';
+import { FaBoxOpen, FaShoppingCart, FaUsers, FaChartBar, FaFileExport, FaCalendarAlt } from 'react-icons/fa';
 import { Loader } from '@/components/ui/loader';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from '@/components/ui/dialog';
 
 interface OrderItem {
   id: string;
@@ -74,6 +75,10 @@ export default function OrdersList() {
   const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState('');
   const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [exportDialogOpen, setExportDialogOpen] = useState(false);
+  const [exportAllOrders, setExportAllOrders] = useState(false);
   const router = useRouter();
 
   const fetchOrders = async () => {
@@ -124,7 +129,15 @@ export default function OrdersList() {
   const handleExport = async () => {
     try {
       setExporting(true);
-      const response = await fetch('/api/admin/orders/export');
+      
+      // Add date range parameters to export URL
+      const params = new URLSearchParams();
+      if (!exportAllOrders) {
+        if (startDate) params.append('startDate', startDate);
+        if (endDate) params.append('endDate', endDate);
+      }
+      
+      const response = await fetch(`/api/admin/orders/export?${params.toString()}`);
       
       if (!response.ok) {
         throw new Error('Export failed');
@@ -150,6 +163,7 @@ export default function OrdersList() {
       window.URL.revokeObjectURL(url);
       
       toast.success('Orders exported successfully');
+      setExportDialogOpen(false);
     } catch (error) {
       console.error('Export error:', error);
       toast.error('Failed to export orders');
@@ -175,15 +189,65 @@ export default function OrdersList() {
       <div className="block md:hidden bg-[#fcfdff] min-h-screen pb-24">
         <div className="flex justify-between items-center px-4 py-4">
           <h1 className="text-2xl font-bold">Orders</h1>
-          <Button
-            size="sm"
-            onClick={handleExport}
-            disabled={exporting || noOrders}
-            className="flex items-center gap-2"
-          >
-            <FaFileExport className="w-4 h-4" />
-            {exporting ? 'Exporting...' : 'Export'}
-          </Button>
+          <Dialog open={exportDialogOpen} onOpenChange={setExportDialogOpen}>
+            <DialogTrigger asChild>
+              <Button
+                size="sm"
+                className="flex items-center gap-2"
+                disabled={noOrders}
+              >
+                <FaFileExport className="w-4 h-4" />
+                Export
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>Export Orders</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id="export-all-mobile"
+                    checked={exportAllOrders}
+                    onChange={(e) => setExportAllOrders(e.target.checked)}
+                    className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                  />
+                  <label htmlFor="export-all-mobile" className="text-sm font-medium text-gray-700">
+                    Export all orders (ignore date range)
+                  </label>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">From Date</label>
+                  <Input 
+                    type="date" 
+                    value={startDate} 
+                    onChange={(e) => setStartDate(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">To Date</label>
+                  <Input 
+                    type="date" 
+                    value={endDate} 
+                    onChange={(e) => setEndDate(e.target.value)}
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <DialogClose asChild>
+                  <Button variant="outline">Cancel</Button>
+                </DialogClose>
+                <Button 
+                  onClick={handleExport}
+                  disabled={exporting}
+                  className="flex items-center gap-2"
+                >
+                  {exporting ? 'Exporting...' : 'Export'}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
           <div className="px-4 mb-4 flex flex-col gap-3">
             <div className="relative">
@@ -363,14 +427,66 @@ export default function OrdersList() {
                   <SelectItem value="asc">Oldest First</SelectItem>
                 </SelectContent>
               </Select>
-              <Button
-                onClick={handleExport}
-                disabled={exporting || noOrders}
-                className="flex items-center gap-2"
-              >
-                <FaFileExport className="w-4 h-4" />
-                {exporting ? 'Exporting...' : 'Export Orders'}
-              </Button>
+              <Dialog open={exportDialogOpen} onOpenChange={setExportDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button
+                    className="flex items-center gap-2"
+                    disabled={noOrders}
+                  >
+                    <FaFileExport className="w-4 h-4" />
+                    Export Orders
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[425px]">
+                  <DialogHeader>
+                    <DialogTitle>Export Orders</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4 py-4">
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        id="export-all-desktop"
+                        checked={exportAllOrders}
+                        onChange={(e) => setExportAllOrders(e.target.checked)}
+                        className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                      />
+                      <label htmlFor="export-all-desktop" className="text-sm font-medium text-gray-700">
+                        Export all orders
+                      </label>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">From Date</label>
+                      <Input 
+                        type="date" 
+                        value={startDate} 
+                        onChange={(e) => setStartDate(e.target.value)}
+                        disabled={exportAllOrders}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">To Date</label>
+                      <Input 
+                        type="date" 
+                        value={endDate} 
+                        onChange={(e) => setEndDate(e.target.value)}
+                        disabled={exportAllOrders}
+                      />
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <DialogClose asChild>
+                      <Button variant="outline">Cancel</Button>
+                    </DialogClose>
+                    <Button 
+                      onClick={handleExport}
+                      disabled={exporting}
+                      className="flex items-center gap-2"
+                    >
+                      {exporting ? 'Exporting...' : 'Export'}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
             </div>
           </div>
 

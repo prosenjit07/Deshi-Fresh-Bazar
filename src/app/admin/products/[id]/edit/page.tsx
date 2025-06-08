@@ -38,6 +38,7 @@ export default function EditProductPage() {
     name: "",
     slug: "",
     description: "",
+    details: "",
     price: "",
     image: "",
     categoryId: "",
@@ -74,6 +75,7 @@ export default function EditProductPage() {
           name: productData.name || "",
           slug: productData.slug || "",
           description: productData.description || "",
+          details: productData.details || "",
           price: productData.price?.toString() || "",
           image: productData.image || "",
           categoryId: productData.categoryId || "",
@@ -274,6 +276,10 @@ export default function EditProductPage() {
                 <Textarea required value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} className="rounded-lg" />
               </div>
               <div>
+                <label className="block mb-1 font-medium">Details</label>
+                <Textarea required value={formData.details} onChange={e => setFormData({ ...formData, details: e.target.value })} className="rounded-lg" />
+              </div>
+              <div>
                 <label className="block mb-1 font-medium">Base Price</label>
                 <Input required type="number" step="0.01" value={formData.price} onChange={e => setFormData({ ...formData, price: e.target.value })} className="rounded-lg" />
               </div>
@@ -371,6 +377,10 @@ export default function EditProductPage() {
             <div>
               <label className="block mb-2">Description</label>
               <Textarea required value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} />
+            </div>
+            <div>
+              <label className="block mb-2">Details</label>
+              <Textarea required value={formData.details} onChange={e => setFormData({ ...formData, details: e.target.value })} />
             </div>
             <div>
               <label className="block mb-2">Base Price</label>

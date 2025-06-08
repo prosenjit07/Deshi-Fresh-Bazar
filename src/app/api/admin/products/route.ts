@@ -55,7 +55,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Not authorized' }, { status: 403 });
     }
     const body = await request.json();
-    const { name, description, price, image, categoryId, stock, slug, packages } = body;
+    const { name, description, details, price, image, categoryId, stock, slug, packages } = body;
 
     // Validate required fields
     if (!name || !description || !price || !image || !categoryId || !slug) {
@@ -114,6 +114,7 @@ export async function POST(request: Request) {
         data: {
           name,
           description,
+          details,
           price: priceNum,
           image,
           categoryId,

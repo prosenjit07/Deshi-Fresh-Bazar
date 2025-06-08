@@ -1,11 +1,36 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import * as XLSX from 'xlsx';
+import { Prisma } from '@prisma/client';
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    // Fetch all orders with their items
+    // Get query parameters for date filtering
+    const { searchParams } = new URL(request.url);
+    const startDate = searchParams.get('startDate');
+    const endDate = searchParams.get('endDate');
+
+    // Build where condition for date filtering
+    const whereCondition: Prisma.OrderWhereInput = {};
+    
+    if (startDate || endDate) {
+      whereCondition.createdAt = {};
+      
+      if (startDate) {
+        whereCondition.createdAt.gte = new Date(startDate);
+      }
+      
+      if (endDate) {
+        // Set time to end of day for the end date
+        const endDateTime = new Date(endDate);
+        endDateTime.setHours(23, 59, 59, 999);
+        whereCondition.createdAt.lte = endDateTime;
+      }
+    }
+
+    // Fetch orders with date filtering
     const orders = await prisma.order.findMany({
+      where: whereCondition,
       include: {
         items: {
           include: {

@@ -35,6 +35,7 @@ model Product {
   name        String
   slug        String      @unique
   description String      @db.Text
+  details     String?
   price       Float
   image       String
   category    Category    @relation(fields: [categoryId], references: [id])
