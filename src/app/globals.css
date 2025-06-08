@@ -94,3 +94,44 @@
   animation: slide 20s linear infinite;
   will-change: transform;
 }
+
+/* Rich Text Content Styles */
+.rich-text-content {
+  @apply text-gray-700;
+}
+ 
+.rich-text-content p {
+  @apply mb-3;
+}
+
+.rich-text-content strong {
+  @apply font-bold;
+}
+
+.rich-text-content em {
+  @apply italic;
+}
+
+.rich-text-content u {
+  @apply underline;
+}
+
+.rich-text-content s {
+  @apply line-through;
+}
+
+.rich-text-content mark {
+  @apply bg-yellow-200;
+}
+
+.rich-text-content ul {
+  @apply list-disc pl-6 mb-3;
+}
+
+.rich-text-content ol {
+  @apply list-decimal pl-6 mb-3;
+}
+
+.rich-text-content li {
+  @apply mb-1;
+}

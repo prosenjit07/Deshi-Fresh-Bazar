@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from "@/components/ui/textarea";
 import { FaBoxOpen, FaShoppingCart, FaUsers, FaChartBar, FaPlus, FaTrash } from 'react-icons/fa';
 import CategoryModal from '@/components/CategoryModal';
+import RichTextEditor from '@/components/RichTextEditor';
 
 interface Package {
   name: string;
@@ -230,7 +231,7 @@ export default function AddProduct() {
             </div>
             <div>
               <label className="block mb-1 font-medium">Details</label>
-              <Textarea value={formData.details} onChange={e => setFormData({ ...formData, details: e.target.value })} className="rounded-lg" />
+              <RichTextEditor value={formData.details} onChange={value => setFormData({ ...formData, details: value })} />
             </div>
             <div>
               <label className="block mb-1 font-medium">Base Price</label>
@@ -353,9 +354,9 @@ export default function AddProduct() {
 
             <div>
               <label className="block mb-2">Details</label>
-              <Textarea
+              <RichTextEditor
                 value={formData.details}
-                onChange={(e) => setFormData({ ...formData, details: e.target.value })}
+                onChange={(value) => setFormData({ ...formData, details: value })}
               />
             </div>
 

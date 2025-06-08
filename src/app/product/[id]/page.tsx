@@ -49,11 +49,23 @@ export default async function ProductPage({ params }: { params: { id: string } }
     notFound();
   }
 
+  // Ensure product.details is a string (convert null to empty string)
+  const productWithStringDetails = {
+    ...product,
+    details: product.details || ''
+  };
+
   const relatedProducts = await getRelatedProducts(product.categoryId, product.id);
+  
+  // Ensure all related products have string details
+  const relatedProductsWithStringDetails = relatedProducts.map(p => ({
+    ...p,
+    details: p.details || ''
+  }));
 
   return (
     <RootLayout>
-      <ProductClient product={product} products={relatedProducts} />
+      <ProductClient product={productWithStringDetails} products={relatedProductsWithStringDetails} />
     </RootLayout>
   );
 }

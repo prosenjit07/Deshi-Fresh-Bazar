@@ -20,7 +20,7 @@ interface Product {
   id: string;
   name: string;
   description: string;
-  details: string;
+  details: string | null;
   price: number;
   image: string;
   stock: number;
@@ -130,7 +130,10 @@ export default function ProductClient({ product, products }: ProductClientProps)
               product?.details && (
                 <div className="mt-6">
                   <h3 className="text-lg font-medium">Details</h3>
-                  <p className="mt-2 text-muted-foreground">{product.details}</p>
+                  <div 
+                    className="mt-2 rich-text-content"
+                    dangerouslySetInnerHTML={{ __html: product.details }}
+                  />
                 </div>
               )
             }
