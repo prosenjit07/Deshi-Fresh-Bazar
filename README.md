@@ -19,7 +19,7 @@ Deshi Fresh Bazar is an Agritech fruit chain initiative delivering safer fruits 
 * **UI Components**: Radix UI
 * **State Management**: React Context API
 * **Image Optimization**: Next.js Image Component
-* **Backend Services**: Supabase (or your preferred BaaS)
+* **Backend Services**: Supabase
 
 ## 📦 Project Structure
 
