@@ -15,6 +15,7 @@ import {
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useCart } from "@/contexts/CartContext";
 import { useUser } from "@/contexts/UserContext";
+import { trackMetaPixelCustomEvent } from "@/lib/meta-pixel";
 import logo from "@/assets/images/fresh-logo.jpg";
 
 export default function Header() {
@@ -22,6 +23,14 @@ export default function Header() {
   const { getCartCount } = useCart();
   const { user, logout } = useUser();
   const cartCount = getCartCount();
+
+  const handleCartClick = () => {
+    trackMetaPixelCustomEvent("CartClick", {
+      cart_count: cartCount,
+      source: "header",
+    });
+  };
+
   const handleLogout = async () => {
     await logout();
     router.push("/login");
@@ -63,6 +72,7 @@ export default function Header() {
                 ))}
                 <Link
                   href="/cart"
+                  onClick={handleCartClick}
                   className="flex items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground w-fit relative mt-2"
                 >
                   <ShoppingCart className="h-5 w-5" />
@@ -119,7 +129,7 @@ export default function Header() {
         </Link>
 
         <div className="flex items-center gap-3 md:gap-4">
-          <Link href="/cart" className="hidden md:flex items-center gap-2 relative">
+          <Link href="/cart" onClick={handleCartClick} className="hidden md:flex items-center gap-2 relative">
             <ShoppingCart className="h-5 w-5" />
             {cartCount > 0 && (
               <span className="absolute -top-3 -right-2 flex h-[18px] w-[18px] items-center justify-center rounded-full bg-green-700 text-[10px] font-bold text-white md:-top-4 md:h-5 md:w-5 md:text-xs">

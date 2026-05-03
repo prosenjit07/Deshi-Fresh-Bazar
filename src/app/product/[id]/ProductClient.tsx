@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useCart } from '@/contexts/CartContext';
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import {
+  buildProductPixelPayload,
+  trackMetaPixelCustomEvent,
+  trackMetaPixelEvent,
+} from "@/lib/meta-pixel";
 
 interface Package {
   id: string;
@@ -42,10 +47,29 @@ export default function ProductClient({ product, products }: ProductClientProps)
   const [quantity, setQuantity] = useState(1);
   const { addItem, items: cartItems } = useCart();
   const router = useRouter();
+  const lastTrackedProductId = useRef<string | null>(null);
 
   const [selectedPackage, setSelectedPackage] = useState<Package | null>(
     () => product?.packages[0] ?? null
   );
+
+  useEffect(() => {
+    if (!product || lastTrackedProductId.current === product.id) {
+      return;
+    }
+
+    lastTrackedProductId.current = product.id;
+
+    const pixelPayload = buildProductPixelPayload({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      category: product.category.name,
+    });
+
+    trackMetaPixelEvent("ViewContent", pixelPayload);
+    trackMetaPixelCustomEvent("ProductView", pixelPayload);
+  }, [product]);
 
   if (!product) {
     return (
@@ -67,12 +91,28 @@ export default function ProductClient({ product, products }: ProductClientProps)
       return;
     }
 
+    const pixelPayload = buildProductPixelPayload({
+      id: product.id,
+      name: product.name,
+      price: selectedPackage?.price ?? product.price,
+      quantity,
+      category: product.category.name,
+    });
+
     // @ts-expect-error - handling type mismatch with the CartContext
     addItem(product, quantity, selectedPackage?.id);
+    trackMetaPixelEvent("AddToCart", pixelPayload);
     toast.success("Added to cart successfully");
   };
 
   const handleBuyNow = () => {
+    const pixelPayload = buildProductPixelPayload({
+      id: product.id,
+      name: product.name,
+      price: selectedPackage?.price ?? product.price,
+      quantity,
+      category: product.category.name,
+    });
     const existingCartItem = cartItems.find(item => 
       item.id === product.id && item.selectedPackage === selectedPackage?.id
     );
@@ -80,9 +120,11 @@ export default function ProductClient({ product, products }: ProductClientProps)
     if (!existingCartItem) {
       // @ts-expect-error - handling type mismatch with the CartContext
       addItem(product, quantity, selectedPackage?.id);
+      trackMetaPixelEvent("AddToCart", pixelPayload);
       toast.success("Added to cart successfully");
     }
-    
+
+    trackMetaPixelCustomEvent("BuyNow", pixelPayload);
     router.push("/cart");
   }
 

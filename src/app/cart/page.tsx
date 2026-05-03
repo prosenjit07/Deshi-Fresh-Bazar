@@ -7,6 +7,11 @@ import RootLayout from "@/components/layout/RootLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { useCart } from '@/contexts/CartContext';
+import {
+  buildCheckoutPixelPayload,
+  trackMetaPixelCustomEvent,
+  trackMetaPixelEvent,
+} from "@/lib/meta-pixel";
 
 export default function CartPage() {
   const {
@@ -19,6 +24,24 @@ export default function CartPage() {
     getCartCount,
     clearCart
   } = useCart();
+
+  const handleCheckoutClick = () => {
+    const checkoutItems = items.map((item) => ({
+      id: item.id,
+      name: item.name,
+      quantity: item.quantity,
+      price: getItemPrice(item),
+    }));
+
+    const pixelPayload = buildCheckoutPixelPayload(
+      checkoutItems,
+      calculateTotal(),
+      { source: "cart_page" },
+    );
+
+    trackMetaPixelEvent("InitiateCheckout", pixelPayload);
+    trackMetaPixelCustomEvent("CheckoutClick", pixelPayload);
+  };
 
   // const calculateShipping = () => {
   //   const subtotal = getCartTotal();
@@ -173,7 +196,7 @@ export default function CartPage() {
                   </CardContent>
                   <CardFooter>
                     <Button asChild className="w-full bg-green-700 hover:bg-green-800">
-                      <Link href="/checkout">Proceed to Checkout</Link>
+                      <Link href="/checkout" onClick={handleCheckoutClick}>Proceed to Checkout</Link>
                     </Button>
                   </CardFooter>
                 </Card>

@@ -22,6 +22,11 @@ import {
 } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
 import { useCart } from '@/contexts/CartContext';
+import {
+  buildCheckoutPixelPayload,
+  trackMetaPixelCustomEvent,
+  trackMetaPixelEvent,
+} from "@/lib/meta-pixel";
 
 interface OrderFormData {
   fullName: string;
@@ -33,20 +38,9 @@ interface OrderFormData {
   country: string;
 }
 
-// Update the imports and interfaces to match the database schema
-interface CartItem {
-  id: string;
-  name: string;
-  image: string;
-  quantity: number;
-  price: number;
-  totalPrice: number;
-  selectedPackage: string;
-}
-
 export default function CheckoutPage() {
   const router = useRouter();
-  const [paymentMethod, setPaymentMethod] = useState("SSLCommerz");
+  const [paymentMethod] = useState("SSLCommerz");
   const [loading, setLoading] = useState(false);
   const { items, getCartTotal, getItemPrice, clearCart } = useCart();
   const [agreed, setAgreed] = useState(false);
@@ -113,6 +107,29 @@ export default function CheckoutPage() {
       }
 
       const order = await response.json();
+
+      const purchaseItems = order.items.map((item: {
+        productId: string;
+        productName: string;
+        quantity: number;
+        unitPrice: number;
+      }) => ({
+        id: item.productId,
+        name: item.productName,
+        quantity: item.quantity,
+        price: item.unitPrice,
+      }));
+
+      const purchasePayload = buildCheckoutPixelPayload(
+        purchaseItems,
+        order.totalAmount ?? calculateTotal(),
+        {
+          order_id: order.id,
+        },
+      );
+
+      trackMetaPixelEvent("Purchase", purchasePayload);
+      trackMetaPixelCustomEvent("OrderSuccess", purchasePayload);
       
       clearCart();
 

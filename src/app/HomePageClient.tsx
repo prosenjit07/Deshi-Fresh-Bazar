@@ -17,6 +17,11 @@ import YouTubeVideo from "@/components/YouTubeVideo";
 import { useUser } from "@/contexts/UserContext";
 import { useCart } from "@/contexts/CartContext";
 import { useToast } from "@/components/ui/toast";
+import {
+  buildProductPixelPayload,
+  trackMetaPixelCustomEvent,
+  trackMetaPixelEvent,
+} from "@/lib/meta-pixel";
 import garden from "@/assets/images/farmar.jpg";
 import product from "@/assets/images/gobindovog-mango.jpg";
 import packaging from "@/assets/images/gopalvog.jpg";
@@ -207,6 +212,13 @@ export default function HomePageClient({
       }
 
       const selectedPackageId = product.packages?.[0]?.id ?? "";
+      const selectedPrice = product.packages?.[0]?.price ?? product.price;
+      const pixelPayload = buildProductPixelPayload({
+        id: product.id,
+        name: product.name,
+        price: selectedPrice,
+        category: product.category,
+      });
       const existingCartItem = cartItems.find(
         (item) =>
           item.id === product.id && item.selectedPackage === selectedPackageId,
@@ -228,9 +240,14 @@ export default function HomePageClient({
           1,
           selectedPackageId,
         );
+        trackMetaPixelEvent("AddToCart", pixelPayload);
         showSuccess("Added to cart successfully");
       }
 
+      trackMetaPixelCustomEvent("BuyNow", {
+        ...pixelPayload,
+        source: "home_page",
+      });
       router.push("/cart");
     },
     [addItem, cartItems, router, showError, showSuccess],

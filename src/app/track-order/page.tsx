@@ -5,6 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import RootLayout from "@/components/layout/RootLayout";
+import {
+  trackMetaPixelCustomEvent,
+  trackMetaPixelEvent,
+} from "@/lib/meta-pixel";
 
 export default function TrackOrderPage() {
   const [orderId, setOrderId] = useState("");
@@ -25,6 +29,14 @@ export default function TrackOrderPage() {
     setLoading(true);
     try {
       const res = await fetch(`/api/orders/${orderId}`);
+      const searchPayload = {
+        order_lookup: true,
+        result: res.ok ? "found" : res.status === 404 ? "not_found" : "error",
+      };
+
+      trackMetaPixelEvent("Search", searchPayload);
+      trackMetaPixelCustomEvent("TrackOrderSearch", searchPayload);
+
       if (res.status === 404) {
         setNotFound(true);
         setOrderStatus(null);
