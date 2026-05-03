@@ -1,11 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import type { Product } from '@prisma/client';
-import { FaBoxOpen, FaShoppingCart, FaUsers, FaChartBar, FaGripVertical } from 'react-icons/fa';
+import { FaGripVertical } from 'react-icons/fa';
 import { Loader } from '@/components/ui/loader';
+import { useToast } from '@/components/ui/toast';
 import { DragDropContext, Droppable, Draggable, type DropResult, type DroppableProvided, type DraggableProvided } from '@hello-pangea/dnd';
 
 interface Category {
@@ -32,16 +33,13 @@ export default function AdminProductsPage() {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const router = useRouter();
+  const toast = useToast();
 
-  useEffect(() => {
-    fetchProducts(page);
-  }, [page]);
-
-  const fetchProducts = async (page = 1) => {
+  const fetchProducts = useCallback(async (pageNumber = 1) => {
     try {
       setLoading(true);
       setError(null);
-      const response = await fetch(`/api/admin/products?page=${page}`);
+      const response = await fetch(`/api/admin/products?page=${pageNumber}`);
       
       if (!response.ok) {
         throw new Error('Failed to fetch products');
@@ -59,11 +57,17 @@ export default function AdminProductsPage() {
       setTotalPages(data.totalPages || 1);
     } catch (error) {
       console.error('Error fetching products:', error);
-      setError(error instanceof Error ? error.message : 'Failed to load products');
+      const message = error instanceof Error ? error.message : 'Failed to load products';
+      setError(message);
+      toast.error(message);
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast]);
+
+  useEffect(() => {
+    fetchProducts(page);
+  }, [fetchProducts, page]);
 
   const handleDelete = async (productId: string) => {
     if (!confirm('Are you sure you want to delete this product?')) return;
@@ -75,13 +79,14 @@ export default function AdminProductsPage() {
 
       if (response.ok) {
         setProducts(products.filter(product => product.id !== productId));
+        toast.success('Product deleted successfully');
       } else {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to delete product');
+        const data = await response.json();
+        throw new Error(data.error || data.message || 'Failed to delete product');
       }
     } catch (error) {
       console.error('Error deleting product:', error);
-      alert(error instanceof Error ? error.message : 'Error deleting product');
+      toast.error(error instanceof Error ? error.message : 'Error deleting product');
     }
   };
 
@@ -120,17 +125,18 @@ export default function AdminProductsPage() {
       if (!response.ok) {
         throw new Error(data.error || 'Failed to update product sequence');
       }
+      toast.success('Product order updated successfully');
     } catch (error) {
       console.error('Error updating product sequence:', error);
       // Revert the optimistic update
       setProducts(items);
       // Show error message
       if (error instanceof Error && error.message.includes('Not authenticated')) {
-        alert('Please log in again to continue.');
+        toast.error('Please log in again to continue.');
         router.push('/login');
         return;
       }
-      alert(error instanceof Error ? error.message : 'Failed to update product sequence. Please try again.');
+      toast.error(error instanceof Error ? error.message : 'Failed to update product sequence. Please try again.');
     }
   };
 

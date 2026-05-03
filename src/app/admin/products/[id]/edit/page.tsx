@@ -5,6 +5,7 @@ import { useRouter, useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/components/ui/toast";
 import { FaBoxOpen, FaShoppingCart, FaUsers, FaChartBar, FaPlus, FaTrash } from 'react-icons/fa';
 import CategoryModal from '@/components/CategoryModal';
 import RichTextEditor from '@/components/RichTextEditor';
@@ -31,6 +32,7 @@ export default function EditProductPage() {
   const router = useRouter();
   const params = useParams() as { id: string };
   const { id } = params;
+  const toast = useToast();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [categories, setCategories] = useState<Category[]>([]);
@@ -93,7 +95,9 @@ export default function EditProductPage() {
           })));
         }
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to fetch data");
+        const message = err instanceof Error ? err.message : "Failed to fetch data";
+        setError(message);
+        toast.error(message);
       } finally {
         setLoading(false);
       }
@@ -102,15 +106,17 @@ export default function EditProductPage() {
     if (id) {
       fetchData();
     }
-  }, [id]);
+  }, [id, toast]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       if (file.size > 2 * 1024 * 1024) { // 2MB
-        setError("Image file size must be less than 2MB");
+        const message = "Image file size must be less than 2MB";
+        setError(message);
         setImageFile(null);
         setImagePreview("");
+        toast.error(message);
         return;
       }
       setImageFile(file);
@@ -227,10 +233,13 @@ export default function EditProductPage() {
         const error = await response.json();
         throw new Error(error.error || "Failed to update product");
       }
+      toast.success("Product updated successfully");
       router.push("/admin/products");
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to update product");
+      const message = err instanceof Error ? err.message : "Failed to update product";
+      setError(message);
+      toast.error(message);
     } finally {
       setLoading(false);
     }
@@ -239,6 +248,7 @@ export default function EditProductPage() {
   const handleCategorySuccess = (newCategory: { id: string; name: string; slug: string }) => {
     setCategories([...categories, newCategory]);
     setFormData({ ...formData, categoryId: newCategory.id });
+    toast.success("Category added successfully");
   };
 
   if (loading) {
