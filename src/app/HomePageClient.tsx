@@ -389,21 +389,21 @@ export default function HomePageClient({
 
       <section className="py-10 bg-white overflow-hidden">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
+          <div className="text-center mb-10 md:mb-16">
             <Badge
               variant="outline"
-              className="mb-4 text-green-600 border-green-200"
+              className="mb-2 md:mb-4 text-green-600 border-green-200"
             >
               আমাদের বিশেষত্ব
             </Badge>
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-800 mb-4">
+            <h2 className="text-2xl md:text-5xl font-bold text-gray-800 mb-2 md:mb-4">
               আমরাই কেন সেরা?
             </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            <p className="text-sm md:text-lg text-gray-600 max-w-2xl mx-auto">
               গ্রাহকের সন্তুষ্টি, প্রিমিয়াম মান এবং দ্রুত সেবার মাধ্যমে আমরা গড়ে
               তুলেছি আস্থার এক নতুন ঠিকানা।
             </p>
-            <div className="w-24 h-1 bg-gradient-to-r from-green-400 to-green-600 mx-auto mt-6 rounded-full" />
+            <div className="w-24 h-1 bg-gradient-to-r from-green-400 to-green-600 mx-auto mt-3 md:mt-6 rounded-full" />
           </div>
 
           <div className="mb-20">
@@ -463,20 +463,20 @@ export default function HomePageClient({
 
       <section className="py-10 bg-gradient-to-br from-green-50 to-white">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
+          <div className="text-center mb-10 md:mb-16">
             <Badge
               variant="outline"
-              className="mb-4 text-green-600 border-green-200"
+              className="mb-2 md:mb-4 text-green-600 border-green-200"
             >
               আমাদের যাত্রা
             </Badge>
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-800 mb-4">
+            <h2 className="text-2xl md:text-5xl font-bold text-gray-800 mb-2 md:mb-4">
               আমাদের গল্প
             </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            <p className="text-sm md:text-lg text-gray-600 max-w-2xl mx-auto">
               কীভাবে আমরা বাগান থেকে আপনার টেবিল পর্যন্ত মানসম্পন্ন ফল পৌঁছে দিই
             </p>
-            <div className="w-24 h-1 bg-gradient-to-r from-green-400 to-green-600 mx-auto mt-6 rounded-full" />
+            <div className="w-24 h-1 bg-gradient-to-r from-green-400 to-green-600 mx-auto mt-3 md:mt-6 rounded-full" />
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
@@ -508,10 +508,10 @@ export default function HomePageClient({
                   mute={false}
                 />
                 <CardContent className="p-6">
-                  <h3 className="text-xl font-bold text-gray-800 mb-3 group-hover:text-green-600 transition-colors">
+                  <h3 className="text-lg md:text-xl font-bold text-gray-800 mb-3 group-hover:text-green-600 transition-colors">
                     {video.title}
                   </h3>
-                  <p className="text-gray-600 leading-relaxed">
+                  <p className="text-sm md:text-base text-gray-600 leading-relaxed">
                     {video.description}
                   </p>
                 </CardContent>
@@ -520,7 +520,7 @@ export default function HomePageClient({
           </div>
 
           <div className="text-center">
-            <p className="text-gray-600 mb-6 text-lg">
+            <p className="text-sm md:text-lg text-gray-600 mb-6">
               আপনার অর্ডার দিতে নিচের বাটনে ক্লিক করুন
             </p>
             <Button
