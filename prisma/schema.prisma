@@ -39,6 +39,7 @@ model Product {
   packages    Package[]
 
   @@index([sequence])
+  @@index([categoryId, createdAt])
 }
 
 model Category {
