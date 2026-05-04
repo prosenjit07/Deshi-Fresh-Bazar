@@ -856,7 +856,7 @@ const openApiSpec = {
       delete: {
         tags: ['Admin Products'],
         summary: 'Delete product',
-        description: 'Archives a product if it exists in order history, or permanently deletes an already archived product with no order references.',
+        description: 'Archives a non-archived product if it exists in order history, or permanently deletes an archived product while preserving historical order items.',
         security: authSecurity,
         parameters: [
           {

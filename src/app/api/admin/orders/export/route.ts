@@ -32,11 +32,7 @@ export async function GET(request: Request) {
     const orders = await prisma.order.findMany({
       where: whereCondition,
       include: {
-        items: {
-          include: {
-            product: true,
-          },
-        },
+        items: true,
       },
       orderBy: {
         createdAt: 'desc',
@@ -56,7 +52,7 @@ export async function GET(request: Request) {
       'Status': order.status,
       'Items Count': order.items.length,
       'Items Details': order.items.map(item => 
-        `${item.product.name} (${item.packageType || 'Default'}) x ${item.quantity} @ ৳${item.unitPrice}`
+        `${item.productName} (${item.packageType || 'Default'}) x ${item.quantity} @ ৳${item.unitPrice}`
       ).join('; '),
     }));
 

@@ -270,7 +270,7 @@ export async function DELETE(
         where: { productId: id },
       });
 
-      if (hasOrderItems) {
+      if (hasOrderItems && product.status !== ProductStatus.ARCHIVED) {
         await tx.product.update({
           where: { id },
           data: {
@@ -293,6 +293,13 @@ export async function DELETE(
       await tx.package.deleteMany({
         where: { productId: id },
       });
+
+      // Preserve order history snapshots while allowing the product row to be removed.
+      await tx.$executeRaw`
+        UPDATE "OrderItem"
+        SET "productId" = NULL
+        WHERE "productId" = ${id}
+      `;
 
       await tx.product.delete({
         where: { id },

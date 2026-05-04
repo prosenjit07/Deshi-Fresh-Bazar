@@ -162,7 +162,11 @@ function AdminProductsPageContent() {
   };
 
   const handleDelete = async (productId: string) => {
-    if (!confirm('Are you sure you want to permanently delete this archived product?')) return;
+    if (
+      !confirm(
+        'Are you sure you want to permanently delete this archived product? Existing order history will be preserved.',
+      )
+    ) return;
 
     try {
       setActionProductId(productId);
