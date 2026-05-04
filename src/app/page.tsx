@@ -2,6 +2,7 @@ import { unstable_cache } from "next/cache";
 import { Suspense } from "react";
 import RootLayout from "@/components/layout/RootLayout";
 import { prisma } from "@/lib/prisma";
+import { ProductStatus } from "@/lib/product-status";
 import HomePageClient from "./HomePageClient";
 
 export const revalidate = 300;
@@ -9,6 +10,9 @@ export const revalidate = 300;
 const getFeaturedProducts = unstable_cache(
   async () => {
     const products = await prisma.product.findMany({
+      where: {
+        status: ProductStatus.ACTIVE,
+      },
       take: 8,
       orderBy: {
         sequence: "asc",
@@ -46,7 +50,7 @@ const getFeaturedProducts = unstable_cache(
     }));
   },
   ["homepage-featured-products"],
-  { revalidate },
+  { revalidate, tags: ["products"] },
 );
 
 export default async function HomePage() {

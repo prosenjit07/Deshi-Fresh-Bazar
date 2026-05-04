@@ -1,15 +1,9 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import jwt from 'jsonwebtoken';
-import { PrismaClient, Role } from '@prisma/client';
-
-const prisma = new PrismaClient({
-  datasources: {
-    db: {
-      url: process.env.SUPABASE_DATABASE,
-    },
-  },
-});
+import { Role } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
+import { ProductStatus } from '@/lib/product-status';
 
 // Type for JWT payload
 interface JWTPayload {
@@ -44,7 +38,10 @@ export async function GET(request: Request) {
       totalOrders,
       totalProducts,
       totalUsers,
-      recentOrders
+      recentOrders,
+      activeProducts,
+      inactiveProducts,
+      archivedProducts,
     ] = await Promise.all([
       prisma.order.count(),
       prisma.product.count(),
@@ -55,14 +52,32 @@ export async function GET(request: Request) {
             gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) // Last 7 days
           }
         }
-      })
+      }),
+      prisma.product.count({
+        where: {
+          status: ProductStatus.ACTIVE,
+        },
+      }),
+      prisma.product.count({
+        where: {
+          status: ProductStatus.INACTIVE,
+        },
+      }),
+      prisma.product.count({
+        where: {
+          status: ProductStatus.ARCHIVED,
+        },
+      }),
     ]);
 
     return NextResponse.json({
       totalOrders,
       totalProducts,
       totalUsers,
-      recentOrders
+      recentOrders,
+      activeProducts,
+      inactiveProducts,
+      archivedProducts,
     });
   } catch (error) {
     console.error('Error fetching admin stats:', error);

@@ -20,6 +20,8 @@ interface Category {
   slug: string;
 }
 
+type ProductStatus = 'ACTIVE' | 'INACTIVE' | 'ARCHIVED';
+
 export default function AddProduct() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -35,7 +37,8 @@ export default function AddProduct() {
     price: '',
     image: '',
     categoryId: '',
-    stock: '0'
+    stock: '0',
+    status: 'ACTIVE' as ProductStatus,
   });
 
   const [packages, setPackages] = useState<Package[]>([
@@ -287,6 +290,18 @@ export default function AddProduct() {
               <label className="block mb-1 font-medium">Stock</label>
               <Input type="number" value={formData.stock} onChange={e => setFormData({ ...formData, stock: e.target.value })} className="rounded-lg" />
             </div>
+            <div>
+              <label className="block mb-1 font-medium">Status</label>
+              <select
+                value={formData.status}
+                onChange={e => setFormData({ ...formData, status: e.target.value as ProductStatus })}
+                className="w-full rounded-lg border border-gray-300 focus:border-gray-400 focus:ring-gray-400 min-h-[40px] px-3"
+              >
+                <option value="ACTIVE">Active</option>
+                <option value="INACTIVE">Inactive</option>
+                <option value="ARCHIVED">Archived</option>
+              </select>
+            </div>
             {renderPackageFields()}
             <Button type="submit" className="w-full rounded-lg" disabled={loading}>
               {loading ? 'Adding...' : 'Add Product'}
@@ -426,6 +441,18 @@ export default function AddProduct() {
                 value={formData.stock}
                 onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
               />
+            </div>
+            <div>
+              <label className="block mb-2">Status</label>
+              <select
+                value={formData.status}
+                onChange={e => setFormData({ ...formData, status: e.target.value as ProductStatus })}
+                className="w-full rounded-lg border border-gray-300 focus:border-gray-400 focus:ring-gray-400 min-h-[40px] px-3"
+              >
+                <option value="ACTIVE">Active</option>
+                <option value="INACTIVE">Inactive</option>
+                <option value="ARCHIVED">Archived</option>
+              </select>
             </div>
 
             {renderPackageFields()}

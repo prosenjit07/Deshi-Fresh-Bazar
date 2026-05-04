@@ -24,7 +24,7 @@ async function verifyToken(token: string) {
 export async function GET(request: Request) {
   try {
     // Get token from cookies
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const token = cookieStore.get('token')?.value;
 
     if (!token) {
@@ -59,10 +59,11 @@ export async function GET(request: Request) {
     }
 
     return NextResponse.json(user);
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Internal server error';
     console.error('API Profile GET error:', error);
     return NextResponse.json(
-      { message: error.message || 'Internal server error' },
+      { message },
       { status: 500 }
     );
   }
@@ -72,7 +73,7 @@ export async function GET(request: Request) {
 export async function PUT(request: Request) {
   try {
     // Get token from cookies
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const token = cookieStore.get('token')?.value;
 
     if (!token) {
@@ -108,7 +109,7 @@ export async function PUT(request: Request) {
     }
 
     // Prepare update data
-    const updateData: any = {};
+    const updateData: Record<string, string> = {};
     if (name) updateData.name = name;
     if (email) updateData.email = email;
     if (password) {
@@ -132,9 +133,10 @@ export async function PUT(request: Request) {
     }
 
     return NextResponse.json(updatedUser);
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Internal server error';
     return NextResponse.json(
-      { message: error.message },
+      { message },
       { status: 500 }
     );
   }

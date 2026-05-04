@@ -1,9 +1,15 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { ProductStatus } from '@/lib/product-status';
+
+export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
     const products = await prisma.product.findMany({
+      where: {
+        status: ProductStatus.ACTIVE,
+      },
       select: {
         id: true,
         name: true,

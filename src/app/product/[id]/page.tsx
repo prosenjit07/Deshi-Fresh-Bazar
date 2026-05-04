@@ -3,14 +3,15 @@ import { unstable_cache } from 'next/cache';
 import RootLayout from "@/components/layout/RootLayout";
 import ProductClient from "./ProductClient";
 import { prisma } from '@/lib/prisma';
+import { ProductStatus } from '@/lib/product-status';
 
 export const revalidate = 300;
 
 const getProduct = unstable_cache(
   async (id: string) => {
     try {
-      const product = await prisma.product.findUnique({
-        where: { id },
+      const product = await prisma.product.findFirst({
+        where: { id, status: ProductStatus.ACTIVE },
         select: {
           id: true,
           name: true,
@@ -47,7 +48,7 @@ const getProduct = unstable_cache(
     }
   },
   ['product-page-product'],
-  { revalidate }
+  { revalidate, tags: ['products'] }
 );
 
 const getRelatedProducts = unstable_cache(
@@ -55,6 +56,7 @@ const getRelatedProducts = unstable_cache(
     try {
       const products = await prisma.product.findMany({
         where: {
+          status: ProductStatus.ACTIVE,
           categoryId,
           NOT: {
             id: currentProductId
@@ -100,7 +102,7 @@ const getRelatedProducts = unstable_cache(
     }
   },
   ['product-page-related-products'],
-  { revalidate }
+  { revalidate, tags: ['products'] }
 );
 
 export default async function ProductPage({ params }: { params: Promise<{ id: string }> }) {

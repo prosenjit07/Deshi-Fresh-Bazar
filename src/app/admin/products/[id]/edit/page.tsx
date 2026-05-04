@@ -28,6 +28,8 @@ interface ProductPackage {
   price: number;
 }
 
+type ProductStatus = "ACTIVE" | "INACTIVE" | "ARCHIVED";
+
 export default function EditProductPage() {
   const router = useRouter();
   const params = useParams() as { id: string };
@@ -46,6 +48,7 @@ export default function EditProductPage() {
     image: "",
     categoryId: "",
     stock: "0",
+    status: "ACTIVE" as ProductStatus,
   });
 
   const [packages, setPackages] = useState<Package[]>([
@@ -83,6 +86,7 @@ export default function EditProductPage() {
           image: productData.image || "",
           categoryId: productData.categoryId || "",
           stock: productData.stock?.toString() || "0",
+          status: productData.status || "ACTIVE",
         });
         setImagePreview(productData.image || "");
         
@@ -344,6 +348,24 @@ export default function EditProductPage() {
                 <label className="block mb-1 font-medium">Stock</label>
                 <Input type="number" value={formData.stock} onChange={e => setFormData({ ...formData, stock: e.target.value })} className="rounded-lg" />
               </div>
+              <div>
+                <label className="block mb-1 font-medium">Status</label>
+                <select
+                  value={formData.status}
+                  onChange={e => setFormData({ ...formData, status: e.target.value as ProductStatus })}
+                  className="w-full rounded-lg border border-gray-300 focus:border-gray-400 focus:ring-gray-400 min-h-[40px] px-3"
+                >
+                  <option value="ACTIVE">Active</option>
+                  <option value="INACTIVE">Inactive</option>
+                  <option value="ARCHIVED">Archived</option>
+                </select>
+                {formData.status === "INACTIVE" && (
+                  <p className="mt-1 text-xs text-amber-600">This product will be hidden from the website.</p>
+                )}
+                {formData.status === "ARCHIVED" && (
+                  <p className="mt-1 text-xs text-slate-600">This product will be retired from the storefront and normal admin listing.</p>
+                )}
+              </div>
               {renderPackageFields()}
               <Button type="submit" className="w-full rounded-lg" disabled={loading}>
                 {loading ? 'Saving...' : 'Save Changes'}
@@ -446,6 +468,24 @@ export default function EditProductPage() {
             <div>
               <label className="block mb-2">Stock</label>
               <Input type="number" value={formData.stock} onChange={e => setFormData({ ...formData, stock: e.target.value })} />
+            </div>
+            <div>
+              <label className="block mb-2">Status</label>
+              <select
+                value={formData.status}
+                onChange={e => setFormData({ ...formData, status: e.target.value as ProductStatus })}
+                className="w-full rounded-lg border border-gray-300 focus:border-gray-400 focus:ring-gray-400 min-h-[40px] px-3"
+              >
+                <option value="ACTIVE">Active</option>
+                <option value="INACTIVE">Inactive</option>
+                <option value="ARCHIVED">Archived</option>
+              </select>
+              {formData.status === "INACTIVE" && (
+                <p className="mt-2 text-sm text-amber-600">This product will be hidden from the website.</p>
+              )}
+              {formData.status === "ARCHIVED" && (
+                <p className="mt-2 text-sm text-slate-600">This product will be retired from the storefront and normal admin listing.</p>
+              )}
             </div>
             {renderPackageFields()}
             <Button type="submit" className="w-full" disabled={loading}>

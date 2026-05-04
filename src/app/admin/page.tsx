@@ -13,6 +13,9 @@ interface DashboardStats {
   totalUsers: number;
   recentOrders: number;
   totalRevenue?: number;
+  activeProducts: number;
+  inactiveProducts: number;
+  archivedProducts: number;
 }
 
 export default function AdminDashboard() {
@@ -21,7 +24,10 @@ export default function AdminDashboard() {
     totalOrders: 0,
     totalProducts: 0,
     totalUsers: 0,
-    recentOrders: 0
+    recentOrders: 0,
+    activeProducts: 0,
+    inactiveProducts: 0,
+    archivedProducts: 0,
   });
   const [loading, setLoading] = useState(true);
 
@@ -90,6 +96,29 @@ export default function AdminDashboard() {
             <span className="text-xs text-green-600 mt-1 font-semibold">+15.3%</span>
           </div>
         </div>
+        <div className="grid grid-cols-3 gap-3 px-4 mb-4">
+          <button
+            onClick={() => router.push('/admin/products?status=ACTIVE')}
+            className="rounded-xl border bg-white p-3 text-left shadow"
+          >
+            <div className="text-xs text-gray-500">ACTIVE</div>
+            <div className="text-xl font-bold text-green-700">{stats.activeProducts}</div>
+          </button>
+          <button
+            onClick={() => router.push('/admin/products?status=INACTIVE')}
+            className="rounded-xl border bg-white p-3 text-left shadow"
+          >
+            <div className="text-xs text-gray-500">INACTIVE</div>
+            <div className="text-xl font-bold text-amber-700">{stats.inactiveProducts}</div>
+          </button>
+          <button
+            onClick={() => router.push('/admin/products?status=ARCHIVED')}
+            className="rounded-xl border bg-white p-3 text-left shadow"
+          >
+            <div className="text-xs text-gray-500">ARCHIVED</div>
+            <div className="text-xl font-bold text-slate-700">{stats.archivedProducts}</div>
+          </button>
+        </div>
         <div className="px-4">
           <OrderStatsChart />
         </div>
@@ -102,6 +131,13 @@ export default function AdminDashboard() {
             >
               <FaBoxOpen className="text-2xl mb-2" />
               Add Product
+            </button>
+            <button
+              onClick={() => router.push('/admin/products?status=ARCHIVED')}
+              className="flex flex-col items-center justify-center bg-slate-50 text-slate-700 rounded-xl py-6 font-medium shadow border"
+            >
+              <FaBoxOpen className="text-2xl mb-2" />
+              Archived
             </button>
             <button
               onClick={() => router.push('/admin/orders')}
@@ -173,6 +209,41 @@ export default function AdminDashboard() {
           </Card>
         </div>
 
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Active Products</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <button onClick={() => router.push('/admin/products?status=ACTIVE')} className="text-2xl font-bold text-green-700">
+                {stats.activeProducts}
+              </button>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Inactive Products</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <button onClick={() => router.push('/admin/products?status=INACTIVE')} className="text-2xl font-bold text-amber-700">
+                {stats.inactiveProducts}
+              </button>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Archived Products</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <button onClick={() => router.push('/admin/products?status=ARCHIVED')} className="text-2xl font-bold text-slate-700">
+                {stats.archivedProducts}
+              </button>
+            </CardContent>
+          </Card>
+        </div>
+
         <div className="mt-6">
           <OrderStatsChart />
         </div>
@@ -197,6 +268,12 @@ export default function AdminDashboard() {
               className="p-4 bg-white rounded-lg shadow hover:shadow-md transition-shadow"
             >
               Add New Product
+            </button>
+            <button
+              onClick={() => router.push('/admin/products?status=ARCHIVED')}
+              className="p-4 bg-white rounded-lg shadow hover:shadow-md transition-shadow"
+            >
+              Archived Products
             </button>
           </div>
         </div>

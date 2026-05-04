@@ -31,6 +31,8 @@ model Product {
   category    Category    @relation(fields: [categoryId], references: [id])
   categoryId  String
   stock       Int         @default(0)
+  status      ProductStatus @default(ACTIVE)
+  archivedAt  DateTime?
   sequence    Int         @default(0)
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
@@ -39,6 +41,8 @@ model Product {
   packages    Package[]
 
   @@index([sequence])
+  @@index([status, sequence])
+  @@index([status, createdAt])
   @@index([categoryId, createdAt])
 }
 
@@ -117,6 +121,12 @@ model CartItem {
 enum Role {
   USER
   ADMIN
+}
+
+enum ProductStatus {
+  ACTIVE
+  INACTIVE
+  ARCHIVED
 }
 
 enum OrderStatus {

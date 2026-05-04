@@ -2,6 +2,7 @@ import { unstable_cache } from "next/cache";
 import { Suspense } from "react";
 import RootLayout from "@/components/layout/RootLayout";
 import { prisma } from "@/lib/prisma";
+import { ProductStatus } from "@/lib/product-status";
 import FruitsPageClient from "./FruitsPageClient";
 
 export const revalidate = 300;
@@ -9,6 +10,9 @@ export const revalidate = 300;
 const getFruitProducts = unstable_cache(
   async () => {
     return prisma.product.findMany({
+      where: {
+        status: ProductStatus.ACTIVE,
+      },
       orderBy: {
         sequence: "asc",
       },
@@ -27,7 +31,7 @@ const getFruitProducts = unstable_cache(
     });
   },
   ["fruits-page-products"],
-  { revalidate },
+  { revalidate, tags: ["products"] },
 );
 
 export default async function FruitsPage() {

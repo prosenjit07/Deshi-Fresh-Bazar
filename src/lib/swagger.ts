@@ -62,6 +62,10 @@ const openApiSpec = {
           price: { type: 'number' },
         },
       },
+      ProductStatus: {
+        type: 'string',
+        enum: ['ACTIVE', 'INACTIVE', 'ARCHIVED'],
+      },
       Product: {
         type: 'object',
         properties: {
@@ -73,6 +77,8 @@ const openApiSpec = {
           price: { type: 'number' },
           image: { type: 'string' },
           stock: { type: 'integer' },
+          status: { $ref: '#/components/schemas/ProductStatus' },
+          archivedAt: { type: 'string', format: 'date-time', nullable: true },
           sequence: { type: 'integer' },
           category: { $ref: '#/components/schemas/Category' },
           packages: {
@@ -92,6 +98,7 @@ const openApiSpec = {
           image: { type: 'string' },
           categoryId: { type: 'string' },
           stock: { type: 'integer' },
+          status: { $ref: '#/components/schemas/ProductStatus' },
           slug: { type: 'string' },
           packages: {
             type: 'array',
@@ -292,6 +299,9 @@ const openApiSpec = {
           totalProducts: { type: 'integer' },
           totalUsers: { type: 'integer' },
           recentOrders: { type: 'integer' },
+          activeProducts: { type: 'integer' },
+          inactiveProducts: { type: 'integer' },
+          archivedProducts: { type: 'integer' },
         },
       },
       MonthlyOrderStats: {
@@ -433,7 +443,7 @@ const openApiSpec = {
       get: {
         tags: ['Products'],
         summary: 'List products',
-        description: 'Returns the storefront product list with category and package data.',
+        description: 'Returns the storefront product list with category and package data. Only active products are returned.',
         responses: {
           '200': {
             description: 'Product list',
@@ -671,6 +681,17 @@ const openApiSpec = {
             required: false,
             schema: { type: 'integer', default: 1 },
           },
+          {
+            name: 'status',
+            in: 'query',
+            required: false,
+            schema: {
+              type: 'string',
+              enum: ['ACTIVE', 'INACTIVE', 'ARCHIVED', 'all'],
+              default: 'default',
+            },
+            description: 'Filters products by lifecycle status. Default returns ACTIVE and INACTIVE products.',
+          },
         ],
         responses: {
           '200': {
@@ -757,7 +778,7 @@ const openApiSpec = {
       put: {
         tags: ['Admin Products'],
         summary: 'Update product',
-        description: 'Updates an existing product and replaces its packages.',
+        description: 'Updates an existing product, lifecycle status, and replaces its packages.',
         security: authSecurity,
         parameters: [
           {
@@ -790,10 +811,52 @@ const openApiSpec = {
           },
         },
       },
+      patch: {
+        tags: ['Admin Products'],
+        summary: 'Update product status',
+        description: 'Updates only the lifecycle status of an existing product.',
+        security: authSecurity,
+        parameters: [
+          {
+            name: 'id',
+            in: 'path',
+            required: true,
+            schema: { type: 'string' },
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: jsonContent({
+            type: 'object',
+            required: ['status'],
+            properties: {
+              status: { $ref: '#/components/schemas/ProductStatus' },
+            },
+          }),
+        },
+        responses: {
+          '200': {
+            description: 'Updated product',
+            content: jsonContent({ $ref: '#/components/schemas/Product' }),
+          },
+          '400': {
+            description: 'Invalid product status',
+            content: jsonContent({ $ref: '#/components/schemas/ErrorResponse' }),
+          },
+          '401': {
+            description: 'Not authorized',
+            content: jsonContent({ $ref: '#/components/schemas/ErrorResponse' }),
+          },
+          '404': {
+            description: 'Product not found',
+            content: jsonContent({ $ref: '#/components/schemas/ErrorResponse' }),
+          },
+        },
+      },
       delete: {
         tags: ['Admin Products'],
         summary: 'Delete product',
-        description: 'Deletes a product and its packages.',
+        description: 'Archives a product if it exists in order history, or permanently deletes an already archived product with no order references.',
         security: authSecurity,
         parameters: [
           {
@@ -805,16 +868,28 @@ const openApiSpec = {
         ],
         responses: {
           '200': {
-            description: 'Product deleted successfully',
+            description: 'Product archived or deleted successfully',
             content: jsonContent({
               type: 'object',
               properties: {
                 message: { type: 'string' },
+                action: {
+                  type: 'string',
+                  enum: ['archived', 'deleted'],
+                },
               },
             }),
           },
+          '400': {
+            description: 'Archive required before permanent deletion',
+            content: jsonContent({ $ref: '#/components/schemas/ErrorResponse' }),
+          },
           '401': {
             description: 'Not authorized',
+            content: jsonContent({ $ref: '#/components/schemas/ErrorResponse' }),
+          },
+          '404': {
+            description: 'Product not found',
             content: jsonContent({ $ref: '#/components/schemas/ErrorResponse' }),
           },
           '500': {

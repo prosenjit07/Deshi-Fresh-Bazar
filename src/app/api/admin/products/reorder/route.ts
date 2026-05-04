@@ -1,7 +1,9 @@
 import { NextResponse } from 'next/server';
+import { revalidateTag } from 'next/cache';
 import { prisma } from '@/lib/prisma';
 import { cookies } from 'next/headers';
 import jwt from 'jsonwebtoken';
+import { ProductStatus } from '@/lib/product-status';
 
 interface ProductSequence {
   id: string;
@@ -28,12 +30,43 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
     }
 
-    // Update sequences in transaction using raw SQL
-    await prisma.$transaction(async (tx) => {
-      for (const { id, sequence } of products) {
-        await tx.$executeRaw`UPDATE "Product" SET sequence = ${sequence} WHERE id = ${id}`;
-      }
+    const hasInvalidPayload = products.some(
+      ({ id, sequence }) =>
+        typeof id !== 'string' ||
+        !id ||
+        typeof sequence !== 'number' ||
+        !Number.isInteger(sequence) ||
+        sequence < 0,
+    );
+
+    if (hasInvalidPayload) {
+      return NextResponse.json({ error: 'Invalid product reorder payload' }, { status: 400 });
+    }
+
+    const activeProductsCount = await prisma.product.count({
+      where: {
+        id: { in: products.map(({ id }) => id) },
+        status: ProductStatus.ACTIVE,
+      },
     });
+
+    if (activeProductsCount !== products.length) {
+      return NextResponse.json(
+        { error: 'Only active products can be reordered' },
+        { status: 400 }
+      );
+    }
+
+    await prisma.$transaction(
+      products.map(({ id, sequence }) =>
+        prisma.product.update({
+          where: { id },
+          data: { sequence },
+        }),
+      ),
+    );
+
+    revalidateTag('products');
 
     return NextResponse.json({ message: 'Products reordered successfully' });
   } catch (error) {
