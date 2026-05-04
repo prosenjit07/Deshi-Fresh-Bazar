@@ -77,13 +77,12 @@ export default function FruitsPageClient({
                 className="text-gray-400 transition-colors hover:text-gray-600"
                 aria-label="Clear search"
               >
-                <X className="h-4 w-4" />
               </button>
             )}
           </div>
         </div>
 
-        <div className="mb-8 flex flex-wrap gap-2">
+        <div className="mb-6 flex flex-wrap gap-2">
           <Button variant="outline" className="bg-white">
             All
           </Button>
@@ -107,13 +106,13 @@ export default function FruitsPageClient({
                   loading="lazy"
                 />
               </div>
-              <CardContent className="p-4">
-                <h3 className="font-semibold">{product.name}</h3>
-                <p className="text-sm text-muted-foreground">
+              <CardContent className="p-2 sm:p-3">
+                <h3 className="font-semibold text-sm sm:text-base line-clamp-2">{product.name}</h3>
+                <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2 mt-1">
                   {product.description}
                 </p>
                 <div className="mt-2 flex items-center justify-between">
-                  <p className="font-medium text-green-700">৳ {product.price}</p>
+                  <p className="font-medium text-green-700 text-sm sm:text-base">৳ {product.price}</p>
                   <Button
                     asChild
                     size="sm"
@@ -128,10 +127,10 @@ export default function FruitsPageClient({
         </div>
 
         {filteredProducts.length === 0 && (
-          <div className="mt-10 rounded-2xl border border-dashed border-gray-300 bg-white px-6 py-12 text-center">
-            <h2 className="text-lg font-semibold text-gray-800">No fruits found</h2>
+          <div className="mt-4 rounded-2xl border border-dashed border-gray-300 bg-white px-6 py-6 text-center">
+            <h2 className="text-xl font-semibold text-gray-800">কোনো ফলাফল পাওয়া যায়নি</h2>
             <p className="mt-2 text-sm text-gray-500">
-              Try searching with another name or category.
+           অন্য কোনো নাম বা ক্যাটাগরি দিয়ে অনুসন্ধান করার চেষ্টা করুন।
             </p>
           </div>
         )}

@@ -306,7 +306,7 @@ export default function HomePageClient({
             </h2>
             <div className="w-16 md:w-24 h-1 bg-gradient-to-r from-green-400 to-green-600 mx-auto mt-3 md:mt-6 rounded-full" />
           </div>
-
+          {/* Product Cards */}
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-6 mb-6 sm:mb-12">
             {featuredProducts.map((product) => (
               <Card
@@ -329,9 +329,9 @@ export default function HomePageClient({
                     />
                   </div>
                 </Link>
-                <CardContent className="p-3 sm:p-4">
+                <CardContent className="p-2 sm:p-3">
                   <div className="block sm:hidden">
-                    <h3 className="font-medium text-sm mb-1 line-clamp-1">
+                    <h3 className="font-medium text-sm mb-1 line-clamp-2">
                       {product.name}
                     </h3>
                     <p className="text-gray-600 text-xs mb-1.5 line-clamp-2">
@@ -353,7 +353,7 @@ export default function HomePageClient({
                         ({product.rating || 5}.0)
                       </span>
                     </div>
-                    <h3 className="font-bold text-gray-800 mb-2 group-hover:text-green-600 transition-colors">
+                    <h3 className="font-bold text-gray-800 mb-2 group-hover:text-green-600 transition-colors line-clamp-2">
                       <Link
                         href={`/product/${product.id}`}
                         prefetch={false}
@@ -398,10 +398,11 @@ export default function HomePageClient({
               variant="outline"
               className="border-green-700 text-green-700 hover:bg-green-700 hover:text-white"
             >
-              <Link href="/fruits">View all products</Link>
+              <Link href="/fruits">সব প্রোডাক্ট দেখুন</Link>
             </Button>
           </div>
         </div>
+            {/* End Product Cards */}
       </section>
 
       <section className="py-10 bg-white overflow-hidden">

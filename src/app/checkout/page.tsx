@@ -412,12 +412,26 @@ export default function CheckoutPage() {
                 </CardContent>
               </Card>
 
-              <div className="mt-4 text-center">
+              <div className="mt-6 flex justify-center">
                 <Link
                   href="/cart"
-                  className="text-sm text-muted-foreground hover:text-green-700"
+                  className="inline-flex items-center gap-2 rounded-md border border-gray-300 bg-white px-4 py-1 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:border-green-700 hover:text-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 sm:px-6 sm:py-3"
                 >
-                  Return to Cart
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-4 w-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M11 17l-5-5m0 0l5-5m-5 5h12"
+                    />
+                  </svg>
+                  কার্টে ফিরে যান
                 </Link>
               </div>
             </div>

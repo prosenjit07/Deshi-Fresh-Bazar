@@ -100,7 +100,7 @@ function OrderDetails() {
               variant="outline"
               className="w-full"
             >
-              <Link href="/">Continue Shopping</Link>
+              <Link href="/">কেনাকাটা চালিয়ে যান</Link>
             </Button>
           </CardFooter>
         </Card>
@@ -206,7 +206,7 @@ function OrderDetails() {
             variant="outline"
             className="w-full"
           >
-            <Link href="/">Continue Shopping</Link>
+            <Link href="/">কেনাকাটা চালিয়ে যান</Link>
           </Button>
         </CardFooter>
       </Card>

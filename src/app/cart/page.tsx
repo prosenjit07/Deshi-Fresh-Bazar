@@ -58,23 +58,23 @@ export default function CartPage() {
       <div className="bg-gray-50 py-8">
         <div className="container">
           <div className="mb-8 flex items-center justify-between">
-            <h1 className="text-3xl font-bold">Shopping Cart</h1>
+            <h1 className="text-3xl font-bold border-b-2 border-green-700 pb-2">শপিং কার্ট</h1>
             {items.length > 0 && (
               <Button
                 variant="outline"
                 onClick={clearCart}
                 className="text-red-500 hover:bg-red-50 hover:text-red-600"
               >
-                Clear Cart
+               কার্ট খালি করুন
               </Button>
             )}
           </div>
 
           {items.length === 0 ? (
             <div className="rounded-lg bg-white p-8 text-center">
-              <p className="mb-4 text-lg">Your cart is empty</p>
+              <p className="mb-4 text-xl">আপনার কার্ট খালি আছে 🙁</p>
               <Button asChild className="bg-green-700 hover:bg-green-800">
-                <Link href="/fruits">Continue Shopping</Link>
+                <Link href="/fruits">কেনাকাটা চালিয়ে যান</Link>
               </Button>
             </div>
           ) : (
@@ -200,14 +200,6 @@ export default function CartPage() {
                     </Button>
                   </CardFooter>
                 </Card>
-                <div className="mt-4 text-center">
-                  <Link
-                    href="/fruits"
-                    className="text-sm text-muted-foreground hover:text-green-700"
-                  >
-                    Continue Shopping
-                  </Link>
-                </div>
               </div>
             </div>
           )}
