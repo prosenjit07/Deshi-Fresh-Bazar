@@ -507,8 +507,7 @@ const openApiSpec = {
       get: {
         tags: ['Orders'],
         summary: 'Get single order',
-        description: 'Returns a single order belonging to the authenticated user.',
-        security: authSecurity,
+        description: 'Returns a single order by its ID for public order tracking and checkout success pages.',
         parameters: [
           {
             name: 'id',
@@ -522,10 +521,6 @@ const openApiSpec = {
           '200': {
             description: 'Order details',
             content: jsonContent({ $ref: '#/components/schemas/Order' }),
-          },
-          '401': {
-            description: 'Not authorized',
-            content: jsonContent({ $ref: '#/components/schemas/ErrorResponse' }),
           },
           '404': {
             description: 'Order not found',

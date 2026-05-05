@@ -22,13 +22,15 @@ export default function TrackOrderPage() {
     setError("");
     setOrderStatus(null);
     setNotFound(false);
-    if (!orderId) {
+    const normalizedOrderId = orderId.trim();
+
+    if (!normalizedOrderId) {
       setError("Please enter an order ID");
       return;
     }
     setLoading(true);
     try {
-      const res = await fetch(`/api/orders/${orderId}`);
+      const res = await fetch(`/api/orders/${encodeURIComponent(normalizedOrderId)}`);
       const searchPayload = {
         order_lookup: true,
         result: res.ok ? "found" : res.status === 404 ? "not_found" : "error",
