@@ -10,6 +10,18 @@ import { Suspense, useEffect, useState } from "react";
 import RootLayout from "@/components/layout/RootLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import {
+  buildCheckoutPixelPayload,
+  trackMetaPixelCustomEvent,
+  trackMetaPixelEvent,
+} from "@/lib/meta-pixel";
+
+interface OrderItem {
+  productId: string;
+  productName: string;
+  quantity: number;
+  unitPrice: number;
+}
 
 interface Order {
   id: string;
@@ -22,6 +34,8 @@ interface Order {
   shippingPostalCode: string;
   shippingCountry: string;
   createdAt: string;
+  totalAmount?: number;
+  items?: OrderItem[];
 }
 
 function OrderDetails() {
@@ -54,6 +68,50 @@ function OrderDetails() {
       setLoading(false);
     }
   }, [orderId]);
+
+  useEffect(() => {
+    if (!orderId || typeof window === "undefined") {
+      return;
+    }
+
+    const trackedKey = `meta_purchase_tracked:${orderId}`;
+    if (window.sessionStorage.getItem(trackedKey)) {
+      return;
+    }
+
+    let purchasePayload: Record<string, unknown> | null = null;
+    const pendingPayload = window.sessionStorage.getItem(
+      `meta_purchase_pending:${orderId}`,
+    );
+
+    if (pendingPayload) {
+      try {
+        purchasePayload = JSON.parse(pendingPayload) as Record<string, unknown>;
+      } catch (error) {
+        console.error("Failed to parse pending Meta Pixel payload:", error);
+      }
+    } else if (order?.items?.length) {
+      purchasePayload = buildCheckoutPixelPayload(
+        order.items.map((item) => ({
+          id: item.productId,
+          name: item.productName,
+          quantity: item.quantity,
+          price: item.unitPrice,
+        })),
+        order.totalAmount ?? 0,
+        { order_id: orderId },
+      );
+    }
+
+    if (!purchasePayload) {
+      return;
+    }
+
+    trackMetaPixelEvent("Purchase", purchasePayload);
+    trackMetaPixelCustomEvent("OrderSuccess", purchasePayload);
+    window.sessionStorage.setItem(trackedKey, "1");
+    window.sessionStorage.removeItem(`meta_purchase_pending:${orderId}`);
+  }, [order, orderId]);
 
   if (!searchParams) {
     return <div>Loading...</div>;

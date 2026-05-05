@@ -24,8 +24,6 @@ import { useForm } from "react-hook-form";
 import { useCart } from '@/contexts/CartContext';
 import {
   buildCheckoutPixelPayload,
-  trackMetaPixelCustomEvent,
-  trackMetaPixelEvent,
 } from "@/lib/meta-pixel";
 
 interface OrderFormData {
@@ -128,8 +126,12 @@ export default function CheckoutPage() {
         },
       );
 
-      trackMetaPixelEvent("Purchase", purchasePayload);
-      trackMetaPixelCustomEvent("OrderSuccess", purchasePayload);
+      if (typeof window !== "undefined") {
+        window.sessionStorage.setItem(
+          `meta_purchase_pending:${order.id}`,
+          JSON.stringify(purchasePayload),
+        );
+      }
       
       clearCart();
 

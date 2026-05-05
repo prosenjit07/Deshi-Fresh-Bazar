@@ -244,6 +244,10 @@ export default function HomePageClient({
         showSuccess("Added to cart successfully");
       }
 
+      trackMetaPixelEvent("InitiateCheckout", {
+        ...pixelPayload,
+        source: "home_page",
+      });
       trackMetaPixelCustomEvent("BuyNow", {
         ...pixelPayload,
         source: "home_page",

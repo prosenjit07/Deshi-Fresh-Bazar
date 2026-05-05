@@ -124,6 +124,7 @@ export default function ProductClient({ product, products }: ProductClientProps)
       toast.success("Added to cart successfully");
     }
 
+    trackMetaPixelEvent("InitiateCheckout", pixelPayload);
     trackMetaPixelCustomEvent("BuyNow", pixelPayload);
     router.push("/cart");
   }
