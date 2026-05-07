@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -23,12 +24,14 @@ export default function Header() {
   const { getCartCount } = useCart();
   const { user, logout } = useUser();
   const cartCount = getCartCount();
+  const [isOpen, setIsOpen] = useState(false);
 
   const handleCartClick = () => {
     trackMetaPixelCustomEvent("CartClick", {
       cart_count: cartCount,
       source: "header",
     });
+    setIsOpen(false);
   };
 
   const handleLogout = async () => {
@@ -53,37 +56,53 @@ export default function Header() {
         
         {/* Mobile Menu (Left) */}
         <div className="flex items-center md:hidden">
-          <Sheet>
+          <Sheet open={isOpen} onOpenChange={setIsOpen}>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon" className="-ml-2">
                 <Menu className="h-10 w-10" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="left">
-              <nav className="flex flex-col gap-4 mt-6">
-                {navLinks.map((link) => (
-                  <Link
-                    key={link.path}
-                    href={link.path}
-                    className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-                  >
-                    {link.title}
-                  </Link>
-                ))}
+            <SheetContent side="left" className="p-0 flex flex-col gap-0 w-[85vw] max-w-[320px]">
+              <div className="p-6 border-b border-gray-100 flex items-center">
+                <Image
+                  src={logo}
+                  alt="Deshi Fresh Bazar"
+                  width={140}
+                  height={28}
+                  className="h-[55px] w-auto"
+                />
+              </div>
+              <div className="flex-1 overflow-y-auto py-4 px-3">
+                <nav className="flex flex-col gap-1">
+                  {navLinks.map((link) => (
+                    <Link
+                      key={link.path}
+                      href={link.path}
+                      onClick={() => setIsOpen(false)}
+                      className="flex items-center px-4 py-3.5 text-base font-semibold text-gray-700 rounded-xl transition-all hover:bg-green-50 hover:text-green-700 active:bg-green-100"
+                    >
+                      {link.title}
+                    </Link>
+                  ))}
+                </nav>
+              </div>
+              <div className="p-5 border-t border-gray-100 bg-gray-50/50">
                 <Link
                   href="/cart"
                   onClick={handleCartClick}
-                  className="flex items-center gap-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground w-fit relative mt-2"
+                  className="flex items-center justify-between w-full px-5 py-4 text-base font-semibold text-white bg-green-700 rounded-xl transition-all hover:bg-green-800 shadow-sm"
                 >
-                  <ShoppingCart className="h-5 w-5" />
+                  <div className="flex items-center gap-3">
+                    <ShoppingCart className="h-5 w-5" />
+                    <span>Cart</span>
+                  </div>
                   {cartCount > 0 && (
-                    <span className="absolute -top-2 -right-3 flex h-[18px] w-[18px] items-center justify-center rounded-full bg-green-700 text-[10px] font-bold text-white">
+                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white text-xs font-bold text-green-700 shadow-sm">
                       {cartCount}
                     </span>
                   )}
-                  <span>Cart</span>
                 </Link>
-              </nav>
+              </div>
             </SheetContent>
           </Sheet>
         </div>

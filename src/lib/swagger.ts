@@ -334,6 +334,24 @@ const openApiSpec = {
           pendingCount: { type: 'integer' },
         },
       },
+      AdminCourierSyncResponse: {
+        type: 'object',
+        properties: {
+          success: { type: 'boolean' },
+          message: { type: 'string' },
+          syncedCount: { type: 'integer' },
+        },
+      },
+      AdminCourierSyncInput: {
+        type: 'object',
+        required: ['orderIds'],
+        properties: {
+          orderIds: {
+            type: 'array',
+            items: { type: 'string' },
+          },
+        },
+      },
     },
   },
   paths: {
@@ -985,6 +1003,32 @@ const openApiSpec = {
           },
           '500': {
             description: 'Error updating order status',
+            content: jsonContent({ $ref: '#/components/schemas/ErrorResponse' }),
+          },
+        },
+      },
+    },
+    '/api/admin/orders/sync': {
+      post: {
+        tags: ['Admin Orders'],
+        summary: 'Sync orders with courier',
+        description: 'Syncs selected orders with SteadFast courier status.',
+        security: authSecurity,
+        requestBody: {
+          required: true,
+          content: jsonContent({ $ref: '#/components/schemas/AdminCourierSyncInput' }),
+        },
+        responses: {
+          '200': {
+            description: 'Sync successful',
+            content: jsonContent({ $ref: '#/components/schemas/AdminCourierSyncResponse' }),
+          },
+          '401': {
+            description: 'Not authorized',
+            content: jsonContent({ $ref: '#/components/schemas/ErrorResponse' }),
+          },
+          '500': {
+            description: 'Sync failed',
             content: jsonContent({ $ref: '#/components/schemas/ErrorResponse' }),
           },
         },

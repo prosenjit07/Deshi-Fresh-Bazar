@@ -38,7 +38,7 @@ interface OrderFormData {
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const [paymentMethod] = useState("SSLCommerz");
+  const [paymentMethod] = useState("Cash on Delivery");
   const [loading, setLoading] = useState(false);
   const { items, getCartTotal, getItemPrice, clearCart } = useCart();
   const [agreed, setAgreed] = useState(false);
@@ -160,7 +160,7 @@ export default function CheckoutPage() {
     <RootLayout>
       <div className="bg-gray-50 py-8">
         <div className="container">
-          <h1 className="mb-8 text-3xl font-bold">Checkout</h1>
+          <h1 className="mb-8 text-3xl font-bold">চেকআউট</h1>
 
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
             <div className="lg:col-span-2">
@@ -169,16 +169,16 @@ export default function CheckoutPage() {
                   <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                       <div>
-                        <h2 className="mb-4 text-xl font-semibold">Contact Information</h2>
+                        <h2 className="mb-4 text-xl font-semibold">যোগাযোগের তথ্য</h2>
                         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                           <FormField
                             control={form.control}
                             name="fullName"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>Full Name <span className="text-red-500">*</span></FormLabel>
+                                <FormLabel>আপনার নাম <span className="text-red-500">*</span></FormLabel>
                                 <FormControl>
-                                  <Input placeholder="Your name" required {...field} 
+                                  <Input placeholder="আপনার নাম লিখুন" required {...field} 
                                      onChange={e => {
                                       // Remove any digits from the input
                                       const value = e.target.value.replace(/\d+/g, '');
@@ -196,7 +196,7 @@ export default function CheckoutPage() {
                             name="email"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>Email</FormLabel>
+                                <FormLabel>ইমেইল</FormLabel>
                                 <FormControl>
                                   <Input
                                     type="email"
@@ -213,13 +213,13 @@ export default function CheckoutPage() {
                             name="phone"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>Phone <span className="text-red-500">*</span></FormLabel>
+                                <FormLabel>মোবাইল নম্বর <span className="text-red-500">*</span></FormLabel>
                                 <FormControl>
                                   <Input
                                     type="tel"
                                     pattern="[0-9]{11}"
                                     maxLength={11}
-                                    placeholder="018XXXXXXXX"
+                                    placeholder="01XXXXXXXXX"
                                     required
                                     {...field}
                                     onChange={(e) => {
@@ -238,7 +238,7 @@ export default function CheckoutPage() {
                       </div>
 
                       <div>
-                        <h2 className="mb-4 text-xl font-semibold">Shipping Address</h2>
+                        <h2 className="mb-4 text-xl font-semibold">ডেলিভারি ঠিকানা</h2>
                         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                           <div className="md:col-span-2">
                             <FormField
@@ -246,10 +246,10 @@ export default function CheckoutPage() {
                               name="address"
                               render={({ field }) => (
                                 <FormItem>
-                                  <FormLabel>Address <span className="text-red-500">*</span></FormLabel>
+                                  <FormLabel>সম্পূর্ণ ঠিকানা <span className="text-red-500">*</span></FormLabel>
                                   <FormControl>
                                     <Input
-                                      placeholder="House #10, Floor #4,  Road #10"
+                                      placeholder="বাসা নং, রাস্তা নং, এলাকার নাম"
                                       required
                                       {...field}
                                     />
@@ -264,10 +264,10 @@ export default function CheckoutPage() {
                             name="city"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>City <span className="text-red-500">*</span></FormLabel>
+                                <FormLabel>জেলা <span className="text-red-500">*</span></FormLabel>
                                 <FormControl>
                                   <Input
-                                    placeholder="Dhaka"
+                                    placeholder="ঢাকা"
                                     required
                                     maxLength={10}
                                     {...field}
@@ -288,10 +288,10 @@ export default function CheckoutPage() {
                             name="postalCode"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>Upazila <span className="text-red-500">*</span></FormLabel>
+                                <FormLabel>উপজেলা/থানা <span className="text-red-500">*</span></FormLabel>
                                 <FormControl>
                                   <Input
-                                    placeholder="Dhaka"
+                                    placeholder="ধানমন্ডি"
                                     type="text"
                                     maxLength={10}
                                     required
@@ -313,17 +313,17 @@ export default function CheckoutPage() {
                       </div>
 
                       <div>
-                        <h2 className="mb-4 text-xl font-semibold">Payment Method</h2>
+                        <h2 className="mb-4 text-xl font-semibold">পেমেন্ট পদ্ধতি</h2>
                         <div className="space-y-3">
                           <Label htmlFor="cashOnDelivery" className="cursor-pointer">
-                            Cash on Delivery
+                            ক্যাশ অন ডেলিভারি (Cash on Delivery)
                           </Label>
                         </div>
                         {/* Agreement Checkbox Section */}
                         <div className="mt-6">
                           <div className="mb-4 rounded border border-gray-200 bg-gray-100 p-4 text-gray-700 text-sm">
-                            Your personal data will be used to process your order, support your experience throughout this website, and for other purposes described in our{' '}
-                            <Link href="/privacy" className="text-green-700 font-semibold hover:underline" target="_blank">Privacy Policy</Link>.
+                            আপনার ব্যক্তিগত ডেটা আপনার অর্ডার প্রসেস করার জন্য এবং এই ওয়েবসাইটে আপনার অভিজ্ঞতা উন্নত করার জন্য ব্যবহার করা হবে, যা আমাদের{' '}
+                            <Link href="/privacy" className="text-green-700 font-semibold hover:underline" target="_blank">প্রাইভেসি পলিসি</Link>-তে বর্ণিত আছে।
                             (পেমেন্ট বা অর্ডার সংক্রান্ত যেকোনো সাহায্যের জন্য, অনুগ্রহ করে এখানে ইনবক্স করুন) <a href="https://wa.me/8801717171717" target="_blank" className="text-green-700 font-semibold hover:underline" rel="noreferrer">এখানে</a>
                           </div>
                           <div className="flex items-center mb-6">
@@ -336,10 +336,11 @@ export default function CheckoutPage() {
                               required
                             />
                             <label htmlFor="agreement" className="text-gray-800 select-none">
-                              I have read and agree to the website{' '}
-                              <Link href="/terms" className="text-green-700 font-semibold hover:underline" target="_blank">Terms & Conditions</Link>,{' '}
-                              <Link href="/privacy" className="text-green-700 font-semibold hover:underline" target="_blank">Privacy Policy</Link> and{' '}
-                              <Link href="/return-policy" className="text-green-700 font-semibold hover:underline" target="_blank">Return Policy</Link>
+                              আমি ওয়েবসাইটের{' '}
+                              <Link href="/terms" className="text-green-700 font-semibold hover:underline" target="_blank">শর্তাবলী</Link>,{' '}
+                              <Link href="/privacy" className="text-green-700 font-semibold hover:underline" target="_blank">প্রাইভেসি পলিসি</Link> এবং{' '}
+                              <Link href="/return-policy" className="text-green-700 font-semibold hover:underline" target="_blank">রিটার্ন পলিসি</Link>
+                              পড়েছি এবং একমত পোষণ করছি
                               <span className="text-red-500 ml-1">*</span>
                             </label>
                           </div>
@@ -351,7 +352,7 @@ export default function CheckoutPage() {
                         className="w-full bg-green-700 hover:bg-green-800"
                         disabled={loading || !agreed}
                       >
-                        {loading ? "Processing Payment..." : "Place Order"}
+                        {loading ? "অর্ডার প্রসেস হচ্ছে..." : "অর্ডার কনফার্ম করুন"}
                       </Button>
                     </form>
                   </Form>
@@ -362,7 +363,7 @@ export default function CheckoutPage() {
             <div>
               <Card>
                 <CardContent className="p-6">
-                  <h2 className="mb-4 text-xl font-semibold">Order Summary</h2>
+                  <h2 className="mb-4 text-xl font-semibold">অর্ডারের সারসংক্ষেপ</h2>
 
                   <div className="divide-y">
                     {items.map((item) => (
@@ -391,23 +392,15 @@ export default function CheckoutPage() {
 
                   <div className="mt-4 space-y-2">
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Subtotal</span>
+                      <span className="text-muted-foreground">সাবটোটাল</span>
                       <span>৳ {calculateSubtotal()}</span>
                     </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground ">ডেলিভারি চার্জ </span>
-                        <span>৳0</span>
+                        <span>৳০</span>
                       </div>
-                    {/* <div className="flex justify-between">
-                      <span className="text-muted-foreground">Shipping</span>
-                      <span>
-                        {calculateShipping() === 0
-                          ? "Free"
-                          : `৳ ${calculateShipping()}`}
-                      </span>
-                    </div> */}
                     <div className="border-t pt-2 flex justify-between font-semibold">
-                      <span>Total</span>
+                      <span>সর্বমোট</span>
                       <span>৳ {calculateTotal()}</span>
                     </div>
                   </div>

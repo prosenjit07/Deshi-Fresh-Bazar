@@ -3,7 +3,8 @@ import { cookies } from 'next/headers';
 import jwt from 'jsonwebtoken';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import prismaClient from '../util';
+import { prisma as prismaClient } from '@/lib/prisma';
+import { SteadfastService } from '@/lib/steadfast';
 
 // Configure dynamic route handling
 export const dynamic = 'force-dynamic';
@@ -60,7 +61,7 @@ export async function POST(request: Request) {
 
     const userId = await getAuthenticatedUserId();
 
-    const order = await prismaClient.order.create({
+    let order = await prismaClient.order.create({
       data: {
         ...(userId ? { userId } : {}),
         customerName: fullName,
@@ -91,6 +92,53 @@ export async function POST(request: Request) {
         items: true
       }
     });
+
+    // Create Steadfast Shipment if COD
+    if (paymentMethod === 'Cash on Delivery') {
+      try {
+        const itemDescriptions = items.map((i: OrderItem) => `${i.name} (x${i.quantity})`).join(', ');
+        
+        const steadfastRes = await SteadfastService.createOrder({
+          invoice: order.id,
+          recipient_name: fullName,
+          recipient_phone: phone,
+          recipient_address: `${address}, ${city}, ${postalCode}`,
+          recipient_email: email,
+          item_description: itemDescriptions,
+          cod_amount: total,
+          note: 'FreshBazar Order',
+        });
+
+        // Update local order with Steadfast details
+        order = await prismaClient.order.update({
+          where: { id: order.id },
+          data: {
+            courierProvider: 'Steadfast',
+            courierInvoice: steadfastRes.invoice || order.id,
+            courierConsignmentId: steadfastRes.consignment_id?.toString(),
+            courierTrackingCode: steadfastRes.tracking_code,
+            courierStatus: 'pending',
+            courierStatusRaw: JSON.stringify(steadfastRes),
+            courierShipmentCreatedAt: new Date(),
+            courierLastSyncedAt: new Date(),
+          },
+          include: {
+            items: true
+          }
+        });
+      } catch (err: unknown) {
+        console.error('Steadfast shipment creation failed:', err);
+        // Log the error but do not fail the local order creation
+        const errorMessage = err instanceof Error ? err.message : String(err);
+        await prismaClient.order.update({
+          where: { id: order.id },
+          data: {
+            courierProvider: 'Steadfast',
+            courierError: errorMessage,
+          }
+        });
+      }
+    }
 
     return NextResponse.json(order);
   } catch (error) {

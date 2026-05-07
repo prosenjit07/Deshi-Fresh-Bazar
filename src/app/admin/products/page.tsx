@@ -383,17 +383,17 @@ function AdminProductsPageContent() {
                         </span>
                       )}
                       <img src={product.image} alt={product.name} className="w-16 h-16 object-cover rounded-lg" />
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <div className="font-semibold text-base text-gray-900">{product.name}</div>
-                          <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${getStatusBadgeClasses(product.status as ProductStatus)}`}>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                          <div className="font-semibold text-base text-gray-900 truncate">{product.name}</div>
+                          <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold w-fit ${getStatusBadgeClasses(product.status as ProductStatus)}`}>
                             {product.status}
                           </span>
                         </div>
-                        <div className="text-xs text-gray-500">{product.category?.name || 'Uncategorized'}</div>
+                        <div className="text-xs text-gray-500 truncate">{product.category?.name || 'Uncategorized'}</div>
                         <div className="text-xs text-gray-500">৳{product.price.toFixed(2)} | Stock: {product.stock}</div>
                       </div>
-                      <div className="flex flex-col items-end gap-1">
+                      <div className="flex flex-col items-end gap-1 flex-shrink-0">
                         <button
                           onClick={() => router.push(`/admin/products/${product.id}/edit`)}
                           className="text-indigo-600 text-xs font-medium"

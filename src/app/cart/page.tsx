@@ -172,7 +172,7 @@ export default function CartPage() {
                     <h2 className="mb-4 text-xl font-semibold">Order Summary</h2>
                     <div className="space-y-3">
                       <div className="flex justify-between">
-                        <span className="text-muted-foreground">Subtotal</span>
+                        <span className="text-muted-foreground">সাবটোটাল</span>
                         <span>৳{getCartTotal()}</span>
                       </div>
                       <div className="flex justify-between">

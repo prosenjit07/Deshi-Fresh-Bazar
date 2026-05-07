@@ -48,6 +48,9 @@ export const authOptions: NextAuthOptions = {
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET || "GOCSPX-dummy-secret", // Fallback for development
+      // NextAuth builds the Google OAuth callback as:
+      // ${NEXTAUTH_URL}/api/auth/callback/google
+      // so production must set NEXTAUTH_URL to the public site origin.
       authorization: {
         params: {
           prompt: "consent",
@@ -98,7 +101,7 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    async signIn({ user, account, profile }) {
+    async signIn({ user, account }) {
       if (account?.provider === "google") {
         try {
           console.log("Google sign-in attempt for:", user.email);
@@ -141,7 +144,7 @@ export const authOptions: NextAuthOptions = {
       }
       return true;
     },
-    async jwt({ token, user, account, trigger }) {
+    async jwt({ token, user }) {
       // On initial sign in, populate token from user data
       if (user) {
         try {
@@ -184,6 +187,20 @@ export const authOptions: NextAuthOptions = {
       }
       return session;
     },
+    async redirect({ url, baseUrl }) {
+      if (url.startsWith("/")) {
+        return `${baseUrl}${url}`;
+      }
+
+      try {
+        const redirectUrl = new URL(url);
+        if (redirectUrl.origin === baseUrl) {
+          return url;
+        }
+      } catch {}
+
+      return baseUrl;
+    },
   },
   pages: {
     signIn: "/login",
@@ -193,7 +210,7 @@ export const authOptions: NextAuthOptions = {
     strategy: "jwt",
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
-  secret: process.env.JWT_SECRET,
+  secret: process.env.NEXTAUTH_SECRET ?? process.env.JWT_SECRET,
   debug: process.env.NODE_ENV === "development", // Enable debug logging in development
 };
 

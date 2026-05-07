@@ -9,8 +9,7 @@ import { CheckCircle, Copy } from "lucide-react";
 import { Suspense, useEffect, useState } from "react";
 import RootLayout from "@/components/layout/RootLayout";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import {
+import { Card, CardContent, CardFooter } from "@/components/ui/card";import {
   buildCheckoutPixelPayload,
   trackMetaPixelCustomEvent,
   trackMetaPixelEvent,
@@ -35,6 +34,7 @@ interface Order {
   shippingCountry: string;
   createdAt: string;
   totalAmount?: number;
+  courierTrackingCode?: string | null;
   items?: OrderItem[];
 }
 
@@ -211,6 +211,25 @@ function OrderDetails() {
               </p>
               <p className="font-medium">{formData.email}</p>
             </div>
+            {order?.courierTrackingCode && (
+              <div className="mb-4">
+                <p className="text-sm font-medium text-muted-foreground">
+                  Courier Tracking Code
+                </p>
+                <div className="flex items-center gap-2">
+                  <p className="font-mono bg-white p-1 rounded border inline-block">{order.courierTrackingCode}</p>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(order.courierTrackingCode || '');
+                    }}
+                    className="p-1 hover:bg-gray-100 rounded-md transition-colors"
+                    title="Copy tracking code"
+                  >
+                    <Copy className="h-4 w-4 text-gray-500" />
+                  </button>
+                </div>
+              </div>
+            )}
             <div>
               <p className="text-sm font-medium text-muted-foreground">
                 Order Status
@@ -257,7 +276,7 @@ function OrderDetails() {
             asChild
             className="w-full bg-green-700 hover:bg-green-800"
           >
-            <Link href="/track-order">Track Your Order</Link>
+            <Link href="/track-order">অর্ডার ট্র্যাক</Link>
           </Button>
           <Button
             asChild

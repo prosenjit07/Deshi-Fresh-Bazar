@@ -13,9 +13,21 @@ export async function GET(
       where: {
         id,
       },
-      include: {
+      select: {
+        id: true,
+        status: true,
+        customerName: true,
+        customerEmail: true,
+        customerPhone: true,
+        shippingAddress: true,
+        shippingCity: true,
+        shippingPostalCode: true,
+        shippingCountry: true,
+        createdAt: true,
+        totalAmount: true,
+        courierTrackingCode: true,
         items: true,
-      },
+      }
     });
 
     if (!order) {
