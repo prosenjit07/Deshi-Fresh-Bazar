@@ -51,20 +51,28 @@ export async function PUT(
 ) {
   try {
     const { id } = await params;
+    console.log(`[PUT /api/admin/products/${id}] Starting update...`);
+
     const cookieStore = await cookies();
     const token = cookieStore.get('token')?.value;
     if (!token) {
+      console.error(`[PUT /api/admin/products/${id}] Authentication failed: No token`);
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
     }
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { role: string };
     if (decoded.role !== 'ADMIN') {
+      console.error(`[PUT /api/admin/products/${id}] Authorization failed: Role is ${decoded.role}`);
       return NextResponse.json({ error: 'Not authorized' }, { status: 401 });
     }
+    
     const body = await request.json();
+    console.log(`[PUT /api/admin/products/${id}] Request body received. Keys:`, Object.keys(body));
+    
     const { name, description, details, price, image, categoryId, stock, slug, packages, status } = body;
 
     // Validate required fields
     if (!name || !description || !price || !image || !categoryId || !slug) {
+      console.error(`[PUT /api/admin/products/${id}] Validation failed: Missing required fields`);
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 }
@@ -72,6 +80,7 @@ export async function PUT(
     }
 
     // Start a transaction to handle both product and package updates
+    console.log(`[PUT /api/admin/products/${id}] Starting Prisma transaction...`);
     const updatedProduct = await prisma.$transaction(async (tx) => {
       const existingProduct = await tx.product.findUnique({
         where: { id },
@@ -89,6 +98,7 @@ export async function PUT(
       }
 
       // 1. Update the product
+      console.log(`[PUT /api/admin/products/${id}] Updating product data...`);
       await tx.product.update({
         where: { id },
         data: {
@@ -116,6 +126,7 @@ export async function PUT(
 
       // 2. Handle packages if they exist
       if (packages && packages.length > 0) {
+        console.log(`[PUT /api/admin/products/${id}] Processing ${packages.length} packages...`);
         // Delete all existing packages
         await tx.package.deleteMany({
           where: { productId: id }
@@ -147,10 +158,13 @@ export async function PUT(
       });
     });
 
+    console.log(`[PUT /api/admin/products/${id}] Update successful, revalidating cache...`);
     revalidateTag('products');
 
     return NextResponse.json(updatedProduct);
   } catch (error: unknown) {
+    console.error(`[PUT /api/admin/products/] Detailed Error:`, error);
+    
     if (error instanceof Error && error.message === 'PRODUCT_NOT_FOUND') {
       return NextResponse.json({ error: 'Product not found' }, { status: 404 });
     }
@@ -164,9 +178,9 @@ export async function PUT(
     ) {
       return NextResponse.json({ error: 'Slug must be unique.' }, { status: 400 });
     }
-    console.error('!!!!Error updating product:!!!??', error);
+    
     return NextResponse.json(
-      { error: 'Internal Server Error' },
+      { error: error instanceof Error ? error.message : 'Internal Server Error' },
       { status: 500 }
     );
   }
@@ -179,6 +193,8 @@ export async function PATCH(
 ) {
   try {
     const { id } = await params;
+    console.log(`[PATCH /api/admin/products/${id}] Starting status update...`);
+    
     const cookieStore = await cookies();
     const token = cookieStore.get('token')?.value;
     if (!token) {
@@ -224,12 +240,12 @@ export async function PATCH(
     });
 
     revalidateTag('products');
-
+    console.log(`[PATCH /api/admin/products/${id}] Update successful.`);
     return NextResponse.json(product);
   } catch (error) {
-    console.error('Error updating product status:', error);
+    console.error(`[PATCH /api/admin/products/] Detailed Error:`, error);
     return NextResponse.json(
-      { error: 'Internal Server Error' },
+      { error: error instanceof Error ? error.message : 'Internal Server Error' },
       { status: 500 }
     );
   }
@@ -242,6 +258,8 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
+    console.log(`[DELETE /api/admin/products/${id}] Starting delete process...`);
+    
     const cookieStore = await cookies();
     const token = cookieStore.get('token')?.value;
     if (!token) {
@@ -283,6 +301,7 @@ export async function DELETE(
           },
         });
 
+        console.log(`[DELETE /api/admin/products/${id}] Product archived instead of deleted due to existing orders.`);
         return {
           action: 'archived' as const,
           message: 'Product archived because it exists in order history',
@@ -308,6 +327,7 @@ export async function DELETE(
         where: { id },
       });
 
+      console.log(`[DELETE /api/admin/products/${id}] Product deleted successfully.`);
       return {
         action: 'deleted' as const,
         message: 'Product deleted successfully',
@@ -318,6 +338,8 @@ export async function DELETE(
 
     return NextResponse.json(result);
   } catch (error) {
+    console.error(`[DELETE /api/admin/products/] Detailed Error:`, error);
+    
     if (error instanceof Error && error.message === 'PRODUCT_NOT_FOUND') {
       return NextResponse.json(
         { error: 'Product not found' },
@@ -336,9 +358,9 @@ export async function DELETE(
         { status: 409 }
       );
     }
-    console.error('!!Error deleting product:!!', error);
+    
     return NextResponse.json(
-      { error: 'Failed to delete product' },
+      { error: error instanceof Error ? error.message : 'Failed to delete product' },
       { status: 500 }
     );
   }
