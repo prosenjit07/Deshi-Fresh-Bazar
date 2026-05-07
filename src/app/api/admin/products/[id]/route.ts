@@ -6,14 +6,15 @@ import jwt from 'jsonwebtoken';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { ProductStatus } from '@/lib/product-status';
 
+export const dynamic = 'force-dynamic';
+
 // GET /api/admin/products/[id]
 export async function GET(
   _request: Request,
-  { params }: { params: Promise<{ id: string }> | { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const resolvedParams = await Promise.resolve(params);
-    const { id } = resolvedParams;
+    const { id } = await params;
     const cookieStore = await cookies();
     const token = cookieStore.get('token')?.value;
     if (!token) {
@@ -35,8 +36,9 @@ export async function GET(
     }
     return NextResponse.json(product);
   } catch (error) {
+    console.error('[GET /api/admin/products/[id]] Error:', error);
     return NextResponse.json(
-      { error: 'Internal Server Error' },
+      { error: error instanceof Error ? error.message : 'Internal Server Error' },
       { status: 500 }
     );
   }
@@ -45,11 +47,10 @@ export async function GET(
 // PUT /api/admin/products/[id]
 export async function PUT(
   request: Request,
-  { params }: { params: Promise<{ id: string }> | { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const resolvedParams = await Promise.resolve(params);
-    const { id } = resolvedParams;
+    const { id } = await params;
     const cookieStore = await cookies();
     const token = cookieStore.get('token')?.value;
     if (!token) {
@@ -174,11 +175,10 @@ export async function PUT(
 // PATCH /api/admin/products/[id]
 export async function PATCH(
   request: Request,
-  { params }: { params: Promise<{ id: string }> | { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const resolvedParams = await Promise.resolve(params);
-    const { id } = resolvedParams;
+    const { id } = await params;
     const cookieStore = await cookies();
     const token = cookieStore.get('token')?.value;
     if (!token) {
@@ -238,11 +238,10 @@ export async function PATCH(
 // DELETE /api/admin/products/[id]
 export async function DELETE(
   _request: Request,
-  { params }: { params: Promise<{ id: string }> | { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const resolvedParams = await Promise.resolve(params);
-    const { id } = resolvedParams;
+    const { id } = await params;
     const cookieStore = await cookies();
     const token = cookieStore.get('token')?.value;
     if (!token) {

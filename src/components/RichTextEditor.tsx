@@ -3,7 +3,6 @@
 import { useEditor, EditorContent, type Editor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
-import Strike from '@tiptap/extension-strike';
 import Highlight from '@tiptap/extension-highlight';
 import React from 'react';
 
@@ -112,7 +111,6 @@ export default function RichTextEditor({ value, onChange }: RichTextEditorProps)
     extensions: [
       StarterKit,
       Underline,
-      Strike,
       Highlight,
     ],
     content: value,
