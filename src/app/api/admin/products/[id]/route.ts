@@ -9,10 +9,11 @@ import { ProductStatus } from '@/lib/product-status';
 // GET /api/admin/products/[id]
 export async function GET(
   _request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> | { id: string } }
 ) {
   try {
-    const { id } = await params;
+    const resolvedParams = await Promise.resolve(params);
+    const { id } = resolvedParams;
     const cookieStore = await cookies();
     const token = cookieStore.get('token')?.value;
     if (!token) {
@@ -44,10 +45,11 @@ export async function GET(
 // PUT /api/admin/products/[id]
 export async function PUT(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> | { id: string } }
 ) {
   try {
-    const { id } = await params;
+    const resolvedParams = await Promise.resolve(params);
+    const { id } = resolvedParams;
     const cookieStore = await cookies();
     const token = cookieStore.get('token')?.value;
     if (!token) {
@@ -172,10 +174,11 @@ export async function PUT(
 // PATCH /api/admin/products/[id]
 export async function PATCH(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> | { id: string } }
 ) {
   try {
-    const { id } = await params;
+    const resolvedParams = await Promise.resolve(params);
+    const { id } = resolvedParams;
     const cookieStore = await cookies();
     const token = cookieStore.get('token')?.value;
     if (!token) {
@@ -235,10 +238,11 @@ export async function PATCH(
 // DELETE /api/admin/products/[id]
 export async function DELETE(
   _request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> | { id: string } }
 ) {
   try {
-    const { id } = await params;
+    const resolvedParams = await Promise.resolve(params);
+    const { id } = resolvedParams;
     const cookieStore = await cookies();
     const token = cookieStore.get('token')?.value;
     if (!token) {
