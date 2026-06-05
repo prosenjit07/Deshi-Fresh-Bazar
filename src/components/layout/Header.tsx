@@ -5,19 +5,17 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { ShoppingCart, User, Menu, LogOut } from "lucide-react";
+import { ShoppingCart, Menu } from "lucide-react";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { useCart } from "@/contexts/CartContext";
 import { useUser } from "@/contexts/UserContext";
 import { trackMetaPixelCustomEvent } from "@/lib/meta-pixel";
 import logo from "@/assets/images/fresh-logo.jpg";
+import AuthModal from "@/components/AuthModal";
 
 export default function Header() {
   const router = useRouter();
@@ -157,56 +155,10 @@ export default function Header() {
             )}
             <span className="hidden text-sm font-medium sm:inline-block">Cart</span>
           </Link>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="flex">
-                {user?.image ? (
-                  <Image
-                    src={user.image}
-                    alt="Profile"
-                    width={36}
-                    height={36}
-                    className="rounded-full h-8 w-8 md:h-9 md:w-9"
-                  />
-                ) : (
-                  <User className="h-8 w-8 md:h-6 md:w-6" />
-                )}
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              {user ? (
-                <>
-                  <DropdownMenuItem asChild>
-                    <Link href="/profile">Profile</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/orders">My Orders</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    onClick={() => {
-                      void handleLogout();
-                    }}
-                    className="text-red-600"
-                  >
-                    <LogOut className="h-4 w-4 mr-2" />
-                    Logout
-                  </DropdownMenuItem>
-                </>
-              ) : (
-                <>
-                  <DropdownMenuItem asChild>
-                    <Link href="/login">Login</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/register">Register</Link>
-                  </DropdownMenuItem>
-                </>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <AuthModal user={user} onLogout={handleLogout} />
         </div>
       </div>
     </header>
   );
 }
+

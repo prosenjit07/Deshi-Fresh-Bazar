@@ -57,7 +57,7 @@ export default function HeroSlider() {
 
   return (
     <section
-      className="relative w-full aspect-[16/9] sm:aspect-auto sm:h-[60vh] lg:h-[70vh] xl:h-[80vh] overflow-hidden"
+      className="relative w-full aspect-[16/9] sm:aspect-auto sm:h-[45vh] lg:h-[50vh] xl:h-[65vh] overflow-hidden"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       role="banner"

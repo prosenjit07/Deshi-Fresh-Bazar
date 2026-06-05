@@ -59,7 +59,7 @@ export default function FruitsPageClient({
       <div className="container">
         <h1 className="mb-8 text-3xl font-bold">All Fruits</h1>
 
-        <div className="mb-6 rounded-2xl border border-gray-200 bg-white p-3 shadow-sm">
+        <div className="mb-6 bg-white p-3 shadow-sm">
           <div className="flex items-center gap-3 rounded-xl border border-gray-200 px-4 py-3 focus-within:border-green-500 focus-within:ring-2 focus-within:ring-green-100">
             <Search className="h-5 w-5 text-gray-400" />
             <input
