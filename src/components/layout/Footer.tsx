@@ -6,7 +6,7 @@ import brandLogo from "@/assets/images/fresh-bazar.jpg";
 
 export default function Footer() {
   return (
-    <footer className="bg-gray-100 ">
+    <footer className="bg-gray-100 pb-16 md:pb-0">
       <div className="container py-12">
         <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
           {/* Brand section */}
