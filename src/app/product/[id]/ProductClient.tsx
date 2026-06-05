@@ -59,10 +59,12 @@ function ZoomableImage({
   src,
   alt,
   priority,
+  className,
 }: {
   src: string;
   alt: string;
   priority?: boolean;
+  className?: string;
 }) {
   const [isZoomed, setIsZoomed] = useState(false);
   const [transformOrigin, setTransformOrigin] = useState({ x: 50, y: 50 });
@@ -106,21 +108,21 @@ function ZoomableImage({
   };
 
   return (
-    <div className="relative overflow-hidden rounded-2xl border bg-white">
+    <div className={`relative overflow-hidden rounded-2xl border bg-white ${className}`}>
       <div
-        className={hoverCapable ? "cursor-zoom-in" : "cursor-zoom-in active:cursor-zoom-out"}
+        className={`h-full ${hoverCapable ? "cursor-zoom-in" : "cursor-zoom-in active:cursor-zoom-out"}`}
         onPointerMove={handlePointerMove}
         onPointerEnter={handlePointerEnter}
         onPointerLeave={handlePointerLeave}
         onClick={handleClick}
       >
-        <div className="relative aspect-square w-full bg-white">
+        <div className="relative h-full w-full bg-white min-h-[400px]">
           <Image
             src={src}
             alt={alt}
             fill
             sizes="(min-width: 1024px) 50vw, 100vw"
-            className="object-contain"
+            className="object-cover"
             priority={priority}
             style={{
               transformOrigin: `${transformOrigin.x}% ${transformOrigin.y}%`,
@@ -256,9 +258,9 @@ export default function ProductClient({ product, products }: ProductClientProps)
           <span className="text-foreground">{product.name}</span>
         </div>
 
-        <div className="mt-6 grid grid-cols-1 gap-10 lg:grid-cols-12">
+        <div className="mt-6 grid grid-cols-1 gap-10 lg:grid-cols-12 lg:items-stretch">
           <div className="lg:col-span-7">
-            <div className={`grid grid-cols-1 gap-4 ${images.length > 1 ? 'lg:grid-cols-[96px_1fr]' : ''}`}>
+            <div className={`grid grid-cols-1 gap-4 h-full ${images.length > 1 ? 'lg:grid-cols-[96px_1fr]' : ''}`}>
               {images.length > 1 ? (
                 <div className="order-2 flex gap-2 overflow-auto lg:order-1 lg:flex-col lg:overflow-visible">
                   {images.map((img, index) => (
@@ -273,40 +275,21 @@ export default function ProductClient({ product, products }: ProductClientProps)
                       }`}
                       aria-label={`Select image ${index + 1}`}
                     >
-                      <Image src={img} alt={product.name} fill className="object-contain p-2" />
+                      <Image src={img} alt={product.name} fill className="object-cover" />
                     </button>
                   ))}
                 </div>
               ) : null}
 
-              <div className="order-1 lg:order-2">
-                <ZoomableImage src={selectedImageSrc} alt={product.name} priority />
+              <div className="order-1 lg:order-2 h-full">
+                <ZoomableImage src={selectedImageSrc} alt={product.name} priority className="h-full" />
               </div>
-            </div>
-            {/* description & details section */}
-            <div className="mt-8 space-y-6">
-              <div className="rounded-2xl border bg-white p-6">
-                <h2 className="text-lg font-semibold">Description</h2>
-                <p className="mt-3 leading-relaxed text-muted-foreground">
-                  {product.description}
-                </p>
-              </div>
-
-              {product.details ? (
-                <div className="rounded-2xl border bg-white p-6">
-                  <h2 className="text-lg font-semibold">Details</h2>
-                  <div
-                    className="mt-3 rich-text-content"
-                    dangerouslySetInnerHTML={{ __html: product.details }}
-                  />
-                </div>
-              ) : null}
             </div>
           </div>
 
-          <div className="lg:col-span-5">
-            <div className="lg:sticky lg:top-24">
-              <div className="rounded-2xl border bg-white p-6 shadow-sm">
+          <div className="lg:col-span-5 h-full">
+            <div className="lg:sticky lg:top-24 h-full">
+              <div className="rounded-2xl border bg-white p-6 shadow-sm h-full flex flex-col">
                 <h1 className="text-2xl font-bold leading-tight">{product.name}</h1>
 
                 <div className="mt-3 flex flex-wrap items-center gap-3">
@@ -349,7 +332,7 @@ export default function ProductClient({ product, products }: ProductClientProps)
                   </div>
                 ) : null}
 
-                <div className="mt-6">
+                <div className="mt-auto pt-6">
                   <div className="text-sm font-semibold">Quantity</div>
                   <div className="mt-3 inline-flex items-center rounded-xl border bg-white">
                     <Button
@@ -374,35 +357,57 @@ export default function ProductClient({ product, products }: ProductClientProps)
                       +
                     </Button>
                   </div>
-                </div>
 
-                <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
-                  <Button
-                    className="h-11 bg-green-700 hover:bg-green-800"
-                    onClick={handleAddToCart}
-                    disabled={product.stock <= 0}
-                  >
-                    {product.stock > 0 ? "Add to Cart" : "Out of Stock"}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="h-11 border-green-700 text-green-700 hover:bg-green-700 hover:text-white"
-                    onClick={handleBuyNow}
-                    disabled={product.stock <= 0}
-                  >
-                    Buy Now
-                  </Button>
-                </div>
-
-                {product.stock <= 0 ? (
-                  <div className="mt-4 rounded-xl bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
-                    This product is currently out of stock
+                  <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <Button
+                      className="h-11 bg-green-700 hover:bg-green-800"
+                      onClick={handleAddToCart}
+                      disabled={product.stock <= 0}
+                    >
+                      {product.stock > 0 ? "Add to Cart" : "Out of Stock"}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="h-11 border-green-700 text-green-700 hover:bg-green-700 hover:text-white"
+                      onClick={handleBuyNow}
+                      disabled={product.stock <= 0}
+                    >
+                      Buy Now
+                    </Button>
                   </div>
-                ) : null}
+
+                  {product.stock <= 0 ? (
+                    <div className="mt-4 rounded-xl bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+                      This product is currently out of stock
+                    </div>
+                  ) : null}
+                </div>
               </div>
             </div>
           </div>
         </div>
+
+        {/* description & details section */}
+        <div className="mt-10 space-y-6">
+          <div className="rounded-2xl border bg-white p-6">
+            <h2 className="text-lg font-semibold">Description</h2>
+            <p className="mt-3 leading-relaxed text-muted-foreground">
+              {product.description}
+            </p>
+          </div>
+
+          {product.details ? (
+            <div className="rounded-2xl border bg-white p-6">
+              <h2 className="text-lg font-semibold">Details</h2>
+              <div
+                className="mt-3 rich-text-content"
+                dangerouslySetInnerHTML={{ __html: product.details }}
+              />
+            </div>
+          ) : null}
+        </div>
+
+        {/* end right section */}
 
         {products.length > 0 ? (
           <div className="mt-16">
