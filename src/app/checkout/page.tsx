@@ -40,7 +40,7 @@ export default function CheckoutPage() {
   const router = useRouter();
   const [paymentMethod] = useState("Cash on Delivery");
   const [loading, setLoading] = useState(false);
-  const { items, getCartTotal, getItemPrice, clearCart } = useCart();
+  const { items, getCartTotal, getItemPrice, clearCart, updateQuantity, removeItem } = useCart();
   const [agreed, setAgreed] = useState(false);
 
   const form = useForm<OrderFormData>({
@@ -350,7 +350,7 @@ export default function CheckoutPage() {
                       <Button
                         type="submit"
                         className="w-full bg-green-700 hover:bg-green-800"
-                        disabled={loading || !agreed}
+                        disabled={loading || !agreed || items.length === 0}
                       >
                         {loading ? "অর্ডার প্রসেস হচ্ছে..." : "অর্ডার কনফার্ম করুন"}
                       </Button>
@@ -366,28 +366,63 @@ export default function CheckoutPage() {
                   <h2 className="mb-4 text-xl font-semibold">অর্ডারের সারসংক্ষেপ</h2>
 
                   <div className="divide-y">
-                    {items.map((item) => (
+                    {items.length > 0 ? items.map((item) => (
                       <div key={`${item.id}-${item.selectedPackage}`} className="flex items-center gap-3 py-3">
-                        <div className="relative h-16 w-16 overflow-hidden rounded">
+                        <div className="relative h-16 w-16 overflow-hidden rounded flex-shrink-0">
                           <Image
                             src={item.image}
                             alt={item.name}
                             fill
                             className="object-cover"
                           />
-                          <div className="absolute right-0 top-0 flex h-5 w-5 items-center justify-center rounded-full bg-green-700 text-xs text-white">
-                            {item.quantity}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="font-medium truncate">{item.name}</div>
+                          <div className="text-sm text-muted-foreground">৳ {getItemPrice(item)}</div>
+                          <div className="mt-1 flex items-center gap-2">
+                            <div className="flex items-center rounded border border-gray-200 bg-white">
+                              <button
+                                type="button"
+                                className="flex h-7 w-7 items-center justify-center text-gray-500 hover:bg-gray-100 disabled:opacity-50"
+                                onClick={() => updateQuantity(item.id, item.quantity - 1, item.selectedPackage)}
+                                disabled={item.quantity <= 1}
+                              >
+                                -
+                              </button>
+                              <span className="flex w-7 items-center justify-center text-sm font-medium">
+                                {item.quantity}
+                              </span>
+                              <button
+                                type="button"
+                                className="flex h-7 w-7 items-center justify-center text-gray-500 hover:bg-gray-100"
+                                onClick={() => updateQuantity(item.id, item.quantity + 1, item.selectedPackage)}
+                              >
+                                +
+                              </button>
+                            </div>
                           </div>
                         </div>
-                        <div>
-                          <div className="font-medium">{item.name}</div>
-                          <div className="text-sm text-muted-foreground">৳ {getItemPrice(item)} × {item.quantity}</div>
-                        </div>
-                        <div className="ml-auto font-medium">
-                          ৳ {item.totalPrice}
+                        <div className="flex flex-col items-end gap-2">
+                          <button
+                            type="button"
+                            className="text-red-500 hover:text-red-700 p-1"
+                            onClick={() => removeItem(item.id, item.selectedPackage)}
+                            aria-label="Remove item"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                              <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                            </svg>
+                          </button>
+                          <div className="font-medium whitespace-nowrap">
+                            ৳ {item.totalPrice}
+                          </div>
                         </div>
                       </div>
-                    ))}
+                    )) : (
+                      <div className="py-6 text-center text-muted-foreground">
+                        আপনার কার্ট খালি
+                      </div>
+                    )}
                   </div>
 
                   <div className="mt-4 space-y-2">

@@ -236,7 +236,7 @@ export default function ProductClient({ product, products }: ProductClientProps)
 
     trackMetaPixelEvent("InitiateCheckout", pixelPayload);
     trackMetaPixelCustomEvent("BuyNow", pixelPayload);
-    router.push("/cart");
+    router.push("/checkout");
   };
 
   return (

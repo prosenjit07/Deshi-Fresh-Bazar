@@ -252,7 +252,7 @@ export default function HomePageClient({
         ...pixelPayload,
         source: "home_page",
       });
-      router.push("/cart");
+      router.push("/checkout");
     },
     [addItem, cartItems, router, showError, showSuccess],
   );
