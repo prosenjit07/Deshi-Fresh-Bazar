@@ -259,8 +259,8 @@ export default function ProductClient({ product, products }: ProductClientProps)
         </div>
 
         <div className="mt-6 grid grid-cols-1 gap-10 lg:grid-cols-12 lg:items-stretch">
-          <div className="lg:col-span-7">
-            <div className={`grid grid-cols-1 gap-4 ${images.length > 1 ? 'lg:grid-cols-[96px_1fr]' : ''}`}>
+          <div className="lg:col-span-7 flex flex-col order-1">
+            <div className={`grid grid-cols-1 gap-4 h-full ${images.length > 1 ? 'lg:grid-cols-[96px_1fr]' : ''}`}>
               {images.length > 1 ? (
                 <div className="order-2 flex gap-2 overflow-auto lg:order-1 lg:flex-col lg:overflow-visible">
                   {images.map((img, index) => (
@@ -281,12 +281,13 @@ export default function ProductClient({ product, products }: ProductClientProps)
                 </div>
               ) : null}
 
-              <div className="order-1 lg:order-2">
-                <ZoomableImage src={selectedImageSrc} alt={product.name} priority />
+              <div className="order-1 lg:order-2 h-full">
+                <ZoomableImage src={selectedImageSrc} alt={product.name} priority className="h-full" />
               </div>
             </div>
 
-            <div className="mt-8 space-y-6">
+            {/* description & details section (Desktop: below image, Mobile: bottom) */}
+            <div className="mt-8 space-y-6 hidden lg:block">
               <div className="rounded-2xl border bg-white p-6">
                 <h2 className="text-lg font-semibold">Description</h2>
                 <p className="mt-3 leading-relaxed text-muted-foreground">
@@ -306,9 +307,8 @@ export default function ProductClient({ product, products }: ProductClientProps)
             </div>
           </div>
 
-
           {/* product calculations */}
-          <div className="lg:col-span-5">
+          <div className="lg:col-span-5 h-full order-2">
             <div className="lg:sticky lg:top-24">
               <div className="rounded-2xl border bg-white p-6 shadow-sm flex flex-col">
                 <h1 className="text-2xl font-bold leading-tight">{product.name}</h1>
