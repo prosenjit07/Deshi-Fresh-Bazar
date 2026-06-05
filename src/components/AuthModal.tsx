@@ -94,7 +94,7 @@ export default function AuthModal({ user, onLogout }: AuthModalProps) {
             </div>
           ) : (
             <div className="mt-2 text-sm text-gray-600">
-              Login or Sign Up to continue.
+              Login or Register to continue.
             </div>
           )}
         </DialogHeader>
