@@ -8,10 +8,33 @@ import { UserProvider } from "@/contexts/UserContext";
 import { Providers } from "@/app/providers";
 
 export const metadata: Metadata = {
-  title: "Deshi Fresh Bazar",
-  description: "Deshi Fresh Bazar (PF) is an Agritech Fruit chain initiative delivering safer fruits directly from gardens to your doorstep.",
+  title: {
+    default: "Deshi Fresh Bazar | Chemical-Free Fresh Fruits",
+    template: "%s | Deshi Fresh Bazar",
+  },
+  description: "Deshi Fresh Bazar (PF) is an Agritech Fruit chain initiative delivering safer, chemical-free fruits directly from registered gardens to your doorstep in Bangladesh.",
+  keywords: ["fresh fruits", "chemical free fruits", "mango delivery bangladesh", "organic fruits bd", "deshi fresh bazar", "online fruit shop"],
+  authors: [{ name: "Deshi Fresh Bazar" }],
+  metadataBase: new URL("https://deshifreshbazar.com"),
+  openGraph: {
+    title: "Deshi Fresh Bazar | Chemical-Free Fresh Fruits",
+    description: "Delivering safer, chemical-free fruits directly from registered gardens to your doorstep in Bangladesh.",
+    url: "https://deshifreshbazar.com",
+    siteName: "Deshi Fresh Bazar",
+    images: [
+      {
+        url: "/images/banner.jpg", // Update with an actual banner if available
+        width: 1200,
+        height: 630,
+        alt: "Deshi Fresh Bazar Banner",
+      },
+    ],
+    locale: "bn_BD",
+    type: "website",
+  },
   icons: {
     icon: favicon.src,
+    apple: "/apple-touch-icon.png",
   },
 };
 

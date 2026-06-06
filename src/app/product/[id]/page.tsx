@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation';
 import { unstable_cache } from 'next/cache';
+import type { Metadata, ResolvingMetadata } from 'next';
 import RootLayout from "@/components/layout/RootLayout";
 import ProductClient from "./ProductClient";
 import { prisma } from '@/lib/prisma';
@@ -104,6 +105,39 @@ const getRelatedProducts = unstable_cache(
   ['product-page-related-products'],
   { revalidate, tags: ['products'] }
 );
+
+export async function generateMetadata(
+  { params }: { params: Promise<{ id: string }> },
+  parent: ResolvingMetadata
+): Promise<Metadata> {
+  const { id } = await params;
+  const product = await getProduct(id);
+
+  if (!product) {
+    return {
+      title: "Product Not Found",
+    };
+  }
+
+  return {
+    title: product.name,
+    description: product.description,
+    openGraph: {
+      title: `${product.name} | Deshi Fresh Bazar`,
+      description: product.description,
+      url: `https://deshifreshbazar.com/product/${product.id}`,
+      images: [
+        {
+          url: product.image.split(',')[0], // Take the first image if multiple
+          width: 800,
+          height: 600,
+          alt: product.name,
+        },
+      ],
+      type: "website",
+    },
+  };
+}
 
 export default async function ProductPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;

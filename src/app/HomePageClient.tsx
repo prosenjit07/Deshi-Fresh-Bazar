@@ -274,6 +274,7 @@ export default function HomePageClient({
 
   return (
     <>
+      <h1 className="sr-only">Deshi Fresh Bazar - Premium Chemical-Free Fresh Fruits in Bangladesh</h1>
       <HeroSlider />
 
       <div className="fixed bottom-[4.75rem] right-3 flex flex-col gap-2.5 z-40 md:hidden">

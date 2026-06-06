@@ -1,9 +1,20 @@
 import { unstable_cache } from "next/cache";
 import { Suspense } from "react";
+import type { Metadata } from "next";
 import RootLayout from "@/components/layout/RootLayout";
 import { prisma } from "@/lib/prisma";
 import { ProductStatus } from "@/lib/product-status";
 import FruitsPageClient from "./FruitsPageClient";
+
+export const metadata: Metadata = {
+  title: "All Fruits",
+  description: "Browse our collection of fresh, chemical-free, and premium quality fruits directly sourced from registered gardens.",
+  openGraph: {
+    title: "All Fruits | Deshi Fresh Bazar",
+    description: "Browse our collection of fresh, chemical-free, and premium quality fruits.",
+    url: "https://deshifreshbazar.com/fruits",
+  },
+};
 
 export const revalidate = 300;
 
