@@ -11,14 +11,17 @@ jobs:
 
     steps:
       - name: Deploy to DigitalOcean Droplet
-        uses: appleboy/ssh-action@v1.0.3
+        uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.DO_HOST }}
           username: ${{ secrets.DO_USERNAME }}
-          password: ${{ secrets.DO_PASSWORD }}
+          key: ${{ secrets.DO_SSH_KEY }}
           script: |
             cd ~/Deshi-Fresh-Bazar
             git pull origin main
             npm install
             npm run build
             pm2 restart all
+
+
+            
