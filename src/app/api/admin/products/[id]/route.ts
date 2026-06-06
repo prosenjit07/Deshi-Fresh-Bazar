@@ -4,9 +4,75 @@ import { prisma } from '@/lib/prisma';
 import { cookies } from 'next/headers';
 import jwt from 'jsonwebtoken';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
-import { ProductStatus } from '@/lib/product-status';
+import { ProductStatus, Prisma } from '@prisma/client';
+import { z } from 'zod';
+import crypto from 'crypto';
 
 export const dynamic = 'force-dynamic';
+
+const productUpdateSchema = z.object({
+  name: z.string().min(1, 'Name is required'),
+  description: z.string().min(1, 'Description is required'),
+  details: z.string().optional(),
+  price: z.preprocess((val) => Number(val), z.number().positive('Price must be positive')),
+  image: z.string().min(1, 'Image path/URL is required'),
+  categoryId: z.string().min(1, 'Category ID is required'),
+  stock: z.preprocess((val) => Number(val), z.number().int().nonnegative('Stock must be non-negative')),
+  slug: z.string().min(1, 'Slug is required'),
+  status: z.nativeEnum(ProductStatus).optional(),
+  packages: z.array(
+    z.object({
+      id: z.string().optional(),
+      name: z.string().min(1, 'Package name is required'),
+      price: z.preprocess((val) => Number(val), z.number().positive('Package price must be positive')),
+    })
+  ).optional().default([]),
+});
+
+// Helper for retrying transactions
+async function withTransactionRetry<T>(
+  operation: (tx: Prisma.TransactionClient) => Promise<T>,
+  requestId: string,
+  context: { operationType: string; payloadSummary: Record<string, unknown> },
+  maxRetries = 3,
+  delayMs = 100
+): Promise<T> {
+  let attempt = 0;
+  while (attempt < maxRetries) {
+    try {
+      return await prisma.$transaction(async (tx) => {
+        // Validate transaction state
+        await tx.$queryRawUnsafe('SELECT 1');
+        return await operation(tx);
+      }, {
+        maxWait: 5000,
+        timeout: 10000,
+      });
+    } catch (error: unknown) {
+      attempt++;
+      const err = error as Error & { code?: string };
+      const isTransient = 
+        err?.message?.includes('Transaction not found') || 
+        err?.message?.includes('Transaction ID is invalid') || 
+        err?.message?.includes('obtained before disconnecting') ||
+        err?.code === 'P2028';
+
+      if (isTransient && attempt < maxRetries) {
+        console.warn(`[Transaction Retry] Request ${requestId} attempt ${attempt} failed with transient error: ${err.message}. Retrying in ${delayMs}ms...`);
+        await new Promise(resolve => setTimeout(resolve, delayMs));
+        continue;
+      }
+      
+      console.error(`[Transaction Error] Request ${requestId} failed on attempt ${attempt}.`, {
+        error: err.message,
+        code: err.code,
+        context
+      });
+      throw error;
+    }
+  }
+  throw new Error('Transaction failed after retries');
+}
 
 // GET /api/admin/products/[id]
 export async function GET(
@@ -49,39 +115,42 @@ export async function PUT(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const requestId = crypto.randomUUID();
   try {
     const { id } = await params;
-    console.log(`[PUT /api/admin/products/${id}] Starting update...`);
+    console.log(`[PUT /api/admin/products/${id}] [ReqID: ${requestId}] Starting update...`);
 
     const cookieStore = await cookies();
     const token = cookieStore.get('token')?.value;
     if (!token) {
-      console.error(`[PUT /api/admin/products/${id}] Authentication failed: No token`);
+      console.error(`[PUT /api/admin/products/${id}] [ReqID: ${requestId}] Authentication failed: No token`);
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
     }
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { role: string };
     if (decoded.role !== 'ADMIN') {
-      console.error(`[PUT /api/admin/products/${id}] Authorization failed: Role is ${decoded.role}`);
+      console.error(`[PUT /api/admin/products/${id}] [ReqID: ${requestId}] Authorization failed: Role is ${decoded.role}`);
       return NextResponse.json({ error: 'Not authorized' }, { status: 401 });
     }
     
     const body = await request.json();
-    console.log(`[PUT /api/admin/products/${id}] Request body received. Keys:`, Object.keys(body));
+    console.log(`[PUT /api/admin/products/${id}] [ReqID: ${requestId}] Request body received. Keys:`, Object.keys(body));
     
-    const { name, description, details, price, image, categoryId, stock, slug, packages, status } = body;
-
-    // Validate required fields
-    if (!name || !description || !price || !image || !categoryId || !slug) {
-      console.error(`[PUT /api/admin/products/${id}] Validation failed: Missing required fields`);
+    // Validate with Zod
+    const parseResult = productUpdateSchema.safeParse(body);
+    if (!parseResult.success) {
+      console.error(`[PUT /api/admin/products/${id}] [ReqID: ${requestId}] Validation failed:`, parseResult.error.format());
       return NextResponse.json(
-        { error: 'Missing required fields' },
+        { error: 'Invalid parameters', details: parseResult.error.format() },
         { status: 400 }
       );
     }
+    
+    const { name, description, details, price, image, categoryId, stock, slug, packages, status } = parseResult.data;
 
     // Start a transaction to handle both product and package updates
-    console.log(`[PUT /api/admin/products/${id}] Starting Prisma transaction...`);
-    const updatedProduct = await prisma.$transaction(async (tx) => {
+    console.log(`[PUT /api/admin/products/${id}] [ReqID: ${requestId}] Starting Prisma transaction...`);
+    
+    const updatedProduct = await withTransactionRetry(async (tx) => {
       const existingProduct = await tx.product.findUnique({
         where: { id },
         select: { status: true },
@@ -93,22 +162,18 @@ export async function PUT(
 
       const normalizedStatus = status ?? existingProduct.status;
 
-      if (!Object.values(ProductStatus).includes(normalizedStatus)) {
-        throw new Error('INVALID_PRODUCT_STATUS');
-      }
-
       // 1. Update the product
-      console.log(`[PUT /api/admin/products/${id}] Updating product data...`);
+      console.log(`[PUT /api/admin/products/${id}] [ReqID: ${requestId}] Updating product data...`);
       await tx.product.update({
         where: { id },
         data: {
           name,
           description,
           details,
-          price: Number.parseFloat(price),
+          price,
           image,
           categoryId,
-          stock: Number.parseInt(stock) || 0,
+          stock,
           status: normalizedStatus,
           archivedAt:
             normalizedStatus === ProductStatus.ARCHIVED
@@ -126,26 +191,25 @@ export async function PUT(
 
       // 2. Handle packages if they exist
       if (packages && packages.length > 0) {
-        console.log(`[PUT /api/admin/products/${id}] Processing ${packages.length} packages...`);
+        console.log(`[PUT /api/admin/products/${id}] [ReqID: ${requestId}] Processing ${packages.length} packages...`);
         // Delete all existing packages
         await tx.package.deleteMany({
           where: { productId: id }
         });
 
         // Create new packages
-        const validPackages = packages.filter(
-          (pkg: { name?: string; price?: number | string }) =>
-            Boolean(pkg.name) && pkg.price !== undefined && pkg.price !== null
-        );
-        if (validPackages.length > 0) {
-          await tx.package.createMany({
-            data: validPackages.map((pkg: { name: string; price: number | string }) => ({
-              name: pkg.name,
-              price: Number(pkg.price),
-              productId: id
-            }))
-          });
-        }
+        await tx.package.createMany({
+          data: packages.map((pkg) => ({
+            name: pkg.name,
+            price: pkg.price,
+            productId: id
+          }))
+        });
+      } else {
+        // If empty packages array passed, clear all existing packages
+        await tx.package.deleteMany({
+          where: { productId: id }
+        });
       }
 
       // 3. Return the updated product with packages
@@ -156,9 +220,9 @@ export async function PUT(
           category: true
         }
       });
-    });
+    }, requestId, { operationType: 'UPDATE_PRODUCT', payloadSummary: { id, name, price, stock, packagesCount: packages.length } });
 
-    console.log(`[PUT /api/admin/products/${id}] Update successful, revalidating cache...`);
+    console.log(`[PUT /api/admin/products/${id}] [ReqID: ${requestId}] Update successful, revalidating cache...`);
     revalidateTag('products');
 
     return NextResponse.json(updatedProduct);

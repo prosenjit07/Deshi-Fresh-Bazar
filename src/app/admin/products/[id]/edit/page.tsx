@@ -229,6 +229,8 @@ export default function EditProductPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
           ...formData, 
+          price: Number.parseFloat(formData.price),
+          stock: Number.parseInt(formData.stock, 10),
           image: imageUrl,
           packages: validPackages
         }),
