@@ -16,7 +16,6 @@ jobs:
           host: ${{ secrets.DO_HOST }}
           username: ${{ secrets.DO_USERNAME }}
           password: ${{ secrets.DO_PASSWORD }}
-          # key: ${{ secrets.DO_SSH_KEY }}
           script: |
             cd ~/Deshi-Fresh-Bazar
             git pull origin main
