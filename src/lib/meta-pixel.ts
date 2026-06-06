@@ -31,30 +31,70 @@ declare global {
   }
 }
 
-function isMetaPixelReady() {
+export function isMetaPixelReady() {
   return typeof window !== "undefined" && typeof window.fbq === "function";
+}
+
+export function generateEventId(): string {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID();
+  }
+  return Date.now().toString(36) + Math.random().toString(36).substring(2);
 }
 
 export function trackMetaPixelEvent(
   eventName: MetaPixelStandardEvent,
   payload?: MetaPixelPayload,
+  eventId?: string
 ) {
   if (!isMetaPixelReady()) {
     return;
   }
 
-  window.fbq?.("track", eventName, payload);
+  if (eventId) {
+    window.fbq?.("track", eventName, payload, { eventID: eventId });
+  } else {
+    window.fbq?.("track", eventName, payload);
+  }
 }
 
 export function trackMetaPixelCustomEvent(
   eventName: string,
   payload?: MetaPixelPayload,
+  eventId?: string
 ) {
   if (!isMetaPixelReady()) {
     return;
   }
 
-  window.fbq?.("trackCustom", eventName, payload);
+  if (eventId) {
+    window.fbq?.("trackCustom", eventName, payload, { eventID: eventId });
+  } else {
+    window.fbq?.("trackCustom", eventName, payload);
+  }
+}
+
+export async function sendEventToCapi(
+  eventName: MetaPixelStandardEvent | string,
+  payload: MetaPixelPayload | undefined,
+  eventId: string
+) {
+  try {
+    await fetch("/api/meta-capi", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        eventName,
+        customData: payload,
+        eventId,
+        eventSourceUrl: window.location.href,
+      }),
+    });
+  } catch (error) {
+    console.error("Failed to forward event to CAPI", error);
+  }
 }
 
 export function buildProductPixelPayload(

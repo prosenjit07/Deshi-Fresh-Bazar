@@ -11,6 +11,8 @@ import {
   buildCheckoutPixelPayload,
   trackMetaPixelCustomEvent,
   trackMetaPixelEvent,
+  sendEventToCapi,
+  generateEventId,
 } from "@/lib/meta-pixel";
 
 export default function CartPage() {
@@ -39,8 +41,13 @@ export default function CartPage() {
       { source: "cart_page" },
     );
 
-    trackMetaPixelEvent("InitiateCheckout", pixelPayload);
-    trackMetaPixelCustomEvent("CheckoutClick", pixelPayload);
+    const checkoutEventId = generateEventId();
+    trackMetaPixelEvent("InitiateCheckout", pixelPayload, checkoutEventId);
+    sendEventToCapi("InitiateCheckout", pixelPayload, checkoutEventId);
+
+    const clickEventId = generateEventId();
+    trackMetaPixelCustomEvent("CheckoutClick", pixelPayload, clickEventId);
+    sendEventToCapi("CheckoutClick", pixelPayload, clickEventId);
   };
 
   // const calculateShipping = () => {

@@ -13,6 +13,7 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";import {
   buildCheckoutPixelPayload,
   trackMetaPixelCustomEvent,
   trackMetaPixelEvent,
+  sendEventToCapi,
 } from "@/lib/meta-pixel";
 
 interface OrderItem {
@@ -107,8 +108,12 @@ function OrderDetails() {
       return;
     }
 
-    trackMetaPixelEvent("Purchase", purchasePayload);
-    trackMetaPixelCustomEvent("OrderSuccess", purchasePayload);
+    trackMetaPixelEvent("Purchase", purchasePayload, orderId);
+    
+    // OrderSuccess custom event
+    trackMetaPixelCustomEvent("OrderSuccess", purchasePayload, orderId);
+    sendEventToCapi("OrderSuccess", purchasePayload, orderId);
+
     window.sessionStorage.setItem(trackedKey, "1");
     window.sessionStorage.removeItem(`meta_purchase_pending:${orderId}`);
   }, [order, orderId]);

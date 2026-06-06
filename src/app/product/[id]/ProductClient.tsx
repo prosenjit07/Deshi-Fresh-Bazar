@@ -12,6 +12,8 @@ import {
   buildProductPixelPayload,
   trackMetaPixelCustomEvent,
   trackMetaPixelEvent,
+  sendEventToCapi,
+  generateEventId,
 } from "@/lib/meta-pixel";
 
 interface Package {
@@ -174,8 +176,13 @@ export default function ProductClient({ product, products }: ProductClientProps)
       category: product.category.name,
     });
 
-    trackMetaPixelEvent("ViewContent", pixelPayload);
-    trackMetaPixelCustomEvent("ProductView", pixelPayload);
+    const eventId = generateEventId();
+    trackMetaPixelEvent("ViewContent", pixelPayload, eventId);
+    sendEventToCapi("ViewContent", pixelPayload, eventId);
+
+    const customEventId = generateEventId();
+    trackMetaPixelCustomEvent("ProductView", pixelPayload, customEventId);
+    sendEventToCapi("ProductView", pixelPayload, customEventId);
   }, [product]);
 
   if (!product) {
@@ -211,7 +218,9 @@ export default function ProductClient({ product, products }: ProductClientProps)
 
     // @ts-expect-error - handling type mismatch with the CartContext
     addItem(product, quantity, selectedPackage?.id);
-    trackMetaPixelEvent("AddToCart", pixelPayload);
+    const eventId = generateEventId();
+    trackMetaPixelEvent("AddToCart", pixelPayload, eventId);
+    sendEventToCapi("AddToCart", pixelPayload, eventId);
     toast.success("Added to cart successfully");
   };
 
@@ -230,12 +239,19 @@ export default function ProductClient({ product, products }: ProductClientProps)
     if (!existingCartItem) {
       // @ts-expect-error - handling type mismatch with the CartContext
       addItem(product, quantity, selectedPackage?.id);
-      trackMetaPixelEvent("AddToCart", pixelPayload);
+      const addEventId = generateEventId();
+      trackMetaPixelEvent("AddToCart", pixelPayload, addEventId);
+      sendEventToCapi("AddToCart", pixelPayload, addEventId);
       toast.success("Added to cart successfully");
     }
 
-    trackMetaPixelEvent("InitiateCheckout", pixelPayload);
-    trackMetaPixelCustomEvent("BuyNow", pixelPayload);
+    const checkoutEventId = generateEventId();
+    trackMetaPixelEvent("InitiateCheckout", pixelPayload, checkoutEventId);
+    sendEventToCapi("InitiateCheckout", pixelPayload, checkoutEventId);
+
+    const buyNowEventId = generateEventId();
+    trackMetaPixelCustomEvent("BuyNow", pixelPayload, buyNowEventId);
+    sendEventToCapi("BuyNow", pixelPayload, buyNowEventId);
     router.push("/checkout");
   };
 

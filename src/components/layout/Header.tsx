@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/sheet";
 import { useCart } from "@/contexts/CartContext";
 import { useUser } from "@/contexts/UserContext";
-import { trackMetaPixelCustomEvent } from "@/lib/meta-pixel";
+import { trackMetaPixelCustomEvent, sendEventToCapi, generateEventId } from "@/lib/meta-pixel";
 import logo from "@/assets/images/fresh-logo.jpg";
 import AuthModal from "@/components/AuthModal";
 
@@ -25,10 +25,15 @@ export default function Header() {
   const [isOpen, setIsOpen] = useState(false);
 
   const handleCartClick = () => {
+    const eventId = generateEventId();
     trackMetaPixelCustomEvent("CartClick", {
       cart_count: cartCount,
       source: "header",
-    });
+    }, eventId);
+    sendEventToCapi("CartClick", {
+      cart_count: cartCount,
+      source: "header",
+    }, eventId);
     setIsOpen(false);
   };
 

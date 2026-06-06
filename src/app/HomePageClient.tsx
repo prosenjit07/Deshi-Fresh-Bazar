@@ -21,6 +21,8 @@ import {
   buildProductPixelPayload,
   trackMetaPixelCustomEvent,
   trackMetaPixelEvent,
+  sendEventToCapi,
+  generateEventId,
 } from "@/lib/meta-pixel";
 import garden from "@/assets/images/farmar.jpg";
 import product from "@/assets/images/gobindovog-mango.jpg";
@@ -225,6 +227,7 @@ export default function HomePageClient({
       );
 
       if (!existingCartItem) {
+        const eventId = generateEventId();
         addItem(
           {
             id: product.id,
@@ -240,18 +243,30 @@ export default function HomePageClient({
           1,
           selectedPackageId,
         );
-        trackMetaPixelEvent("AddToCart", pixelPayload);
+        trackMetaPixelEvent("AddToCart", pixelPayload, eventId);
+        sendEventToCapi("AddToCart", pixelPayload, eventId);
         showSuccess("Added to cart successfully");
       }
 
+      const checkoutEventId = generateEventId();
       trackMetaPixelEvent("InitiateCheckout", {
         ...pixelPayload,
         source: "home_page",
-      });
+      }, checkoutEventId);
+      sendEventToCapi("InitiateCheckout", {
+        ...pixelPayload,
+        source: "home_page",
+      }, checkoutEventId);
+
+      const buyNowEventId = generateEventId();
       trackMetaPixelCustomEvent("BuyNow", {
         ...pixelPayload,
         source: "home_page",
-      });
+      }, buyNowEventId);
+      sendEventToCapi("BuyNow", {
+        ...pixelPayload,
+        source: "home_page",
+      }, buyNowEventId);
       router.push("/checkout");
     },
     [addItem, cartItems, router, showError, showSuccess],

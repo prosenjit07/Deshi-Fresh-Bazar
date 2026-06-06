@@ -5,6 +5,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma as prismaClient } from '@/lib/prisma';
 import { SteadfastService } from '@/lib/steadfast';
+import { sendMetaCapiEvent } from '@/lib/meta-capi';
 
 // Configure dynamic route handling
 export const dynamic = 'force-dynamic';
@@ -138,6 +139,50 @@ export async function POST(request: Request) {
           }
         });
       }
+    }
+
+    // Trigger Meta CAPI Purchase event
+    try {
+      const cookieStore = await cookies();
+      const fbp = cookieStore.get('_fbp')?.value;
+      const fbc = cookieStore.get('_fbc')?.value;
+      
+      const clientIpAddress = request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip") || undefined;
+      const clientUserAgent = request.headers.get("user-agent") || undefined;
+
+      await sendMetaCapiEvent({
+        eventName: "Purchase",
+        eventId: order.id,
+        actionSource: "website",
+        customData: {
+          currency: "BDT",
+          value: total,
+          content_type: "product",
+          content_ids: items.map((item: OrderItem) => item.id),
+          contents: items.map((item: OrderItem) => ({
+            id: item.id,
+            quantity: item.quantity,
+            item_price: item.price,
+            title: item.name,
+          })),
+          num_items: items.reduce((sum: number, item: OrderItem) => sum + item.quantity, 0),
+        },
+        userData: {
+          clientIpAddress,
+          clientUserAgent,
+          fbp,
+          fbc,
+          emails: email ? [email] : undefined,
+          phones: phone ? [phone] : undefined,
+          firstName: fullName,
+          cities: city ? [city] : undefined,
+          zipCodes: postalCode ? [postalCode] : undefined,
+          countries: country ? [country] : undefined,
+          externalId: userId || undefined,
+        }
+      });
+    } catch (err) {
+      console.error('Failed to send Meta CAPI Purchase event:', err);
     }
 
     return NextResponse.json(order);

@@ -8,6 +8,8 @@ import RootLayout from "@/components/layout/RootLayout";
 import {
   trackMetaPixelCustomEvent,
   trackMetaPixelEvent,
+  sendEventToCapi,
+  generateEventId,
 } from "@/lib/meta-pixel";
 
 interface OrderTrackData {
@@ -64,8 +66,13 @@ export default function TrackOrderPage() {
         result: res.ok ? "found" : res.status === 404 ? "not_found" : "error",
       };
 
-      trackMetaPixelEvent("Search", searchPayload);
-      trackMetaPixelCustomEvent("TrackOrderSearch", searchPayload);
+      const eventId = generateEventId();
+      trackMetaPixelEvent("Search", searchPayload, eventId);
+      sendEventToCapi("Search", searchPayload, eventId);
+
+      const customEventId = generateEventId();
+      trackMetaPixelCustomEvent("TrackOrderSearch", searchPayload, customEventId);
+      sendEventToCapi("TrackOrderSearch", searchPayload, customEventId);
 
       if (res.status === 404) {
         setNotFound(true);

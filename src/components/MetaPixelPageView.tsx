@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
-import { trackMetaPixelEvent } from "@/lib/meta-pixel";
+import { trackMetaPixelEvent, sendEventToCapi, generateEventId } from "@/lib/meta-pixel";
 
 export default function MetaPixelPageView() {
   const pathname = usePathname();
@@ -14,7 +14,9 @@ export default function MetaPixelPageView() {
       return;
     }
 
-    trackMetaPixelEvent("PageView");
+    const eventId = generateEventId();
+    trackMetaPixelEvent("PageView", undefined, eventId);
+    sendEventToCapi("PageView", undefined, eventId);
   }, [pathname]);
 
   return null;
