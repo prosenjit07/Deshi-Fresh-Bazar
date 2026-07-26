@@ -5,29 +5,171 @@ export const dynamic = 'force-static';
 
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { CheckCircle } from "lucide-react";
-import { Suspense } from "react";
+import { CheckCircle, Copy } from "lucide-react";
+import { Suspense, useEffect, useState } from "react";
 import RootLayout from "@/components/layout/RootLayout";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";import {
+  buildCheckoutPixelPayload,
+  trackMetaPixelCustomEvent,
+  trackMetaPixelEvent,
+  sendEventToCapi,
+} from "@/lib/meta-pixel";
+
+interface OrderItem {
+  productId: string;
+  productName: string;
+  quantity: number;
+  unitPrice: number;
+}
+
+interface Order {
+  id: string;
+  status: 'PENDING' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED';
+  customerName: string;
+  customerEmail: string;
+  customerPhone: string;
+  shippingAddress: string;
+  shippingCity: string;
+  shippingPostalCode: string;
+  shippingCountry: string;
+  createdAt: string;
+  totalAmount?: number;
+  courierTrackingCode?: string | null;
+  items?: OrderItem[];
+}
 
 function OrderDetails() {
   const searchParams = useSearchParams();
+  const [order, setOrder] = useState<Order | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const orderId = searchParams?.get("orderId");
+
+  useEffect(() => {
+    if (orderId) {
+      fetch(`/api/orders/${orderId}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.message === 'Order not found') {
+            setError('Order not found');
+          } else {
+            setOrder(data);
+          }
+        })
+        .catch(err => {
+          setError('Failed to fetch order');
+          console.error('Error fetching order:', err);
+        })
+        .finally(() => {
+          setLoading(false);
+        });
+    } else {
+      setLoading(false);
+    }
+  }, [orderId]);
+
+  useEffect(() => {
+    if (!orderId || typeof window === "undefined") {
+      return;
+    }
+
+    const trackedKey = `meta_purchase_tracked:${orderId}`;
+    if (window.sessionStorage.getItem(trackedKey)) {
+      return;
+    }
+
+    let purchasePayload: Record<string, unknown> | null = null;
+    const pendingPayload = window.sessionStorage.getItem(
+      `meta_purchase_pending:${orderId}`,
+    );
+
+    if (pendingPayload) {
+      try {
+        purchasePayload = JSON.parse(pendingPayload) as Record<string, unknown>;
+      } catch (error) {
+        console.error("Failed to parse pending Meta Pixel payload:", error);
+      }
+    } else if (order?.items?.length) {
+      purchasePayload = buildCheckoutPixelPayload(
+        order.items.map((item) => ({
+          id: item.productId,
+          name: item.productName,
+          quantity: item.quantity,
+          price: item.unitPrice,
+        })),
+        order.totalAmount ?? 0,
+        { order_id: orderId },
+      );
+    }
+
+    if (!purchasePayload) {
+      return;
+    }
+
+    trackMetaPixelEvent("Purchase", purchasePayload, orderId);
+    
+    // OrderSuccess custom event
+    trackMetaPixelCustomEvent("OrderSuccess", purchasePayload, orderId);
+    sendEventToCapi("OrderSuccess", purchasePayload, orderId);
+
+    window.sessionStorage.setItem(trackedKey, "1");
+    window.sessionStorage.removeItem(`meta_purchase_pending:${orderId}`);
+  }, [order, orderId]);
+
+  if (!searchParams) {
+    return <div>Loading...</div>;
+  }
+
   const formData = {
-    fullName: searchParams.get("fullName") || "N/A",
-    email: searchParams.get("email") || "N/A",
-    phone: searchParams.get("phone") || "N/A",
-    address: searchParams.get("address") || "N/A",
-    city: searchParams.get("city") || "N/A",
-    postalCode: searchParams.get("postalCode") || "N/A",
+    fullName: order?.customerName || searchParams.get("fullName") || "N/A",
+    email: order?.customerEmail || searchParams.get("email") || "N/A",
+    phone: order?.customerPhone || searchParams.get("phone") || "N/A",
+    address: order?.shippingAddress || searchParams.get("address") || "N/A",
+    city: order?.shippingCity || searchParams.get("city") || "N/A",
+    postalCode: order?.shippingPostalCode || searchParams.get("postalCode") || "N/A",
   };
 
-  const orderId = `PF-${Math.floor(10000 + Math.random() * 90000)}`;
-  const orderDate = new Date().toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
+  const orderDate = order?.createdAt 
+    ? new Date(order.createdAt).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      })
+    : new Date().toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      });
+
+  if (loading) {
+    return <div>Loading order details...</div>;
+  }
+
+  if (error) {
+    return (
+      <div className="container max-w-2xl">
+        <Card className="overflow-hidden">
+          <div className="bg-red-700 p-6 text-center text-white">
+            <h1 className="text-3xl font-bold">Order Not Found</h1>
+            <p className="mt-2 text-red-100">
+              We couldn't find the order you're looking for
+            </p>
+          </div>
+          <CardFooter className="flex flex-col gap-4 p-6">
+            <Button
+              asChild
+              variant="outline"
+              className="w-full"
+            >
+              <Link href="/">কেনাকাটা চালিয়ে যান</Link>
+            </Button>
+          </CardFooter>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="container max-w-2xl">
@@ -47,19 +189,26 @@ function OrderDetails() {
           </div>
 
           <div className="mb-6 rounded-lg bg-gray-50 p-4">
-            <div className="mb-4 grid grid-cols-2 gap-4">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">
-                  Order Number
-                </p>
+            <div className="mb-4">
+              <p className="text-sm font-medium text-muted-foreground">
+                Order Number
+              </p>
+              <div className="flex items-center gap-2">
                 <p className="font-medium">{orderId}</p>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(orderId || '');
+                  }}
+                  className="p-1 hover:bg-gray-100 rounded-md transition-colors"
+                  title="Copy order number"
+                >
+                  <Copy className="h-4 w-4 text-gray-500" />
+                </button>
               </div>
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">
-                  Date
-                </p>
-                <p className="font-medium">{orderDate}</p>
-              </div>
+              <p className="text-sm font-medium text-muted-foreground mt-2">
+                Date
+              </p>
+              <p className="font-medium">{orderDate}</p>
             </div>
             <div className="mb-4">
               <p className="text-sm font-medium text-muted-foreground">
@@ -67,23 +216,64 @@ function OrderDetails() {
               </p>
               <p className="font-medium">{formData.email}</p>
             </div>
+            {order?.courierTrackingCode && (
+              <div className="mb-4">
+                <p className="text-sm font-medium text-muted-foreground">
+                  Courier Tracking Code
+                </p>
+                <div className="flex items-center gap-2">
+                  <p className="font-mono bg-white p-1 rounded border inline-block">{order.courierTrackingCode}</p>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(order.courierTrackingCode || '');
+                    }}
+                    className="p-1 hover:bg-gray-100 rounded-md transition-colors"
+                    title="Copy tracking code"
+                  >
+                    <Copy className="h-4 w-4 text-gray-500" />
+                  </button>
+                </div>
+              </div>
+            )}
             <div>
               <p className="text-sm font-medium text-muted-foreground">
                 Order Status
               </p>
-              <p className="text-green-600 font-medium">Processing</p>
+              <p className={`font-medium ${
+                order?.status === 'DELIVERED' ? 'text-green-600' :
+                order?.status === 'CANCELLED' ? 'text-red-600' :
+                'text-blue-600'
+              }`}>
+                {order?.status || 'Processing'}
+              </p>
             </div>
           </div>
-
           <div className="border-t pt-6">
             <h2 className="mb-4 text-lg font-semibold">
               Delivery Information
             </h2>
-            <p className="mb-1">{formData.fullName}</p>
-            <p className="mb-1">{formData.address}</p>
-            <p className="mb-1">{formData.city}, {formData.postalCode}</p>
-            <p className="mb-1">Bangladesh</p>
-            <p>Phone: {formData.phone}</p>
+            <div className="grid gap-4">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-1">
+                <label className="text-sm font-medium text-muted-foreground">Full Name</label>
+                <p className="font-medium text center">{formData.fullName}</p>
+              </div>
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-1">
+                <label className="text-sm font-medium text-muted-foreground">Address</label>
+                <p className="font-medium text-right">{formData.address}</p>
+              </div>
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-1">
+                <label className="text-sm font-medium text-muted-foreground">City & Upazila</label>
+                <p className="font-medium text-right">{formData.city}, {formData.postalCode}</p>
+              </div>
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-1">
+                <label className="text-sm font-medium text-muted-foreground">Country</label>
+                <p className="font-medium text-right">Bangladesh</p>
+              </div>
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-1">
+                <label className="text-sm font-medium text-muted-foreground">Phone</label>
+                <p className="font-medium text-right">{formData.phone}</p>
+              </div>
+            </div>
           </div>
         </CardContent>
         <CardFooter className="flex flex-col gap-4 p-6">
@@ -91,14 +281,14 @@ function OrderDetails() {
             asChild
             className="w-full bg-green-700 hover:bg-green-800"
           >
-            <Link href="/track-order">Track Your Order</Link>
+            <Link href="/track-order">অর্ডার ট্র্যাক</Link>
           </Button>
           <Button
             asChild
             variant="outline"
             className="w-full"
           >
-            <Link href="/">Continue Shopping</Link>
+            <Link href="/">কেনাকাটা চালিয়ে যান</Link>
           </Button>
         </CardFooter>
       </Card>

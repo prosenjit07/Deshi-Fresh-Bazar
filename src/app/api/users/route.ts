@@ -10,8 +10,6 @@ const prisma = new PrismaClient({
     },
   },
 });
-
-// Register user
 export async function POST(request: Request) {
   try {
     const { name, email, password } = await request.json();
@@ -34,12 +32,11 @@ export async function POST(request: Request) {
     const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET!, { expiresIn: '30d' });
 
     return NextResponse.json({ id: user.id, name: user.name, email: user.email, token });
-  } catch (error: any) {
-    return NextResponse.json({ message: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    return NextResponse.json({ message: errorMessage }, { status: 500 });
   }
 }
-
-// Login user
 export async function PUT(request: Request) {
   try {
     const { email, password } = await request.json();
@@ -48,15 +45,42 @@ export async function PUT(request: Request) {
       return NextResponse.json({ message: 'Email and password required' }, { status: 400 });
     }
 
-    const user = await prisma.user.findUnique({ where: { email } });
+    const user = await prisma.user.findUnique({ 
+      where: { email },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        password: true,
+        role: true
+      }
+    });
+
     if (!user || !(await bcrypt.compare(password, user.password))) {
       return NextResponse.json({ message: 'Invalid credentials' }, { status: 401 });
     }
 
-    const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET!, { expiresIn: '30d' });
+    // Create token with role from Prisma enum
+    const token = jwt.sign(
+      { 
+        id: user.id, 
+        role: user.role // This will be the Role enum value from Prisma
+      },
+      process.env.JWT_SECRET!,
+      { expiresIn: '30d' }
+    );
 
-    return NextResponse.json({ id: user.id, name: user.name, email: user.email, token });
-  } catch (error: any) {
-    return NextResponse.json({ message: error.message }, { status: 500 });
+    // Return user data with role from Prisma
+    return NextResponse.json({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role, // This will be the Role enum value
+      token
+    });
+  } catch (error: unknown) {
+    console.error('Login error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    return NextResponse.json({ message: errorMessage }, { status: 500 });
   }
 }

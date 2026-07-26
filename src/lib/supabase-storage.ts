@@ -1,0 +1,146 @@
+import { createClient, type SupabaseClient } from "@supabase/supabase-js"
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+let supabaseInstance: SupabaseClient | null = null
+
+export function normalizeImageUrl(value: string | null | undefined): string | undefined {
+  if (!value) return undefined
+  const cleaned = value.trim().replace(/^["'`]+|["'`]+$/g, "").trim()
+  if (!cleaned) return undefined
+  if (cleaned.startsWith("http://") || cleaned.startsWith("https://")) {
+    return cleaned
+  }
+  return undefined
+}
+
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message
+  return String(error)
+}
+
+function getSupabase(): SupabaseClient {
+  if (supabaseInstance) return supabaseInstance
+  const url = supabaseUrl?.trim()
+  const key = supabaseServiceKey?.trim()
+  if (!url || !key || (!url.startsWith("http://") && !url.startsWith("https://"))) {
+    throw new Error(
+      "Invalid Supabase config: NEXT_PUBLIC_SUPABASE_URL must be a valid HTTP(S) URL and SUPABASE_SERVICE_ROLE_KEY must be set."
+    )
+  }
+  supabaseInstance = createClient(url, key)
+  return supabaseInstance
+}
+
+/**
+ * Generate public URL for Supabase Storage file
+ * @param filePath - The file path stored in database (e.g., "1234567890-abc123-image.jpg")
+ * @param bucket - The storage bucket name (default: "product-images")
+ * @returns Public URL or placeholder if path is invalid
+ */
+export function getSupabaseImageUrl(filePath: string | null | undefined, bucket = "product-images"): string {
+  // Return placeholder for null/undefined/empty paths
+  if (!filePath || filePath.trim() === "") {
+    return "/placeholder.svg?height=400&width=400"
+  }
+
+  // If it's already a full URL, return as is (for backward compatibility)
+  const normalizedUrl = normalizeImageUrl(filePath)
+  if (normalizedUrl) {
+    return normalizedUrl
+  }
+
+  // Generate public URL from Supabase Storage
+  const { data } = getSupabase().storage.from(bucket).getPublicUrl(filePath)
+
+  return data.publicUrl || "/placeholder.svg?height=400&width=400"
+}
+
+/**
+ * Upload file to Supabase Storage
+ * @param file - File to upload
+ * @param bucket - Storage bucket name
+ * @returns Promise with file path or error
+ */
+export async function uploadToSupabase(
+  file: File,
+  bucket = "product-images",
+): Promise<{ path: string } | { error: string }> {
+  try {
+    // Generate unique filename
+    const fileExt = file.name.split(".").pop()
+    const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`
+
+    // Upload file
+    const { data, error } = await getSupabase().storage.from(bucket).upload(fileName, file, {
+      cacheControl: "3600",
+      upsert: false,
+    })
+
+    if (error) {
+      console.error("Supabase upload error:", error)
+      return { error: error.message }
+    }
+
+    return { path: data.path }
+  } catch (error: unknown) {
+    console.error("Upload error:", error)
+    return { error: getErrorMessage(error) }
+  }
+}
+
+/**
+ * Delete file from Supabase Storage
+ * @param filePath - Path of file to delete
+ * @param bucket - Storage bucket name
+ * @returns Promise with success/error status
+ */
+export async function deleteFromSupabase(
+  filePath: string,
+  bucket = "product-images",
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    // Don't try to delete placeholder URLs or full URLs
+    if (!filePath || filePath.includes("placeholder.svg") || filePath.startsWith("http")) {
+      return { success: true }
+    }
+
+    const { error } = await getSupabase().storage.from(bucket).remove([filePath])
+
+    if (error) {
+      console.error("Supabase delete error:", error)
+      return { success: false, error: error.message }
+    }
+
+    return { success: true }
+  } catch (error: unknown) {
+    console.error("Delete error:", error)
+    return { success: false, error: getErrorMessage(error) }
+  }
+}
+
+/**
+ * List files in Supabase Storage bucket
+ * @param bucket - Storage bucket name
+ * @param folder - Optional folder path
+ * @returns Promise with file list or error
+ */
+export async function listSupabaseFiles(bucket = "product-images", folder?: string) {
+  try {
+    const { data, error } = await getSupabase().storage.from(bucket).list(folder, {
+      limit: 100,
+      offset: 0,
+    })
+
+    if (error) {
+      console.error("Supabase list error:", error)
+      return { error: error.message }
+    }
+
+    return { files: data }
+  } catch (error) {
+    console.error("List files error:", error)
+    return { error: "Failed to list files" }
+  }
+}

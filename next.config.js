@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  distDir: 'out',
+  // distDir: 'out',
   images: {
     unoptimized: true,
     domains: [
@@ -29,6 +29,11 @@ const nextConfig = {
         protocol: "https",
         hostname: "ugc.same-assets.com",
         pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "**.supabase.co",
+        pathname: "/storage/v1/object/public/**",
       },
     ],
   },

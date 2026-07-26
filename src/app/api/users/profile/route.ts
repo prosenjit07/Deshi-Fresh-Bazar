@@ -12,9 +12,10 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 // Helper function to verify JWT token
 async function verifyToken(token: string) {
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!);
-    return decoded as { id: string };
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { id: string, role?: string };
+    return decoded;
   } catch (error) {
+    console.error('Token verification failed:', error);
     return null;
   }
 }
@@ -23,7 +24,7 @@ async function verifyToken(token: string) {
 export async function GET(request: Request) {
   try {
     // Get token from cookies
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const token = cookieStore.get('token')?.value;
 
     if (!token) {
@@ -35,21 +36,22 @@ export async function GET(request: Request) {
 
     // Verify token
     const decoded = await verifyToken(token);
-    if (!decoded) {
+    if (!decoded || !decoded.id) {
       return NextResponse.json(
         { message: 'Not authorized, token failed' },
         { status: 401 }
       );
     }
 
-    // Get user data
+    // Get user data from DB - ENSURE role is selected
     const { data: user, error } = await supabase
       .from('users')
-      .select('id, name, email')
+      .select('id, name, email, role')
       .eq('id', decoded.id)
       .single();
 
     if (error || !user) {
+      console.error('Error fetching user from DB:', error);
       return NextResponse.json(
         { message: 'User not found' },
         { status: 404 }
@@ -57,9 +59,11 @@ export async function GET(request: Request) {
     }
 
     return NextResponse.json(user);
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Internal server error';
+    console.error('API Profile GET error:', error);
     return NextResponse.json(
-      { message: error.message },
+      { message },
       { status: 500 }
     );
   }
@@ -69,7 +73,7 @@ export async function GET(request: Request) {
 export async function PUT(request: Request) {
   try {
     // Get token from cookies
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const token = cookieStore.get('token')?.value;
 
     if (!token) {
@@ -105,7 +109,7 @@ export async function PUT(request: Request) {
     }
 
     // Prepare update data
-    const updateData: any = {};
+    const updateData: Record<string, string> = {};
     if (name) updateData.name = name;
     if (email) updateData.email = email;
     if (password) {
@@ -129,9 +133,10 @@ export async function PUT(request: Request) {
     }
 
     return NextResponse.json(updatedUser);
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Internal server error';
     return NextResponse.json(
-      { message: error.message },
+      { message },
       { status: 500 }
     );
   }

@@ -7,27 +7,57 @@ import RootLayout from "@/components/layout/RootLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { useCart } from '@/contexts/CartContext';
+import {
+  buildCheckoutPixelPayload,
+  trackMetaPixelCustomEvent,
+  trackMetaPixelEvent,
+  sendEventToCapi,
+  generateEventId,
+} from "@/lib/meta-pixel";
 
 export default function CartPage() {
-  const { 
-    items, 
-    updateQuantity, 
-    updatePackage, 
-    removeItem, 
+  const {
+    items,
+    updateQuantity,
+    updatePackage,
+    removeItem,
     getItemPrice,
     getCartTotal,
     getCartCount,
-    clearCart 
+    clearCart
   } = useCart();
 
-  const calculateShipping = () => {
-    const subtotal = getCartTotal();
-    if (subtotal === 0) return 0;
-    return subtotal > 5000 ? 0 : 100;
+  const handleCheckoutClick = () => {
+    const checkoutItems = items.map((item) => ({
+      id: item.id,
+      name: item.name,
+      quantity: item.quantity,
+      price: getItemPrice(item),
+    }));
+
+    const pixelPayload = buildCheckoutPixelPayload(
+      checkoutItems,
+      calculateTotal(),
+      { source: "cart_page" },
+    );
+
+    const checkoutEventId = generateEventId();
+    trackMetaPixelEvent("InitiateCheckout", pixelPayload, checkoutEventId);
+    sendEventToCapi("InitiateCheckout", pixelPayload, checkoutEventId);
+
+    const clickEventId = generateEventId();
+    trackMetaPixelCustomEvent("CheckoutClick", pixelPayload, clickEventId);
+    sendEventToCapi("CheckoutClick", pixelPayload, clickEventId);
   };
 
+  // const calculateShipping = () => {
+  //   const subtotal = getCartTotal();
+  //   if (subtotal === 0) return 0;
+  //   return subtotal > 5000 ? 0 : 100;
+  // };
+
   const calculateTotal = () => {
-    return getCartTotal() + calculateShipping();
+    return getCartTotal();
   };
 
   return (
@@ -35,23 +65,23 @@ export default function CartPage() {
       <div className="bg-gray-50 py-8">
         <div className="container">
           <div className="mb-8 flex items-center justify-between">
-            <h1 className="text-3xl font-bold">Shopping Cart</h1>
+            <h1 className="text-3xl font-bold border-b-2 border-green-700 pb-2">শপিং কার্ট</h1>
             {items.length > 0 && (
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={clearCart}
                 className="text-red-500 hover:bg-red-50 hover:text-red-600"
               >
-                Clear Cart
+               কার্ট খালি করুন
               </Button>
             )}
           </div>
 
           {items.length === 0 ? (
             <div className="rounded-lg bg-white p-8 text-center">
-              <p className="mb-4 text-lg">Your cart is empty</p>
+              <p className="mb-4 text-xl">আপনার কার্ট খালি আছে 🙁</p>
               <Button asChild className="bg-green-700 hover:bg-green-800">
-                <Link href="/fruits">Continue Shopping</Link>
+                <Link href="/fruits">কেনাকাটা চালিয়ে যান</Link>
               </Button>
             </div>
           ) : (
@@ -82,18 +112,17 @@ export default function CartPage() {
                               {item.name}
                             </Link>
                             <p className="text-sm text-muted-foreground mt-1">{item.description}</p>
-                            <div className="mt-2 flex gap-2">
+                            <div className="mt-2 space-y-2">
                               {item.packages.map(pkg => (
                                 <button
                                   key={pkg.id}
-                                  onClick={() => updatePackage(item.id, pkg.id)}
-                                  className={`px-3 py-1 rounded text-sm ${
-                                    item.selectedPackage === pkg.id 
-                                      ? 'bg-green-700 text-white' 
-                                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                                  }`}
+                                  onClick={() => updatePackage(item.id, pkg.id, item.selectedPackage)}
+                                  className={`w-full px-4 py-2 rounded-lg border text-left ${item.selectedPackage === pkg.id
+                                      ? 'border-green-700 bg-green-50 text-green-700'
+                                      : 'border-gray-200 hover:border-green-700 hover:bg-green-50'
+                                    }`}
                                 >
-                                  {pkg.name} - ৳{pkg.price}
+                                  {pkg.name} (৳ {pkg.price})
                                 </button>
                               ))}
                             </div>
@@ -103,7 +132,7 @@ export default function CartPage() {
                               <Button
                                 variant="outline"
                                 size="icon"
-                                onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                                onClick={() => updateQuantity(item.id, item.quantity - 1, item.selectedPackage)}
                                 className="h-8 w-8 rounded-l-md rounded-r-none"
                                 disabled={item.quantity <= 1}
                               >
@@ -115,7 +144,7 @@ export default function CartPage() {
                               <Button
                                 variant="outline"
                                 size="icon"
-                                onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                                onClick={() => updateQuantity(item.id, item.quantity + 1, item.selectedPackage)}
                                 className="h-8 w-8 rounded-l-none rounded-r-md"
                               >
                                 +
@@ -124,7 +153,7 @@ export default function CartPage() {
                             <Button
                               variant="ghost"
                               size="icon"
-                              onClick={() => removeItem(item.id)}
+                              onClick={() => removeItem(item.id, item.selectedPackage)}
                               className="h-8 w-8 text-red-500 hover:bg-red-50"
                               title="Remove item"
                             >
@@ -150,17 +179,22 @@ export default function CartPage() {
                     <h2 className="mb-4 text-xl font-semibold">Order Summary</h2>
                     <div className="space-y-3">
                       <div className="flex justify-between">
-                        <span className="text-muted-foreground">Subtotal</span>
+                        <span className="text-muted-foreground">সাবটোটাল</span>
                         <span>৳{getCartTotal()}</span>
                       </div>
                       <div className="flex justify-between">
+                        <span className="text-muted-foreground "> ডেলিভারি চার্জ </span>
+                        <span>৳0</span>
+                      </div>
+
+                      {/* <div className="flex justify-between">
                         <span className="text-muted-foreground">Shipping</span>
                         <span>
                           {calculateShipping() === 0
                             ? "Free"
                             : `৳${calculateShipping()}`}
                         </span>
-                      </div>
+                      </div> */}
                       <div className="border-t pt-3 flex justify-between font-semibold">
                         <span>Total</span>
                         <span>৳{calculateTotal()}</span>
@@ -169,18 +203,10 @@ export default function CartPage() {
                   </CardContent>
                   <CardFooter>
                     <Button asChild className="w-full bg-green-700 hover:bg-green-800">
-                      <Link href="/checkout">Proceed to Checkout</Link>
+                      <Link href="/checkout" onClick={handleCheckoutClick}>Proceed to Checkout</Link>
                     </Button>
                   </CardFooter>
                 </Card>
-                <div className="mt-4 text-center">
-                  <Link
-                    href="/fruits"
-                    className="text-sm text-muted-foreground hover:text-green-700"
-                  >
-                    Continue Shopping
-                  </Link>
-                </div>
               </div>
             </div>
           )}
