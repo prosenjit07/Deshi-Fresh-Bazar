@@ -1,25 +1,46 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { ShoppingCart, User, Menu, LogOut } from "lucide-react";
+import { ShoppingCart, Menu } from "lucide-react";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { useCart } from "@/contexts/CartContext";
 import { useUser } from "@/contexts/UserContext";
+import { trackMetaPixelCustomEvent, sendEventToCapi, generateEventId } from "@/lib/meta-pixel";
 import logo from "@/assets/images/fresh-logo.jpg";
+import AuthModal from "@/components/AuthModal";
 
 export default function Header() {
+  const router = useRouter();
   const { getCartCount } = useCart();
   const { user, logout } = useUser();
   const cartCount = getCartCount();
+  const [isOpen, setIsOpen] = useState(false);
+
+  const handleCartClick = () => {
+    const eventId = generateEventId();
+    trackMetaPixelCustomEvent("CartClick", {
+      cart_count: cartCount,
+      source: "header",
+    }, eventId);
+    sendEventToCapi("CartClick", {
+      cart_count: cartCount,
+      source: "header",
+    }, eventId);
+    setIsOpen(false);
+  };
+
+  const handleLogout = async () => {
+    await logout();
+    router.push("/login");
+  };
 
   const navLinks = [
     { title: "Home", path: "/" },
@@ -34,15 +55,69 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-white">
-      <div className="container flex h-16 items-center justify-between">
-        <div className="flex items-center gap-6">
+      <div className="container relative flex h-20 items-center justify-between md:h-16">
+        
+        {/* Mobile Menu (Left) */}
+        <div className="flex items-center md:hidden">
+          <Sheet open={isOpen} onOpenChange={setIsOpen}>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" className="-ml-2">
+                <Menu className="h-10 w-10" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="p-0 flex flex-col gap-0 w-[85vw] max-w-[320px]">
+              <div className="p-6 border-b border-gray-100 flex items-center">
+                <Image
+                  src={logo}
+                  alt="Deshi Fresh Bazar"
+                  width={140}
+                  height={28}
+                  className="h-[55px] w-auto"
+                />
+              </div>
+              <div className="flex-1 overflow-y-auto py-4 px-3">
+                <nav className="flex flex-col gap-1">
+                  {navLinks.map((link) => (
+                    <Link
+                      key={link.path}
+                      href={link.path}
+                      onClick={() => setIsOpen(false)}
+                      className="flex items-center px-4 py-3.5 text-base font-semibold text-gray-700 rounded-xl transition-all hover:bg-green-50 hover:text-green-700 active:bg-green-100"
+                    >
+                      {link.title}
+                    </Link>
+                  ))}
+                </nav>
+              </div>
+              <div className="p-5 border-t border-gray-100 bg-gray-50/50">
+                <Link
+                  href="/cart"
+                  onClick={handleCartClick}
+                  className="flex items-center justify-between w-full px-5 py-4 text-base font-semibold text-white bg-green-700 rounded-xl transition-all hover:bg-green-800 shadow-sm"
+                >
+                  <div className="flex items-center gap-3">
+                    <ShoppingCart className="h-5 w-5" />
+                    <span>Cart</span>
+                  </div>
+                  {cartCount > 0 && (
+                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white text-xs font-bold text-green-700 shadow-sm">
+                      {cartCount}
+                    </span>
+                  )}
+                </Link>
+              </div>
+            </SheetContent>
+          </Sheet>
+        </div>
+
+        <div className="hidden items-center gap-6 md:flex">
           <Link href="/" className="flex items-center gap-2">
             <Image
               src={logo}
               alt="Deshi Fresh Bazar"
               width={80}
               height={15}
-              className="h-[40px] w-auto xs:h-[45px] sm:h-[50px] md:h-[55px] lg:h-[60px] xl:h-[65px] 2xl:h-[70px] transition-all duration-200"
+              className="h-[55px] w-auto transition-all duration-200 lg:h-[60px] xl:h-[65px] 2xl:h-[70px]"
               priority
               quality={100}
             />
@@ -59,123 +134,36 @@ export default function Header() {
             ))}
           </nav>
         </div>
-        <div className="flex items-center gap-4">
-          <Link href="/cart" className="sm:hidden relative mr-2">
+
+        <Link
+          href="/"
+          className="absolute left-1/2 flex -translate-x-1/2 items-center md:hidden"
+        >
+          <Image
+            src={logo}
+            alt="Deshi Fresh Bazar"
+            width={120}
+            height={24}
+            className="h-[58px] w-auto transition-all duration-200"
+            priority
+            quality={100}
+          />
+        </Link>
+
+        <div className="flex items-center gap-3 md:gap-4">
+          <Link href="/cart" onClick={handleCartClick} className="hidden md:flex items-center gap-2 relative">
             <ShoppingCart className="h-5 w-5" />
             {cartCount > 0 && (
-              <span className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-green-700 text-xs text-white">
+              <span className="absolute -top-3 -right-2 flex h-[18px] w-[18px] items-center justify-center rounded-full bg-green-700 text-[10px] font-bold text-white md:-top-4 md:h-5 md:w-5 md:text-xs">
                 {cartCount}
               </span>
             )}
+            <span className="hidden text-sm font-medium sm:inline-block">Cart</span>
           </Link>
-          <Link href="/cart" className="hidden sm:flex items-center gap-2 relative">
-            <ShoppingCart className="h-5 w-5" />
-            {cartCount > 0 && (
-              <span className="absolute -top-4 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-green-700 text-xs text-white">
-                {cartCount}
-              </span>
-            )}
-            <span className="text-sm font-medium">Cart</span>
-          </Link>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="hidden sm:flex">
-                <User className="h-5 w-5" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              {user ? (
-                <>
-                  <DropdownMenuItem asChild>
-                    <Link href="/profile">Profile</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/orders">My Orders</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={logout} className="text-red-600">
-                    <LogOut className="h-4 w-4 mr-2" />
-                    Logout
-                  </DropdownMenuItem>
-                </>
-              ) : (
-                <>
-                  <DropdownMenuItem asChild>
-                    <Link href="/login">Login</Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/register">Register</Link>
-                  </DropdownMenuItem>
-                </>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="md:hidden">
-                <Menu className="h-5 w-5" />
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="right">
-              <nav className="flex flex-col gap-4 mt-6">
-                {navLinks.map((link) => (
-                  <Link
-                    key={link.path}
-                    href={link.path}
-                    className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-                  >
-                    {link.title}
-                  </Link>
-                ))}
-                <Link
-                  href="/cart"
-                  className="flex items-center gap-2 text-sm font-medium text-muted-foreground relative"
-                >
-                  <ShoppingCart className="h-4 w-4" />
-                  {cartCount > 0 && (
-                    <span className="absolute -top-2 left-3 flex h-5 w-5 items-center justify-center rounded-full bg-green-700 text-xs text-white">
-                      {cartCount}
-                    </span>
-                  )}
-                  <span>Cart</span>
-                </Link>
-                {user ? (
-                  <>
-                    <Link
-                      href="/profile"
-                      className="flex items-center gap-2 text-sm font-medium text-muted-foreground"
-                    >
-                      <User className="h-4 w-4" />
-                      <span>Profile</span>
-                    </Link>
-                    <Link
-                      href="/orders"
-                      className="flex items-center gap-2 text-sm font-medium text-muted-foreground"
-                    >
-                      <span>My Orders</span>
-                    </Link>
-                    <button
-                      onClick={logout}
-                      className="flex items-center gap-2 text-sm font-medium text-red-600"
-                    >
-                      <LogOut className="h-4 w-4" />
-                      <span>Logout</span>
-                    </button>
-                  </>
-                ) : (
-                  <Link
-                    href="/login"
-                    className="flex items-center gap-2 text-sm font-medium text-muted-foreground"
-                  >
-                    <User className="h-4 w-4" />
-                    <span>Login</span>
-                  </Link>
-                )}
-              </nav>
-            </SheetContent>
-          </Sheet>
+          <AuthModal user={user} onLogout={handleLogout} />
         </div>
       </div>
     </header>
   );
 }
+

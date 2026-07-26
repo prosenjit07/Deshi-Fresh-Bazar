@@ -34,6 +34,10 @@ interface Order {
   totalAmount: number;
   paymentMethod: string;
   createdAt: string;
+  courierProvider?: string;
+  courierConsignmentId?: string;
+  courierTrackingCode?: string;
+  courierStatus?: string;
   items: OrderItem[];
 }
 
@@ -79,7 +83,41 @@ export default function OrdersList() {
   const [endDate, setEndDate] = useState('');
   const [exportDialogOpen, setExportDialogOpen] = useState(false);
   const [exportAllOrders, setExportAllOrders] = useState(false);
+  const [syncing, setSyncing] = useState(false);
   const router = useRouter();
+
+  const handleSyncCourier = async () => {
+    if (!orders || orders.length === 0) return;
+    
+    try {
+      setSyncing(true);
+      const orderIds = orders.filter(o => o.courierConsignmentId).map(o => o.id);
+      
+      if (orderIds.length === 0) {
+        toast.info('No Steadfast orders found on this page to sync.');
+        return;
+      }
+      
+      const response = await fetch('/api/admin/orders/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderIds }),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Sync failed');
+      }
+      
+      const data = await response.json();
+      toast.success(data.message || 'Orders synced successfully');
+      fetchOrders();
+    } catch (error) {
+      console.error('Sync error:', error);
+      toast.error('Failed to sync orders with courier');
+    } finally {
+      setSyncing(false);
+    }
+  };
 
   const fetchOrders = async () => {
     try {
@@ -427,6 +465,14 @@ export default function OrdersList() {
                   <SelectItem value="asc">Oldest First</SelectItem>
                 </SelectContent>
               </Select>
+              <Button
+                variant="outline"
+                className="flex items-center gap-2"
+                onClick={handleSyncCourier}
+                disabled={noOrders || syncing}
+              >
+                {syncing ? 'Syncing...' : 'Sync Courier'}
+              </Button>
               <Dialog open={exportDialogOpen} onOpenChange={setExportDialogOpen}>
                 <DialogTrigger asChild>
                   <Button
@@ -500,11 +546,9 @@ export default function OrdersList() {
                     <th className="py-4 px-4 text-left text-sm font-medium text-gray-600">Order ID</th>
                     <th className="py-4 px-4 text-left text-sm font-medium text-gray-600">Customer Name</th>
                     <th className="py-4 px-4 text-left text-sm font-medium text-gray-600">Phone</th>
-                    <th className="py-4 px-4 text-left text-sm font-medium text-gray-600">Shipping Address</th>
                     <th className="py-4 px-4 text-left text-sm font-medium text-gray-600">Order Date</th>
                     <th className="py-4 px-4 text-left text-sm font-medium text-gray-600">Total Amount</th>
-                    <th className="py-4 px-4 text-left text-sm font-medium text-gray-600">Payment Method</th>
-                    <th className="py-4 px-4 text-left text-sm font-medium text-gray-600">Email</th>
+                    <th className="py-4 px-4 text-left text-sm font-medium text-gray-600">Courier Info</th>
                     <th className="py-4 px-4 text-left text-sm font-medium text-gray-600">Status</th>
                     <th className="py-4 px-4 text-left text-sm font-medium text-gray-600">Details</th>
                     <th className="py-4 px-4 text-left text-sm font-medium text-gray-600">Action</th>
@@ -517,11 +561,26 @@ export default function OrdersList() {
                         <td className="py-4 px-4 text-sm text-gray-900">{order.id}</td>
                         <td className="py-4 px-4 text-sm text-gray-900">{order.customerName}</td>
                         <td className="py-4 px-4 text-sm text-gray-900">{order.customerPhone}</td>
-                        <td className="py-4 px-4 text-sm text-gray-900">{order.shippingAddress}, {order.shippingCity}, {order.shippingPostalCode}, {order.shippingCountry}</td>
                         <td className="py-4 px-4 text-sm text-gray-900">{new Date(order.createdAt).toISOString().slice(0, 10)}</td>
                         <td className="py-4 px-4 text-sm text-gray-900">৳{order.totalAmount}</td>
-                        <td className="py-4 px-4 text-sm text-gray-900">{order.paymentMethod}</td>
-                        <td className="py-4 px-4 text-sm text-gray-900">{order.customerEmail}</td>
+                        <td className="py-4 px-4 text-sm text-gray-900">
+                          {order.courierTrackingCode ? (
+                            <div className="flex flex-col gap-1">
+                              <span className="font-mono text-xs bg-gray-100 p-1 rounded w-fit">{order.courierTrackingCode}</span>
+                              {order.courierStatus && (
+                                <span className={`text-xs px-2 py-0.5 rounded-full w-fit ${
+                                  order.courierStatus.toLowerCase() === 'delivered' ? 'bg-green-100 text-green-800' : 
+                                  order.courierStatus.toLowerCase() === 'cancelled' ? 'bg-red-100 text-red-800' : 
+                                  'bg-blue-100 text-blue-800'
+                                }`}>
+                                  {order.courierStatus}
+                                </span>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="text-gray-400 text-xs">N/A</span>
+                          )}
+                        </td>
                         <td className="py-4 px-4">
                           <Select
                             value={order.status}
@@ -565,8 +624,24 @@ export default function OrdersList() {
                       </tr>
                       {expandedOrderId === order.id && (
                         <tr>
-                          <td colSpan={11} className="bg-gray-50 border-t border-b border-gray-200">
+                          <td colSpan={9} className="bg-gray-50 border-t border-b border-gray-200">
                             <div className="p-6">
+                              <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="bg-white p-4 rounded border border-gray-200">
+                                  <h3 className="font-semibold mb-2 text-gray-900 border-b pb-2">Customer Details</h3>
+                                  <p className="text-sm"><span className="font-medium text-gray-600">Name:</span> {order.customerName}</p>
+                                  <p className="text-sm"><span className="font-medium text-gray-600">Email:</span> {order.customerEmail || 'N/A'}</p>
+                                  <p className="text-sm"><span className="font-medium text-gray-600">Phone:</span> {order.customerPhone}</p>
+                                  <p className="text-sm"><span className="font-medium text-gray-600">Payment Method:</span> {order.paymentMethod}</p>
+                                </div>
+                                <div className="bg-white p-4 rounded border border-gray-200">
+                                  <h3 className="font-semibold mb-2 text-gray-900 border-b pb-2">Shipping Address</h3>
+                                  <p className="text-sm">{order.shippingAddress}</p>
+                                  <p className="text-sm">{order.shippingCity}, {order.shippingPostalCode}</p>
+                                  <p className="text-sm">{order.shippingCountry}</p>
+                                </div>
+                              </div>
+                              
                               <h3 className="font-semibold mb-4 text-gray-900">Order Items</h3>
                               <div className="overflow-x-auto rounded-lg border border-gray-200">
                                 <table className="w-full">

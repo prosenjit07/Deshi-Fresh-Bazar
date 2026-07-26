@@ -1,49 +1,147 @@
-export const dynamic = 'force-dynamic';
 import { notFound } from 'next/navigation';
+import { unstable_cache } from 'next/cache';
+import type { Metadata, ResolvingMetadata } from 'next';
 import RootLayout from "@/components/layout/RootLayout";
 import ProductClient from "./ProductClient";
 import { prisma } from '@/lib/prisma';
+import { ProductStatus } from '@/lib/product-status';
 
-async function getProduct(id: string) {
-  try {
-    const product = await prisma.product.findUnique({
-      where: { id },
-      include: {
-        packages: true,
-        category: true
-      }
-    });
-    return product;
-  } catch (error) {
-    console.error('Error fetching product:', error);
-    return null;
-  }
-}
+export const revalidate = 300;
 
-async function getRelatedProducts(categoryId: string, currentProductId: string) {
-  try {
-    const products = await prisma.product.findMany({
-      where: {
-        categoryId,
-        NOT: {
-          id: currentProductId
+const getProduct = unstable_cache(
+  async (id: string) => {
+    try {
+      const product = await prisma.product.findFirst({
+        where: { id, status: ProductStatus.ACTIVE },
+        select: {
+          id: true,
+          name: true,
+          description: true,
+          details: true,
+          price: true,
+          image: true,
+          stock: true,
+          categoryId: true,
+          category: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+            },
+          },
+          packages: {
+            select: {
+              id: true,
+              name: true,
+              price: true,
+              productId: true,
+            },
+            orderBy: {
+              price: 'asc',
+            },
+          },
         }
-      },
-      take: 4,
-      include: {
-        packages: true,
-        category: true
-      }
-    });
-    return products;
-  } catch (error) {
-    console.error('Error fetching related products:', error);
-    return [];
+      });
+      return product;
+    } catch (error) {
+      console.error('Error fetching product:', error);
+      return null;
+    }
+  },
+  ['product-page-product'],
+  { revalidate, tags: ['products'] }
+);
+
+const getRelatedProducts = unstable_cache(
+  async (categoryId: string, currentProductId: string) => {
+    try {
+      const products = await prisma.product.findMany({
+        where: {
+          status: ProductStatus.ACTIVE,
+          categoryId,
+          NOT: {
+            id: currentProductId
+          }
+        },
+        orderBy: {
+          createdAt: 'desc'
+        },
+        take: 4,
+        select: {
+          id: true,
+          name: true,
+          description: true,
+          details: true,
+          price: true,
+          image: true,
+          stock: true,
+          categoryId: true,
+          category: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+            },
+          },
+          packages: {
+            select: {
+              id: true,
+              name: true,
+              price: true,
+              productId: true,
+            },
+            orderBy: {
+              price: 'asc',
+            },
+          },
+        }
+      });
+      return products;
+    } catch (error) {
+      console.error('Error fetching related products:', error);
+      return [];
+    }
+  },
+  ['product-page-related-products'],
+  { revalidate, tags: ['products'] }
+);
+
+export async function generateMetadata(
+  { params }: { params: Promise<{ id: string }> },
+  parent: ResolvingMetadata
+): Promise<Metadata> {
+  const { id } = await params;
+  const product = await getProduct(id);
+
+  if (!product) {
+    return {
+      title: "Product Not Found",
+    };
   }
+
+  return {
+    title: product.name,
+    description: product.description,
+    openGraph: {
+      title: `${product.name} | Deshi Fresh Bazar`,
+      description: product.description,
+      url: `https://deshifreshbazar.com/product/${product.id}`,
+      images: [
+        {
+          url: product.image.split(',')[0], // Take the first image if multiple
+          width: 800,
+          height: 600,
+          alt: product.name,
+        },
+      ],
+      type: "website",
+    },
+  };
 }
 
-export default async function ProductPage({ params }: { params: { id: string } }) {
-  const product = await getProduct(params.id);
+export default async function ProductPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const product = await getProduct(id);
   
   if (!product) {
     notFound();

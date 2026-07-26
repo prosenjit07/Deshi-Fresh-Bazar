@@ -8,7 +8,7 @@ Deshi Fresh Bazar is an Agritech fruit chain initiative delivering safer fruits 
 * **Shopping Cart**: Manage your purchases with an intuitive cart system
 * **Package Selection**: Choose from different package sizes for each product
 * **Image Gallery**: View our collection of product and delivery images
-* **Order Tracking**: Track your order status
+* **Order Tracking**: অর্ডার ট্র্যাক status
 * **Responsive Design**: Fully responsive across all devices
 
 ## 🛠️ Tech Stack
@@ -19,7 +19,7 @@ Deshi Fresh Bazar is an Agritech fruit chain initiative delivering safer fruits 
 * **UI Components**: Radix UI
 * **State Management**: React Context API
 * **Image Optimization**: Next.js Image Component
-* **Backend Services**: Supabase 
+* **Backend Services**: Supabase (or your preferred BaaS)
 
 ## 📦 Project Structure
 
@@ -206,7 +206,7 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 
 * Website: [www.deshifreshbazar.com](https://www.deshifreshbazar.com)
 * Email: [deshifreshbazar@gmail.com](mailto:deshifreshbazar@gmail.com)
-* Phone: 01782285171
+* Phone: 01560001192
 
 ## 🙏 Acknowledgments
 

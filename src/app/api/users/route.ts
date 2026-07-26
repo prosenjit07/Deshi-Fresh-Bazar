@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { PrismaClient, Role } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient({
   datasources: {
@@ -10,8 +10,6 @@ const prisma = new PrismaClient({
     },
   },
 });
-
-// Register user
 export async function POST(request: Request) {
   try {
     const { name, email, password } = await request.json();
@@ -34,12 +32,11 @@ export async function POST(request: Request) {
     const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET!, { expiresIn: '30d' });
 
     return NextResponse.json({ id: user.id, name: user.name, email: user.email, token });
-  } catch (error: any) {
-    return NextResponse.json({ message: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    return NextResponse.json({ message: errorMessage }, { status: 500 });
   }
 }
-
-// Login user
 export async function PUT(request: Request) {
   try {
     const { email, password } = await request.json();
@@ -81,8 +78,9 @@ export async function PUT(request: Request) {
       role: user.role, // This will be the Role enum value
       token
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Login error:', error);
-    return NextResponse.json({ message: error.message }, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    return NextResponse.json({ message: errorMessage }, { status: 500 });
   }
 }

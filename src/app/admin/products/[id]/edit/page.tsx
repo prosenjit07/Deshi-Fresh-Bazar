@@ -5,6 +5,7 @@ import { useRouter, useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/components/ui/toast";
 import { FaBoxOpen, FaShoppingCart, FaUsers, FaChartBar, FaPlus, FaTrash } from 'react-icons/fa';
 import CategoryModal from '@/components/CategoryModal';
 import RichTextEditor from '@/components/RichTextEditor';
@@ -27,10 +28,13 @@ interface ProductPackage {
   price: number;
 }
 
+type ProductStatus = "ACTIVE" | "INACTIVE" | "ARCHIVED";
+
 export default function EditProductPage() {
   const router = useRouter();
   const params = useParams() as { id: string };
   const { id } = params;
+  const toast = useToast();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [categories, setCategories] = useState<Category[]>([]);
@@ -44,6 +48,7 @@ export default function EditProductPage() {
     image: "",
     categoryId: "",
     stock: "0",
+    status: "ACTIVE" as ProductStatus,
   });
 
   const [packages, setPackages] = useState<Package[]>([
@@ -81,6 +86,7 @@ export default function EditProductPage() {
           image: productData.image || "",
           categoryId: productData.categoryId || "",
           stock: productData.stock?.toString() || "0",
+          status: productData.status || "ACTIVE",
         });
         setImagePreview(productData.image || "");
         
@@ -93,7 +99,9 @@ export default function EditProductPage() {
           })));
         }
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to fetch data");
+        const message = err instanceof Error ? err.message : "Failed to fetch data";
+        setError(message);
+        toast.error(message);
       } finally {
         setLoading(false);
       }
@@ -102,15 +110,17 @@ export default function EditProductPage() {
     if (id) {
       fetchData();
     }
-  }, [id]);
+  }, [id, toast]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       if (file.size > 2 * 1024 * 1024) { // 2MB
-        setError("Image file size must be less than 2MB");
+        const message = "Image file size must be less than 2MB";
+        setError(message);
         setImageFile(null);
         setImagePreview("");
+        toast.error(message);
         return;
       }
       setImageFile(file);
@@ -205,7 +215,7 @@ export default function EditProductPage() {
       const validPackages = packages.filter(pkg => pkg.name && pkg.price).map(pkg => {
         const packageData: { name: string; price: number; id?: string } = {
           name: pkg.name,
-          price: parseFloat(pkg.price)
+          price: Number.parseFloat(pkg.price)
         };
         // Only include id if it exists (for existing packages)
         if (pkg.id) {
@@ -219,6 +229,8 @@ export default function EditProductPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
           ...formData, 
+          price: Number.parseFloat(formData.price),
+          stock: Number.parseInt(formData.stock, 10),
           image: imageUrl,
           packages: validPackages
         }),
@@ -227,10 +239,13 @@ export default function EditProductPage() {
         const error = await response.json();
         throw new Error(error.error || "Failed to update product");
       }
+      toast.success("Product updated successfully");
       router.push("/admin/products");
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to update product");
+      const message = err instanceof Error ? err.message : "Failed to update product";
+      setError(message);
+      toast.error(message);
     } finally {
       setLoading(false);
     }
@@ -239,6 +254,7 @@ export default function EditProductPage() {
   const handleCategorySuccess = (newCategory: { id: string; name: string; slug: string }) => {
     setCategories([...categories, newCategory]);
     setFormData({ ...formData, categoryId: newCategory.id });
+    toast.success("Category added successfully");
   };
 
   if (loading) {
@@ -333,6 +349,24 @@ export default function EditProductPage() {
               <div>
                 <label className="block mb-1 font-medium">Stock</label>
                 <Input type="number" value={formData.stock} onChange={e => setFormData({ ...formData, stock: e.target.value })} className="rounded-lg" />
+              </div>
+              <div>
+                <label className="block mb-1 font-medium">Status</label>
+                <select
+                  value={formData.status}
+                  onChange={e => setFormData({ ...formData, status: e.target.value as ProductStatus })}
+                  className="w-full rounded-lg border border-gray-300 focus:border-gray-400 focus:ring-gray-400 min-h-[40px] px-3"
+                >
+                  <option value="ACTIVE">Active</option>
+                  <option value="INACTIVE">Inactive</option>
+                  <option value="ARCHIVED">Archived</option>
+                </select>
+                {formData.status === "INACTIVE" && (
+                  <p className="mt-1 text-xs text-amber-600">This product will be hidden from the website.</p>
+                )}
+                {formData.status === "ARCHIVED" && (
+                  <p className="mt-1 text-xs text-slate-600">This product will be retired from the storefront and normal admin listing.</p>
+                )}
               </div>
               {renderPackageFields()}
               <Button type="submit" className="w-full rounded-lg" disabled={loading}>
@@ -436,6 +470,24 @@ export default function EditProductPage() {
             <div>
               <label className="block mb-2">Stock</label>
               <Input type="number" value={formData.stock} onChange={e => setFormData({ ...formData, stock: e.target.value })} />
+            </div>
+            <div>
+              <label className="block mb-2">Status</label>
+              <select
+                value={formData.status}
+                onChange={e => setFormData({ ...formData, status: e.target.value as ProductStatus })}
+                className="w-full rounded-lg border border-gray-300 focus:border-gray-400 focus:ring-gray-400 min-h-[40px] px-3"
+              >
+                <option value="ACTIVE">Active</option>
+                <option value="INACTIVE">Inactive</option>
+                <option value="ARCHIVED">Archived</option>
+              </select>
+              {formData.status === "INACTIVE" && (
+                <p className="mt-2 text-sm text-amber-600">This product will be hidden from the website.</p>
+              )}
+              {formData.status === "ARCHIVED" && (
+                <p className="mt-2 text-sm text-slate-600">This product will be retired from the storefront and normal admin listing.</p>
+              )}
             </div>
             {renderPackageFields()}
             <Button type="submit" className="w-full" disabled={loading}>

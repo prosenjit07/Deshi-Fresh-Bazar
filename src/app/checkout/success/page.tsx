@@ -9,7 +9,19 @@ import { CheckCircle, Copy } from "lucide-react";
 import { Suspense, useEffect, useState } from "react";
 import RootLayout from "@/components/layout/RootLayout";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";import {
+  buildCheckoutPixelPayload,
+  trackMetaPixelCustomEvent,
+  trackMetaPixelEvent,
+  sendEventToCapi,
+} from "@/lib/meta-pixel";
+
+interface OrderItem {
+  productId: string;
+  productName: string;
+  quantity: number;
+  unitPrice: number;
+}
 
 interface Order {
   id: string;
@@ -22,6 +34,9 @@ interface Order {
   shippingPostalCode: string;
   shippingCountry: string;
   createdAt: string;
+  totalAmount?: number;
+  courierTrackingCode?: string | null;
+  items?: OrderItem[];
 }
 
 function OrderDetails() {
@@ -54,6 +69,54 @@ function OrderDetails() {
       setLoading(false);
     }
   }, [orderId]);
+
+  useEffect(() => {
+    if (!orderId || typeof window === "undefined") {
+      return;
+    }
+
+    const trackedKey = `meta_purchase_tracked:${orderId}`;
+    if (window.sessionStorage.getItem(trackedKey)) {
+      return;
+    }
+
+    let purchasePayload: Record<string, unknown> | null = null;
+    const pendingPayload = window.sessionStorage.getItem(
+      `meta_purchase_pending:${orderId}`,
+    );
+
+    if (pendingPayload) {
+      try {
+        purchasePayload = JSON.parse(pendingPayload) as Record<string, unknown>;
+      } catch (error) {
+        console.error("Failed to parse pending Meta Pixel payload:", error);
+      }
+    } else if (order?.items?.length) {
+      purchasePayload = buildCheckoutPixelPayload(
+        order.items.map((item) => ({
+          id: item.productId,
+          name: item.productName,
+          quantity: item.quantity,
+          price: item.unitPrice,
+        })),
+        order.totalAmount ?? 0,
+        { order_id: orderId },
+      );
+    }
+
+    if (!purchasePayload) {
+      return;
+    }
+
+    trackMetaPixelEvent("Purchase", purchasePayload, orderId);
+    
+    // OrderSuccess custom event
+    trackMetaPixelCustomEvent("OrderSuccess", purchasePayload, orderId);
+    sendEventToCapi("OrderSuccess", purchasePayload, orderId);
+
+    window.sessionStorage.setItem(trackedKey, "1");
+    window.sessionStorage.removeItem(`meta_purchase_pending:${orderId}`);
+  }, [order, orderId]);
 
   if (!searchParams) {
     return <div>Loading...</div>;
@@ -100,7 +163,7 @@ function OrderDetails() {
               variant="outline"
               className="w-full"
             >
-              <Link href="/">Continue Shopping</Link>
+              <Link href="/">কেনাকাটা চালিয়ে যান</Link>
             </Button>
           </CardFooter>
         </Card>
@@ -153,6 +216,25 @@ function OrderDetails() {
               </p>
               <p className="font-medium">{formData.email}</p>
             </div>
+            {order?.courierTrackingCode && (
+              <div className="mb-4">
+                <p className="text-sm font-medium text-muted-foreground">
+                  Courier Tracking Code
+                </p>
+                <div className="flex items-center gap-2">
+                  <p className="font-mono bg-white p-1 rounded border inline-block">{order.courierTrackingCode}</p>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(order.courierTrackingCode || '');
+                    }}
+                    className="p-1 hover:bg-gray-100 rounded-md transition-colors"
+                    title="Copy tracking code"
+                  >
+                    <Copy className="h-4 w-4 text-gray-500" />
+                  </button>
+                </div>
+              </div>
+            )}
             <div>
               <p className="text-sm font-medium text-muted-foreground">
                 Order Status
@@ -180,7 +262,7 @@ function OrderDetails() {
                 <p className="font-medium text-right">{formData.address}</p>
               </div>
               <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-1">
-                <label className="text-sm font-medium text-muted-foreground">City & Postal Code</label>
+                <label className="text-sm font-medium text-muted-foreground">City & Upazila</label>
                 <p className="font-medium text-right">{formData.city}, {formData.postalCode}</p>
               </div>
               <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-1">
@@ -199,14 +281,14 @@ function OrderDetails() {
             asChild
             className="w-full bg-green-700 hover:bg-green-800"
           >
-            <Link href="/track-order">Track Your Order</Link>
+            <Link href="/track-order">অর্ডার ট্র্যাক</Link>
           </Button>
           <Button
             asChild
             variant="outline"
             className="w-full"
           >
-            <Link href="/">Continue Shopping</Link>
+            <Link href="/">কেনাকাটা চালিয়ে যান</Link>
           </Button>
         </CardFooter>
       </Card>

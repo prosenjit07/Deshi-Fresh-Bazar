@@ -6,12 +6,12 @@ import brandLogo from "@/assets/images/fresh-bazar.jpg";
 
 export default function Footer() {
   return (
-    <footer className="bg-gray-100 ">
+    <footer className="bg-gray-100 pb-16 md:pb-0">
       <div className="container py-12">
         <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
           {/* Brand section */}
           <div className="xl:col-span-2">
-            <Link href="/" className="mb-4 inline-block transition-transform hover:scale-105">
+            {/* <Link href="/" className="mb-4 inline-block transition-transform hover:scale-105">
               <Image
                 src={brandLogo}
                 alt="Deshi Fresh Bazar"
@@ -19,7 +19,7 @@ export default function Footer() {
                 height={60}
                 className="h-[80px] w-auto xs:h-[60px] sm:h-[70px] md:h-[80px] lg:h-[100px] xl:h-[90px] 2xl:h-[100px] transition-all duration-200"
               />
-            </Link>
+            </Link> */}
             <p className="mt-4 text-sm text-gray-600">
               Deshi Fresh Bazar (PF) is an Agritech Fruit chain initiative by BD. We supply premium quality fruits from our contracted and registered fruit farmers.
             </p>
@@ -71,7 +71,7 @@ export default function Footer() {
               <div className="flex items-start gap-3">
                 <Phone className="mt-1 h-5 w-5 flex-shrink-0 text-green500" />
                 <p className="text-sm text-gray-600">
-                  <span className="block font-medium text-gray-800">Phone:</span> 01782285171
+                  <span className="block font-medium text-gray-800">Phone:</span> 01560001192
                 </p>
               </div>
 

@@ -1,32 +1,27 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
 import jwt from 'jsonwebtoken';
-import prismaClient from '../util';
-import { PrismaClient } from '@prisma/client';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import { prisma as prismaClient } from '@/lib/prisma';
+import { SteadfastService } from '@/lib/steadfast';
+import { sendMetaCapiEvent } from '@/lib/meta-capi';
 
 // Configure dynamic route handling
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
-// Initialize Supabase client
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-const supabase = createClient(supabaseUrl, supabaseKey);
-
-const prisma = new PrismaClient();
-
-// Helper function to verify JWT token
 async function verifyToken(token: string) {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) return null;
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!);
+    const decoded = jwt.verify(token, secret);
     return decoded as { id: string };
-  } catch (error) {
+  } catch {
     return null;
   }
 }
 
-// Types for order data
 interface OrderItem {
   id: string;
   name: string;
@@ -37,22 +32,16 @@ interface OrderItem {
   selectedPackage?: string;
 }
 
-interface OrderData {
-  fullName: string;
-  email?: string;
-  phone: string;
-  address: string;
-  city: string;
-  postalCode: string;
-  country: string;
-  items: OrderItem[];
-  subtotal: number;
-  shipping: number;
-  total: number;
-  paymentMethod: string;
+async function getAuthenticatedUserId() {
+  const cookieStore = await cookies();
+  const token = cookieStore.get('token')?.value;
+  if (token) {
+    const decoded = await verifyToken(token);
+    if (decoded?.id) return decoded.id;
+  }
+  const session = await getServerSession(authOptions);
+  return session?.user?.id ?? null;
 }
-
-// Create new order
 export async function POST(request: Request) {
   try {
     const data = await request.json();
@@ -71,9 +60,11 @@ export async function POST(request: Request) {
       paymentMethod 
     } = data;
 
-    // Create the order
-    const order = await prisma.order.create({
+    const userId = await getAuthenticatedUserId();
+
+    let order = await prismaClient.order.create({
       data: {
+        ...(userId ? { userId } : {}),
         customerName: fullName,
         customerEmail: email,
         customerPhone: phone,
@@ -82,12 +73,12 @@ export async function POST(request: Request) {
         shippingPostalCode: postalCode,
         shippingCountry: country,
         subtotal: subtotal,
-        shippingCost: shipping,
+        shippingCost: shipping || 0,
         totalAmount: total,
         paymentMethod: paymentMethod,
         status: 'PENDING',
         items: {
-          create: items.map((item: any) => ({
+          create: items.map((item: OrderItem) => ({
             productId: item.id,
             productName: item.name,
             productImage: item.image,
@@ -103,6 +94,97 @@ export async function POST(request: Request) {
       }
     });
 
+    // Create Steadfast Shipment if COD
+    if (paymentMethod === 'Cash on Delivery') {
+      try {
+        const itemDescriptions = items.map((i: OrderItem) => `${i.name} (x${i.quantity})`).join(', ');
+        
+        const steadfastRes = await SteadfastService.createOrder({
+          invoice: order.id,
+          recipient_name: fullName,
+          recipient_phone: phone,
+          recipient_address: `${address}, ${city}, ${postalCode}`,
+          recipient_email: email,
+          item_description: itemDescriptions,
+          cod_amount: total,
+          note: 'FreshBazar Order',
+        });
+
+        // Update local order with Steadfast details
+        order = await prismaClient.order.update({
+          where: { id: order.id },
+          data: {
+            courierProvider: 'Steadfast',
+            courierInvoice: steadfastRes.invoice || order.id,
+            courierConsignmentId: steadfastRes.consignment_id?.toString(),
+            courierTrackingCode: steadfastRes.tracking_code,
+            courierStatus: 'pending',
+            courierStatusRaw: JSON.stringify(steadfastRes),
+            courierShipmentCreatedAt: new Date(),
+            courierLastSyncedAt: new Date(),
+          },
+          include: {
+            items: true
+          }
+        });
+      } catch (err: unknown) {
+        console.error('Steadfast shipment creation failed:', err);
+        // Log the error but do not fail the local order creation
+        const errorMessage = err instanceof Error ? err.message : String(err);
+        await prismaClient.order.update({
+          where: { id: order.id },
+          data: {
+            courierProvider: 'Steadfast',
+            courierError: errorMessage,
+          }
+        });
+      }
+    }
+
+    // Trigger Meta CAPI Purchase event
+    try {
+      const cookieStore = await cookies();
+      const fbp = cookieStore.get('_fbp')?.value;
+      const fbc = cookieStore.get('_fbc')?.value;
+      
+      const clientIpAddress = request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip") || undefined;
+      const clientUserAgent = request.headers.get("user-agent") || undefined;
+
+      await sendMetaCapiEvent({
+        eventName: "Purchase",
+        eventId: order.id,
+        actionSource: "website",
+        customData: {
+          currency: "BDT",
+          value: total,
+          content_type: "product",
+          content_ids: items.map((item: OrderItem) => item.id),
+          contents: items.map((item: OrderItem) => ({
+            id: item.id,
+            quantity: item.quantity,
+            item_price: item.price,
+            title: item.name,
+          })),
+          num_items: items.reduce((sum: number, item: OrderItem) => sum + item.quantity, 0),
+        },
+        userData: {
+          clientIpAddress,
+          clientUserAgent,
+          fbp,
+          fbc,
+          emails: email ? [email] : undefined,
+          phones: phone ? [phone] : undefined,
+          firstName: fullName,
+          cities: city ? [city] : undefined,
+          zipCodes: postalCode ? [postalCode] : undefined,
+          countries: country ? [country] : undefined,
+          externalId: userId || undefined,
+        }
+      });
+    } catch (err) {
+      console.error('Failed to send Meta CAPI Purchase event:', err);
+    }
+
     return NextResponse.json(order);
   } catch (error) {
     console.error('Order creation error:', error);
@@ -112,24 +194,10 @@ export async function POST(request: Request) {
     );
   }
 }
-
-// Get orders (for authenticated users)
-export async function GET(request: Request) {
+export async function GET() {
   try {
-    // Get token from cookies
-    const cookieStore = await cookies();
-    const token = cookieStore.get('token')?.value;
-
-    if (!token) {
-      return NextResponse.json(
-        { message: 'Not authorized' },
-        { status: 401 }
-      );
-    }
-
-    // Verify token and get user ID
-    const decoded = await verifyToken(token);
-    if (!decoded) {
+    const userId = await getAuthenticatedUserId();
+    if (!userId) {
       return NextResponse.json(
         { message: 'Not authorized' },
         { status: 401 }
@@ -139,7 +207,7 @@ export async function GET(request: Request) {
     // Get orders using Prisma
     const orders = await prismaClient.order.findMany({
       where: {
-        userId: decoded.id,
+        userId,
       },
       include: {
         items: true,

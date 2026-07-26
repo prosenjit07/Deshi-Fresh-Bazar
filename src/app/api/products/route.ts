@@ -1,18 +1,42 @@
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
+import { ProductStatus } from '@/lib/product-status';
 
-const prisma = new PrismaClient();
+export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
     const products = await prisma.product.findMany({
-      include: {
-        packages: true,
-        category: true,
+      where: {
+        status: ProductStatus.ACTIVE,
+      },
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        details: true,
+        price: true,
+        image: true,
+        stock: true,
+        sequence: true,
+        category: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+          },
+        },
+        packages: {
+          select: {
+            id: true,
+            name: true,
+            price: true,
+          },
+        },
       },
       orderBy: {
-        createdAt: 'desc',
-      },
+        sequence: 'asc'
+      }
     });
     return NextResponse.json(products);
   } catch (error) {

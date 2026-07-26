@@ -4,17 +4,30 @@ import prismaClient from '../../util';
 export const dynamic = 'force-dynamic';
 
 export async function GET(
-  request: Request,
-  { params }: { params: { id: string } }
+  _request: Request,
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const order = await prismaClient.order.findUnique({
       where: {
-        id: params.id,
+        id,
       },
-      include: {
+      select: {
+        id: true,
+        status: true,
+        customerName: true,
+        customerEmail: true,
+        customerPhone: true,
+        shippingAddress: true,
+        shippingCity: true,
+        shippingPostalCode: true,
+        shippingCountry: true,
+        createdAt: true,
+        totalAmount: true,
+        courierTrackingCode: true,
         items: true,
-      },
+      }
     });
 
     if (!order) {

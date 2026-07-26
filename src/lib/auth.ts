@@ -1,10 +1,8 @@
-// Remove server-side imports
-// import { cookies } from 'next/headers';
-
-import { NextAuthOptions } from 'next-auth';
-import CredentialsProvider from 'next-auth/providers/credentials';
-import { prisma } from './prisma';
-import { compare } from 'bcryptjs';
+import type { NextAuthOptions } from "next-auth";
+import CredentialsProvider from "next-auth/providers/credentials";
+import GoogleProvider from "next-auth/providers/google";
+import { prisma } from "./prisma";
+import { compare, hash } from "bcryptjs";
 
 interface LoginData {
   email: string;
@@ -22,53 +20,75 @@ interface AuthResponse {
   name: string;
   email: string;
   token: string;
-  role: 'USER' | 'ADMIN'; 
+  role: "USER" | "ADMIN";
 }
 
 // Helper function to set cookie
 function setCookie(name: string, value: string, days: number) {
-  const expires = new Date();
-  expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000);
-  document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/`;
+  if (typeof window !== "undefined") {
+    const expires = new Date();
+    expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000);
+    document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/`;
+  }
 }
 
 // Helper function to get cookie
 function getCookie(name: string): string | null {
+  if (typeof window === "undefined") return null;
   const value = `; ${document.cookie}`;
   const parts = value.split(`; ${name}=`);
   if (parts.length === 2) {
-    return parts.pop()?.split(';').shift() || null;
+    return parts.pop()?.split(";").shift() || null;
   }
   return null;
 }
 
 export const authOptions: NextAuthOptions = {
   providers: [
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET || "GOCSPX-dummy-secret", // Fallback for development
+      // NextAuth builds the Google OAuth callback as:
+      // ${NEXTAUTH_URL}/api/auth/callback/google
+      // so production must set NEXTAUTH_URL to the public site origin.
+      authorization: {
+        params: {
+          prompt: "consent",
+          access_type: "offline",
+          response_type: "code",
+          // Add mobile-friendly parameters
+          display: "popup",
+        },
+      },
+    }),
     CredentialsProvider({
-      name: 'Credentials',
+      name: "Credentials",
       credentials: {
         email: { label: "Email", type: "email" },
-        password: { label: "Password", type: "password" }
+        password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
-          throw new Error('Invalid credentials');
+          throw new Error("Invalid credentials");
         }
 
         const user = await prisma.user.findUnique({
           where: {
-            email: credentials.email
-          }
+            email: credentials.email,
+          },
         });
 
         if (!user) {
-          throw new Error('User not found');
+          throw new Error("User not found");
         }
 
-        const isPasswordValid = await compare(credentials.password, user.password);
+        const isPasswordValid = await compare(
+          credentials.password,
+          user.password,
+        );
 
         if (!isPasswordValid) {
-          throw new Error('Invalid password');
+          throw new Error("Invalid password");
         }
 
         return {
@@ -77,130 +97,245 @@ export const authOptions: NextAuthOptions = {
           name: user.name,
           role: user.role,
         };
-      }
-    })
+      },
+    }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
-      if (user) {
-        token.role = user.role;
-        token.id = user.id;
+    async signIn({ user, account }) {
+      if (account?.provider === "google") {
+        try {
+          console.log("Google sign-in attempt for:", user.email);
+
+          // Check if user already exists
+          const existingUser = await prisma.user.findUnique({
+            where: { email: user.email! },
+          });
+
+          if (!existingUser) {
+            // Create new user for Google sign-in
+            const newUser = await prisma.user.create({
+              data: {
+                name: user.name!,
+                email: user.email!,
+                password: await hash("google-auth-" + user.id, 12), // Dummy password for Google users
+                role: "USER",
+              },
+            });
+            // Mark user as new for downstream callbacks
+            user.id = newUser.id;
+            user.role = newUser.role;
+            user.isNewUser = true;
+            // Preserve image from Google profile
+            user.image = user.image;
+            console.log("New Google user created:", newUser.email);
+          } else {
+            user.id = existingUser.id;
+            user.role = existingUser.role;
+            user.isNewUser = false;
+            // Preserve image from Google profile
+            user.image = user.image;
+            console.log("Existing Google user signed in:", existingUser.email);
+          }
+          return true;
+        } catch (error) {
+          console.error("Error creating/finding Google user:", error);
+          return false;
+        }
       }
+      return true;
+    },
+    async jwt({ token, user }) {
+      // On initial sign in, populate token from user data
+      if (user) {
+        try {
+          // Get user from database to ensure we have the latest data
+          const dbUser = await prisma.user.findUnique({
+            where: { email: user.email! },
+          });
+
+          if (dbUser) {
+            token.role = dbUser.role;
+            token.id = dbUser.id;
+            token.name = dbUser.name;
+            token.email = dbUser.email;
+            // Preserve image from Google profile if available
+            if (user.image) {
+              token.image = user.image;
+            }
+            // Propagate isNewUser if set by signIn callback
+            if (typeof user.isNewUser !== "undefined") {
+              token.isNewUser = user.isNewUser;
+            } else if (typeof token.isNewUser === "undefined") {
+              token.isNewUser = false;
+            }
+          }
+        } catch (error) {
+          console.error("Error fetching user in JWT callback:", error);
+        }
+      }
+
       return token;
     },
     async session({ session, token }) {
       if (token) {
-        session.user.role = token.role;
-        session.user.id = token.id;
+        session.user.role = token.role as string;
+        session.user.id = token.id as string;
+        session.user.name = token.name as string;
+        session.user.email = token.email as string;
+        session.user.isNewUser = token.isNewUser as boolean;
+        session.user.image = token.image as string | undefined;
       }
       return session;
-    }
+    },
+    async redirect({ url, baseUrl }) {
+      if (url.startsWith("/")) {
+        return `${baseUrl}${url}`;
+      }
+
+      try {
+        const redirectUrl = new URL(url);
+        if (redirectUrl.origin === baseUrl) {
+          return url;
+        }
+      } catch {}
+
+      return baseUrl;
+    },
   },
   pages: {
-    signIn: '/login',
+    signIn: "/login",
+    error: "/login", // Redirect errors to login page
   },
   session: {
-    strategy: 'jwt',
+    strategy: "jwt",
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
-  secret: process.env.NEXTAUTH_SECRET,
+  secret: process.env.NEXTAUTH_SECRET ?? process.env.JWT_SECRET,
+  debug: process.env.NODE_ENV === "development", // Enable debug logging in development
 };
 
 // Extend next-auth types
-declare module 'next-auth' {
+declare module "next-auth" {
   interface User {
     role: string;
     id: string;
+    isNewUser?: boolean;
+    image?: string;
   }
-  
+
   interface Session {
     user: User & {
       role: string;
       id: string;
+      isNewUser?: boolean;
+      image?: string;
     };
   }
 }
 
-declare module 'next-auth/jwt' {
+declare module "next-auth/jwt" {
   interface JWT {
     role: string;
     id: string;
+    isNewUser?: boolean;
+    image?: string;
   }
 }
 
 export async function login(data: LoginData): Promise<AuthResponse> {
-  const response = await fetch('/api/users', {
-    method: 'PUT',
+  const response = await fetch("/api/users", {
+    method: "PUT",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
     body: JSON.stringify(data),
   });
 
   if (!response.ok) {
     const error = await response.json();
-    throw new Error(error.message || 'Login failed');
+    throw new Error(error.message || "Login failed");
   }
 
   const result = await response.json();
-  
-  // Store token in cookie instead of localStorage
-  setCookie('token', result.token, 30); // 30 days expiry
-  
+
+  // Store token in cookie
+  setCookie("token", result.token, 30); // 30 days expiry
+
   return result;
 }
 
 export async function register(data: RegisterData): Promise<AuthResponse> {
-  const response = await fetch('/api/users', {
-    method: 'POST',
+  const response = await fetch("/api/users", {
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
     body: JSON.stringify(data),
   });
 
   if (!response.ok) {
     const error = await response.json();
-    throw new Error(error.message || 'Registration failed');
+    throw new Error(error.message || "Registration failed");
   }
 
   const result = await response.json();
-  
-  // Store token in cookie instead of localStorage
-  setCookie('token', result.token, 30); // 30 days expiry
-  
+
+  // Store token in cookie
+  setCookie("token", result.token, 30); // 30 days expiry
+
   return result;
 }
 
 export async function logout() {
-  // Remove token from cookie
-  setCookie('token', '', -1); // Set expiry to past date to remove cookie
+  if (typeof window !== "undefined") {
+    try {
+      const csrfResponse = await fetch("/api/auth/csrf");
+      if (csrfResponse.ok) {
+        const csrfData = (await csrfResponse.json()) as { csrfToken?: string };
+        if (csrfData.csrfToken) {
+          const formData = new URLSearchParams({
+            csrfToken: csrfData.csrfToken,
+            callbackUrl: `${window.location.origin}/login`,
+          });
+          await fetch("/api/auth/signout", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/x-www-form-urlencoded",
+            },
+            body: formData.toString(),
+          });
+        }
+      }
+    } catch {}
+  }
+
+  setCookie("token", "", -1);
 }
 
 export async function getCurrentUser() {
-  const token = getCookie('token');
-  
+  const token = getCookie("token");
+
   if (!token) {
     return null;
   }
 
-  const response = await fetch('/api/users/profile', {
+  const response = await fetch("/api/users/profile", {
     headers: {
-      'Authorization': `Bearer ${token}`,
+      Authorization: `Bearer ${token}`,
     },
   });
-  
+
   if (!response.ok) {
     if (response.status === 401) {
       return null; // Not logged in
     }
     const error = await response.json();
-    throw new Error(error.message || 'Failed to get user profile');
+    throw new Error(error.message || "Failed to get user profile");
   }
 
   return response.json();
 }
 
 export function isAuthenticated(): boolean {
-  return !!getCookie('token');
-} 
+  return !!getCookie("token");
+}
