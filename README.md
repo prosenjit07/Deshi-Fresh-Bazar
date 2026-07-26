@@ -1,217 +1,442 @@
-# Deshi Fresh Bazar 🥭
+# 🥭 Deshi Fresh Bazar
 
-Deshi Fresh Bazar is an Agritech fruit chain initiative delivering safer fruits directly from gardens to your doorstep. Built with Next.js, TypeScript, and Tailwind CSS.
+> An Agritech fruit e-commerce platform delivering fresh, safe fruits directly from farms to doorsteps — built with **Next.js 15**, **TypeScript**, **Prisma**, and **Supabase (PostgreSQL)**.
 
-## 🌟 Features
+[![Next.js](https://img.shields.io/badge/Next.js-15-black?logo=next.js)](https://nextjs.org)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?logo=typescript)](https://www.typescriptlang.org)
+[![Prisma](https://img.shields.io/badge/Prisma-6-2D3748?logo=prisma)](https://www.prisma.io)
+[![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-3ECF8E?logo=supabase)](https://supabase.com)
+[![Tailwind CSS](https://img.shields.io/badge/TailwindCSS-3-38BDF8?logo=tailwindcss)](https://tailwindcss.com)
 
-* **Product Catalog**: Browse through a variety of premium-quality fruits
-* **Shopping Cart**: Manage your purchases with an intuitive cart system
-* **Package Selection**: Choose from different package sizes for each product
-* **Image Gallery**: View our collection of product and delivery images
-* **Order Tracking**: অর্ডার ট্র্যাক status
-* **Responsive Design**: Fully responsive across all devices
+---
+
+## 📋 Table of Contents
+
+- [Tech Stack](#-tech-stack)
+- [Project Structure](#-project-structure)
+- [Getting Started](#-getting-started)
+- [Environment Variables](#-environment-variables)
+- [Database Schema](#-database-schema)
+- [Available Scripts](#-available-scripts)
+- [API Routes](#-api-routes)
+- [Deployment](#-deployment)
+- [Contributing](#-contributing)
+- [Contact](#-contact)
+
+---
 
 ## 🛠️ Tech Stack
 
-* **Frontend Framework**: Next.js 13+ with App Router
-* **Language**: TypeScript
-* **Styling**: Tailwind CSS
-* **UI Components**: Radix UI
-* **State Management**: React Context API
-* **Image Optimization**: Next.js Image Component
-* **Backend Services**: Supabase (or your preferred BaaS)
+| Layer | Technology |
+|---|---|
+| **Framework** | Next.js 15 (App Router, Turbopack) |
+| **Language** | TypeScript 5 |
+| **Styling** | Tailwind CSS 3 + Radix UI |
+| **ORM** | Prisma 6 |
+| **Database** | PostgreSQL via Supabase |
+| **Auth** | NextAuth.js v4 (Credentials + Google OAuth) |
+| **Storage** | Supabase Storage |
+| **Rich Text** | Tiptap Editor |
+| **Charts** | Recharts |
+| **Courier** | SteadFast Courier API (Packzy) |
+| **Analytics** | Meta Pixel + Conversions API (CAPI) |
+| **Export** | XLSX (order export) |
+| **Linter/Formatter** | Biome |
+| **Package Manager** | npm / bun |
 
-## 📦 Project Structure
+---
 
-# Frontend
-```plaintext
-src/
-├── app/                    # Next.js 13 app directory
-│   ├── about/             # About page
-│   ├── cart/              # Shopping cart
-│   ├── checkout/          # Checkout process
-│   ├── contact/           # Contact information
-│   ├── fruits/            # Products listing
-│   ├── gallery/           # Image gallery
-│   ├── privacy/           # Privacy policy
-│   ├── product/           # Product details
-│   ├── return-policy/     # Return policy
-│   ├── terms/             # Terms and conditions
-│   └── track-order/       # Order tracking
-├── assets/                # Static assets
-├── components/            # Reusable components
-│   ├── layout/           # Layout components
-│   └── ui/               # UI components
-└── contexts/             # React Context providers
+## 📁 Project Structure
+
+```
+freshbazar_app/
+├── prisma/
+│   ├── schema.prisma          # Database models
+│   └── seed.js                # DB seed script
+├── public/                    # Static assets
+├── src/
+│   ├── app/
+│   │   ├── (pages)/
+│   │   │   ├── about/
+│   │   │   ├── cart/
+│   │   │   ├── checkout/
+│   │   │   │   └── success/
+│   │   │   ├── contact/
+│   │   │   ├── faq/
+│   │   │   ├── fruits/        # Product listing
+│   │   │   ├── gallery/
+│   │   │   ├── login/
+│   │   │   ├── orders/        # User order history
+│   │   │   ├── privacy/
+│   │   │   ├── product/[id]/  # Product detail page
+│   │   │   ├── profile/
+│   │   │   ├── register/
+│   │   │   ├── return-policy/
+│   │   │   ├── terms/
+│   │   │   └── track-order/
+│   │   ├── admin/             # Admin dashboard (protected)
+│   │   │   ├── page.tsx       # Dashboard + OrderStatsChart
+│   │   │   ├── orders/        # Order management + XLSX export
+│   │   │   ├── products/      # Product CRUD + RichTextEditor
+│   │   │   └── users/         # User management
+│   │   ├── api/               # Next.js API routes
+│   │   │   ├── admin/
+│   │   │   │   ├── orders/    # (GET, PATCH) + /export (POST)
+│   │   │   │   ├── products/  # (GET, POST) + /[id] (GET, PUT, DELETE)
+│   │   │   │   ├── stats/     # Dashboard stats
+│   │   │   │   └── categories/
+│   │   │   ├── auth/[...nextauth]/
+│   │   │   ├── orders/        # (POST) + /[id] (GET, PATCH)
+│   │   │   ├── products/      # (GET) public product list
+│   │   │   ├── upload/        # Supabase image upload
+│   │   │   └── users/
+│   │   │       └── profile/
+│   │   ├── api-doc/           # Swagger UI
+│   │   ├── layout.tsx
+│   │   └── globals.css
+│   ├── components/
+│   │   ├── admin/
+│   │   │   └── BottomMenuBar.tsx
+│   │   ├── layout/
+│   │   │   ├── Header.tsx
+│   │   │   ├── Footer.tsx
+│   │   │   └── RootLayout.tsx
+│   │   ├── ui/                # Radix-based UI primitives
+│   │   ├── AuthModal.tsx
+│   │   ├── HeroSlider.tsx
+│   │   ├── OrderStatsChart.tsx
+│   │   ├── RichTextEditor.tsx # Tiptap-based editor
+│   │   └── MetaPixelPageView.tsx
+│   ├── contexts/
+│   │   ├── CartContext.tsx    # Global cart state
+│   │   └── UserContext.tsx    # Auth / session state
+│   ├── lib/
+│   │   └── auth.ts            # NextAuth config
+│   ├── utils/
+│   │   └── cookies.ts
+│   └── middleware.ts          # Route protection
+├── .env                       # Local environment variables (never commit)
+├── next.config.js
+├── tailwind.config.ts
+├── biome.json
+└── package.json
 ```
 
-# Backend 
-```plaintext
-src/
-├── api/
-│   ├── controllers/
-│   │   ├── authController.ts
-│   │   ├── productController.ts
-│   │   ├── orderController.ts
-│   │   └── userController.ts
-│   ├── middlewares/
-│   │   ├── auth.ts
-│   │   ├── errorHandler.ts
-│   │   └── validation.ts
-│   ├── routes/
-│   │   ├── auth.ts
-│   │   ├── products.ts
-│   │   ├── orders.ts
-│   │   └── users.ts
-│   └── validators/
-│       ├── auth.ts
-│       ├── product.ts
-│       └── order.ts
-├── config/
-│   └── index.ts
-├── services/
-│   ├── auth.service.ts
-│   ├── product.service.ts
-│   └── order.service.ts
-└── utils/
-    ├── logger.ts
-    └── helpers.ts
-```
+---
+
 ## 🚀 Getting Started
 
-### Setup Instructions
+### Prerequisites
 
-1. **Clone the repository**
+- **Node.js** ≥ 20
+- **npm** ≥ 10 (or **bun**)
+- A **Supabase** project (PostgreSQL database)
+- A **GitHub** account (for OAuth, optional)
+
+### 1. Clone the repository
 
 ```bash
-git clone https://github.com/yourusername/freshbazar.git
-cd freshbazar
+git clone https://github.com/prosenjit07/Deshi-Fresh-Bazar.git
+cd Deshi-Fresh-Bazar
+
+# Switch to the most up-to-date branch
+git checkout deployment-1
 ```
 
-2. **Install dependencies**
+### 2. Install dependencies
 
 ```bash
 npm install
 # or
-yarn install
+bun install
 ```
 
-3. **Configure environment variables**
+### 3. Set up environment variables
 
-Create a `.env.local` file in the root directory and add:
+Copy the example below into a `.env` file at the root:
 
-```env
-NEXT_PUBLIC_API_URL=https://your-api-url.com
-# Add any other public environment variables here
+```bash
+cp .env.example .env   # if .env.example exists, otherwise create .env manually
 ```
 
-4. **Start the development server**
+> See the [Environment Variables](#-environment-variables) section for all required keys.
+
+### 4. Set up the database
+
+```bash
+# Push schema to your Supabase PostgreSQL database
+npx prisma db push
+
+# (Optional) Seed initial data
+node prisma/seed.js
+
+# (Optional) Open Prisma Studio to browse data
+npx prisma studio
+```
+
+### 5. Run the development server
 
 ```bash
 npm run dev
-# or
-yarn dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+Open [http://localhost:3000](http://localhost:3000) in your browser. The dev server uses **Turbopack** for fast refresh.
 
+---
 
-## Backend Implementation Steps
-1. Setup Project
-npm init -y
-npm install express prisma @prisma/client cors dotenv jsonwebtoken bcryptjs
-npm install -D typescript @types/node @types/express
+## 🔐 Environment Variables
 
-2. Configure TypeScript
-tsc --init
+Create a `.env` file in the project root with the following keys:
 
-4. Initialize Prisma
-prisma init
+```env
+# ─── Auth ───────────────────────────────────────────────
+JWT_SECRET="your-jwt-secret"
+NEXTAUTH_SECRET="your-nextauth-secret"
+NEXTAUTH_URL="http://localhost:3000"
 
-6. Environment Variables
-MONGODB_URI=
-JWT_SECRET=
-PORT=
-SUPABASE_DATABASE_DIRECT_URL=
-NEXT_PUBLIC_SUPABASE_ANON_KEY=
-SUPABASE_SERVICE_ROLE_KEY=
-DATABASE_URL=
-SUPABASE_DATABASE=
-NEXT_PUBLIC_SUPABASE_URL=
+# ─── Google OAuth (optional) ────────────────────────────
+GOOGLE_CLIENT_ID="your-google-client-id"
+GOOGLE_CLIENT_SECRET="your-google-client-secret"
 
-## 🛠️ Database Schema
+# ─── Supabase ───────────────────────────────────────────
+NEXT_PUBLIC_SUPABASE_URL="https://your-project.supabase.co"
+NEXT_PUBLIC_SUPABASE_ANON_KEY="your-anon-key"
+SUPABASE_SERVICE_ROLE_KEY="your-service-role-key"
 
-![supabase-schema-jftgaryiaxgadhuwiiys](https://github.com/user-attachments/assets/22cea62c-ccf3-434a-adb9-f55f0a415324)
+# ─── Database (Prisma / PostgreSQL) ─────────────────────
+# Pooled connection (for runtime queries)
+SUPABASE_DATABASE="postgresql://postgres.xxx:password@aws-0-region.pooler.supabase.com:6543/postgres?pgbouncer=true"
+# Direct connection (for migrations & prisma db push)
+SUPABASE_DATABASE_DIRECT_URL="postgresql://postgres.xxx:password@aws-0-region.pooler.supabase.com:5432/postgres"
 
-## 📱 Key Features
+# ─── SteadFast Courier ──────────────────────────────────
+STEADFAST_BASE_URL="https://portal.packzy.com/api/v1"
+STEADFAST_API_KEY="your-steadfast-api-key"
+STEADFAST_SECRET_KEY="your-steadfast-secret-key"
 
-### Product Management
+# ─── Meta Pixel / CAPI (optional) ───────────────────────
+META_PIXEL_ID=your-pixel-id
+META_API_VERSION=v19.0
+META_ACCESS_TOKEN=your-meta-access-token
+```
 
-* Browse products by category
-* View detailed product information
-* Select package sizes
-* Add products to cart
+> [!IMPORTANT]
+> Never commit `.env` to version control. It's already in `.gitignore`. Share secrets with teammates via a password manager or secrets vault.
 
-### Shopping Cart
+---
 
-* Add/remove items
-* Update quantities
-* Change package sizes
-* Calculate total with shipping
+## 🗄️ Database Schema
 
-### User Experience
+Database: **PostgreSQL** on Supabase, managed via **Prisma ORM**.
 
-* Responsive image gallery
-* Order tracking system
-* Contact information
-* Privacy and return policies
+```
+User
+ ├── id, name, email, password, role (USER | ADMIN)
+ ├── cart → CartItem[]
+ └── orders → Order[]
 
-## 🔐 Authentication
+Product
+ ├── id, name, slug, description, details (rich text)
+ ├── price, image, stock, status (ACTIVE | INACTIVE | ARCHIVED)
+ ├── sequence (display order), archivedAt
+ ├── category → Category
+ ├── cartItems → CartItem[]
+ ├── orderItems → OrderItem[]
+ └── packages → Package[]
 
-Authentication is handled using \[Supabase/Firebase/Auth Provider] (e.g., Supabase Auth). Protected routes require users to be logged in. JWT or session-based security is managed by the authentication provider.
+Category
+ └── id, name, slug, description, image
 
-## 📚 API Integration
+Package
+ └── id, name, price → Product
 
-All data interactions are handled via API calls to the backend-as-a-service platform (e.g., Supabase):
+Order
+ ├── id, customerName, customerPhone, shippingAddress
+ ├── subtotal, shippingCost, totalAmount, paymentMethod
+ ├── status (PENDING | PROCESSING | SHIPPED | DELIVERED | CANCELLED)
+ ├── courierProvider, courierConsignmentId, courierTrackingCode (SteadFast)
+ ├── user → User (optional, supports guest checkout)
+ └── items → OrderItem[]
 
-* Products
-* Cart items
-* Orders
-* User profiles
+OrderItem
+ └── productName, productImage, quantity, unitPrice, packageType
 
-API URLs and configurations are stored in environment variables.
+CartItem
+ └── userId + productId + selectedPackage (unique composite)
+```
 
-## 🌐 Deployment
+![Database Schema](https://github.com/user-attachments/assets/22cea62c-ccf3-434a-adb9-f55f0a415324)
 
-The app is ready for deployment on [**Vercel**](https://vercel.com):
+---
+
+## 📜 Available Scripts
 
 ```bash
-vercel deploy
+npm run dev        # Start dev server (Turbopack, binds 0.0.0.0:3000)
+npm run build      # Production build
+npm run start      # Start production server
+npm run lint       # Biome lint + TypeScript type-check
+npm run format     # Biome auto-format
+node prisma/seed.js    # Seed database
+npx prisma studio      # Open Prisma Studio (DB GUI)
+npx prisma db push     # Push schema changes to DB
+npx prisma generate    # Regenerate Prisma Client
 ```
+
+---
+
+## 🌐 API Routes
+
+All routes are under `src/app/api/`. Key endpoints:
+
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| `GET` | `/api/products` | Public | List all active products |
+| `POST` | `/api/orders` | Public | Place a new order |
+| `GET` | `/api/orders/[id]` | User | Get order details + tracking |
+| `GET` | `/api/admin/products` | Admin | List all products (incl. archived) |
+| `POST` | `/api/admin/products` | Admin | Create product |
+| `PUT` | `/api/admin/products/[id]` | Admin | Update product |
+| `DELETE` | `/api/admin/products/[id]` | Admin | Delete product |
+| `GET` | `/api/admin/orders` | Admin | List all orders |
+| `PATCH` | `/api/admin/orders/[id]` | Admin | Update order status |
+| `POST` | `/api/admin/orders/export` | Admin | Export orders as XLSX |
+| `GET` | `/api/admin/stats` | Admin | Dashboard statistics |
+| `GET` | `/api/admin/categories` | Admin | List categories |
+| `GET/POST` | `/api/users/profile` | User | Get / update user profile |
+| `GET` | `/api-doc` | Public | Swagger API documentation |
+
+---
+
+## 🚢 Deployment
+
+The app is deployed on a **DigitalOcean** VPS via GitHub Actions CI/CD.
+
+For Netlify or Vercel:
+
+```bash
+# Vercel
+vercel deploy
+
+# Netlify (configured via netlify.toml)
+netlify deploy --prod
+```
+
+Production environment variables must be set in your hosting dashboard. For the database, use the **pooled** `SUPABASE_DATABASE` URL at runtime and the **direct** `SUPABASE_DATABASE_DIRECT_URL` only for migrations.
+
+---
 
 ## 🤝 Contributing
 
-1. Fork the repository
-2. Create your feature branch: `git checkout -b feature/AmazingFeature`
-3. Commit your changes: `git commit -m 'Add some AmazingFeature'`
-4. Push to the branch: `git push origin feature/AmazingFeature`
-5. Open a Pull Request
+We welcome contributions! Please follow these guidelines to keep the codebase consistent and the review process smooth.
 
+### Branching Strategy
+
+```
+main              ← stable, mirrors production
+deployment-1      ← most updated, pre-production
+feature/*         ← new features
+fix/*             ← bug fixes
+chore/*           ← maintenance, dependencies, docs
+```
+
+### Step-by-Step Contribution Flow
+
+**1. Fork & Clone**
+
+```bash
+git clone https://github.com/your-username/Deshi-Fresh-Bazar.git
+cd Deshi-Fresh-Bazar
+```
+
+**2. Create a branch from `deployment-1`**
+
+```bash
+git checkout deployment-1
+git pull origin deployment-1
+git checkout -b feature/your-feature-name
+```
+
+**3. Set up your environment**
+
+Follow the [Getting Started](#-getting-started) steps above. Make sure the app runs locally before making changes.
+
+**4. Make your changes**
+
+- Keep changes focused and surgical — one feature or fix per branch.
+- Follow the existing code style (Biome handles formatting).
+- Don't introduce new dependencies without discussion.
+
+**5. Lint & format before committing**
+
+```bash
+npm run lint
+npm run format
+```
+
+**6. Write meaningful commit messages**
+
+Use [Conventional Commits](https://www.conventionalcommits.org/) format:
+
+```
+feat(admin): add bulk order status update
+fix(checkout): handle empty cart edge case
+chore(deps): upgrade prisma to 6.20
+refactor(product): extract package selector component
+docs(readme): update env variable table
+```
+
+**7. Push and open a Pull Request**
+
+```bash
+git push origin feature/your-feature-name
+```
+
+Open a PR against the `deployment-1` branch (not `main`). Fill in the PR template:
+- What does this PR do?
+- How to test it?
+- Any screenshots (for UI changes)?
+
+**8. Code Review**
+
+- At least one maintainer review is required before merging.
+- Address all review comments before requesting a re-review.
+- Keep PRs small and focused — large PRs take longer to review.
+
+### Code Style Guidelines
+
+- **TypeScript**: Always type your props, API responses, and function signatures.
+- **Components**: Use functional components with named exports.
+- **API Routes**: Always validate input and return consistent JSON error shapes.
+- **Prisma**: Use `prisma.$transaction` for multi-step DB operations.
+- **No `console.log` in production code** — use structured logging if needed.
+- **Tailwind**: Use Tailwind utility classes; avoid inline styles.
+
+### Reporting Bugs
+
+Open a [GitHub Issue](https://github.com/prosenjit07/Deshi-Fresh-Bazar/issues) with:
+- Steps to reproduce
+- Expected vs. actual behavior
+- Browser/Node version
+- Screenshots if applicable
+
+---
 
 ## 📄 License
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+This project is licensed under the **MIT License**.
+
+---
 
 ## 👥 Contact
 
-* Website: [www.deshifreshbazar.com](https://www.deshifreshbazar.com)
-* Email: [deshifreshbazar@gmail.com](mailto:deshifreshbazar@gmail.com)
-* Phone: 01560001192
+| | |
+|---|---|
+| 🌐 Website | [deshifreshbazar.com](https://www.deshifreshbazar.com) |
+| 📧 Email | [deshifreshbazar@gmail.com](mailto:deshifreshbazar@gmail.com) |
+| 📞 Phone | 01560001192 |
+| 🐙 GitHub | [@prosenjit07](https://github.com/prosenjit07) |
 
-## 🙏 Acknowledgments
+---
 
-* [Next.js](https://nextjs.org) team
-* [Tailwind CSS](https://tailwindcss.com)
-* [Radix UI](https://www.radix-ui.com)
-* Our farmers and loyal customers ❤️
-
+> Built with ❤️ for Bangladeshi farmers and fresh food lovers.
