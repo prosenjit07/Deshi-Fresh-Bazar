@@ -482,5 +482,3 @@ export default function ProductClient({ product, products }: ProductClientProps)
 
 
 
-
-

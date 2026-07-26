@@ -142,5 +142,71 @@
 8. Update Swagger and admin tooling for shipment visibility and manual resync.
 
 
+**Plan Stage**
+- Scope confirmed for Steadfast planning only, with zero implementation edits in this step.
+- Planning baseline uses these artifacts: [STEADFAST_INTEGRATION_PLAN.md](file:///Users/prosenjitchandrabiswas/Downloads/Telegram%20Desktop/Song/freshbazar_app/STEADFAST_INTEGRATION_PLAN.md), [swagger.ts](file:///Users/prosenjitchandrabiswas/Downloads/Telegram%20Desktop/Song/freshbazar_app/src/lib/swagger.ts), [schema.prisma](file:///Users/prosenjitchandrabiswas/Downloads/Telegram%20Desktop/Song/freshbazar_app/prisma/schema.prisma), [track-order page](file:///Users/prosenjitchandrabiswas/Downloads/Telegram%20Desktop/Song/freshbazar_app/src/app/track-order/page.tsx), [checkout success](file:///Users/prosenjitchandrabiswas/Downloads/Telegram%20Desktop/Song/freshbazar_app/src/app/checkout/success/page.tsx), [checkout page](file:///Users/prosenjitchandrabiswas/Downloads/Telegram%20Desktop/Song/freshbazar_app/src/app/checkout/page.tsx), [orders page](file:///Users/prosenjitchandrabiswas/Downloads/Telegram%20Desktop/Song/freshbazar_app/src/app/orders/page.tsx), admin UI in [src/app/admin](file:///Users/prosenjitchandrabiswas/Downloads/Telegram%20Desktop/Song/freshbazar_app/src/app/admin/), and admin APIs in [src/app/api/admin](file:///Users/prosenjitchandrabiswas/Downloads/Telegram%20Desktop/Song/freshbazar_app/src/app/api/admin/).
+
+**Current-State Snapshot**
+- Local order lifecycle exists and is the source of truth for checkout/order creation.
+- Public order tracking now exists via `/api/orders/{id}` behavior used by track-order and success page.
+- No courier-specific persistence fields exist in Prisma yet.
+- No Steadfast integration endpoints or webhook routes exist in admin/public APIs.
+- Swagger currently documents app APIs but not Steadfast integration contracts.
+- Local PDF is present but not text-extractable in current tooling, so endpoint/auth details must be revalidated directly from merchant docs/dashboard.
+
+**Target Integration Shape**
+- Keep current checkout flow intact, then create Steadfast shipment server-side after local order creation.
+- Use deterministic invoice mapping from local order ID.
+- Store courier identifiers and sync metadata in DB without replacing local order status semantics.
+- Support customer tracking by safe lookup strategy, then enrich admin with shipment visibility and manual sync tools.
+- Prefer webhook-driven status sync; fallback to scheduled/manual sync path.
+
+**Execution Plan (Stages)**
+1. **Stage 0: Contract Validation**
+- Confirm Steadfast production base URL, auth header format, create-order payload schema, status lookup endpoints, and webhook availability from official merchant docs/dashboard.
+- Freeze a single source contract doc for request/response examples and error codes.
+
+2. **Stage 1: Data Model Design**
+- Finalize `Order` courier fields and optional `CourierEvent` audit table design in Prisma plan.
+- Define status mapping table: `steadfast_status -> local_order_status` with explicit non-destructive rules.
+
+3. **Stage 2: Service Boundary Design**
+- Define internal `SteadfastService` interface for create shipment, query status, and normalize errors.
+- Define retry/idempotency strategy for shipment creation and status sync.
+
+4. **Stage 3: API Contract Planning**
+- Plan internal endpoints for shipment create, single-order courier status, bulk/admin sync, and webhook receive.
+- Extend Swagger plan with new schemas, success/error responses, and security notes.
+
+5. **Stage 4: UI/UX Planning**
+- Plan track-order UX inputs and response states for public-safe lookups.
+- Plan checkout success UI additions for courier tracking details when available.
+- Plan admin orders UI additions for courier columns, status chips, and manual resync action.
+
+6. **Stage 5: Rollout & Observability**
+- Plan feature flags and phased rollout from staging to production.
+- Define logs/metrics for shipment creation failures, sync lag, webhook failures, and reconciliation alerts.
+
+**Acceptance Criteria Per Stage**
+- Stage 0 complete when Steadfast contract is signed off with real production examples.
+- Stage 1 complete when schema proposal includes migration-safe nullable fields and status mapping doc.
+- Stage 2 complete when service interface + retry/idempotency behavior is documented.
+- Stage 3 complete when Swagger draft includes all new courier endpoint contracts.
+- Stage 4 complete when UI wireflows for customer/admin are approved.
+- Stage 5 complete when rollout checklist, monitoring KPIs, and rollback plan are approved.
+
+**Risks To Control Early**
+- Wrong Steadfast base URL or auth shape across sandbox/production.
+- Status mapping confusion between courier movement vs business fulfillment state.
+- Guest/public tracking exposure without proper verification constraints.
+- Missing webhook resilience causing stale statuses and support overhead.
+
+**Next Step (Still Planning)**
+- If you want, I can now produce the **Stage 0 contract checklist template** (exact fields, headers, sample payloads, expected responses, error matrix) so your team can verify Steadfast in one pass before any coding.
+
+
+
+
+
 ssh key
 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDzqOPJVQOwtcjHnOaI0OgMvXPQkWqHSbjs232nmUbl3 prosenjitbiswas983@gmail.com

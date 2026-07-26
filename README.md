@@ -8,7 +8,7 @@ Deshi Fresh Bazar is an Agritech fruit chain initiative delivering safer fruits 
 * **Shopping Cart**: Manage your purchases with an intuitive cart system
 * **Package Selection**: Choose from different package sizes for each product
 * **Image Gallery**: View our collection of product and delivery images
-* **Order Tracking**: Track your order status
+* **Order Tracking**: অর্ডার ট্র্যাক status
 * **Responsive Design**: Fully responsive across all devices
 
 ## 🛠️ Tech Stack
